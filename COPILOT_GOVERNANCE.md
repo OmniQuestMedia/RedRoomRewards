@@ -69,8 +69,8 @@ When working on RedRoomRewards code, GitHub Copilot and AI assistants must adher
   - API keys or secrets
   - Personal identifying information beyond user IDs
   - Session tokens or authentication credentials
-- **Retention:** Audit logs must be retained according to regulatory requirements
-- **Tamper Evidence:** Audit logs should be write-only and include integrity verification
+- **Retention:** Audit logs must be retained for a minimum of 7 years or according to applicable regulatory requirements
+- **Tamper Evidence:** Audit logs MUST be write-only and include integrity verification mechanisms
 
 ### 2.4 Documented API Boundary with XXXChatNow
 
@@ -80,7 +80,7 @@ When working on RedRoomRewards code, GitHub Copilot and AI assistants must adher
   - Endpoint path and HTTP method
   - Request/response schemas
   - Error codes and meanings
-  - Performance SLAs (<300ms target)
+  - Performance SLAs (<300ms target, with timeout and fallback behavior specified)
   - Authentication requirements
 - **Ownership Clarity:** RedRoomRewards APIs MUST NOT:
   - Make decisions about game logic or randomness
