@@ -1,0 +1,915 @@
+openapi: 3.0.3
+info:
+  title: RedRoomRewards API
+  description: |
+    **Canonical API Contract for RedRoomRewards Loyalty Platform**
+    
+    This contract defines all API endpoints for RedRoomRewards without implementing
+    business logic. This is a scaffolded contract only - handlers to be implemented
+    in subsequent phases.
+    
+    **Architecture Intent**: 
+    Ledger-based loyalty system managing user wallets, point earning/redemption,
+    model wallets, admin operations, and external webhook integrations.
+    
+    **Security Requirements**:
+    - All endpoints require JWT bearer authentication
+    - Idempotency keys mandatory for all state-changing operations
+    - Request tracing via X-Request-ID header
+    - Rate limiting enforced per endpoint
+    
+    **Prohibitions**:
+    - No legacy XXXChatNow code or patterns in implementation
+    - No business logic in this contract file
+    - No database schema definitions here
+    - See /docs/UNIVERSAL_ARCHITECTURE.md and /SECURITY.md
+    
+    **Work Order**: 2025-12-15 Repository foundation/cleanup phase
+    **Status**: Scaffolded contract only - no implementation
+  version: 0.1.0
+  contact:
+    name: RedRoomRewards Team
+    url: https://github.com/OmniQuestMedia/RedRoomRewards
+
+servers:
+  - url: https://api.redroomrewards.example.com/v1
+    description: Production server (placeholder)
+  - url: https://staging-api.redroomrewards.example.com/v1
+    description: Staging server (placeholder)
+  - url: http://localhost:3000/v1
+    description: Local development server (placeholder)
+
+tags:
+  - name: health
+    description: Service health and status checks
+  - name: wallets
+    description: User wallet and balance operations
+  - name: earn
+    description: Point earning operations
+  - name: redeem
+    description: Point redemption operations
+  - name: ledger
+    description: Transaction history and audit trail
+  - name: models
+    description: Model-specific wallet operations
+  - name: admin
+    description: Administrative operations (restricted)
+  - name: webhooks
+    description: Webhook endpoints for external integrations
+
+paths:
+  # ===== Health & Status =====
+  /health:
+    get:
+      summary: Health check
+      description: Returns service health status
+      operationId: getHealth
+      tags:
+        - health
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  # ===== Wallet Operations =====
+  /wallets/{userId}:
+    get:
+      summary: Get user wallet
+      description: Retrieve wallet balance and details for a user
+      operationId: getUserWallet
+      tags:
+        - wallets
+      parameters:
+        - $ref: '#/components/parameters/UserIdPath'
+        - $ref: '#/components/parameters/RequestIdHeader'
+      responses:
+        '200':
+          description: Wallet details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wallet'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /wallets/{userId}/balance:
+    get:
+      summary: Get wallet balance
+      description: Retrieve current balance only (lightweight)
+      operationId: getWalletBalance
+      tags:
+        - wallets
+      parameters:
+        - $ref: '#/components/parameters/UserIdPath'
+        - $ref: '#/components/parameters/RequestIdHeader'
+      responses:
+        '200':
+          description: Balance retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ===== Earn Operations =====
+  /earn:
+    post:
+      summary: Award points to user
+      description: |
+        Credit points to a user's wallet. This endpoint is idempotent and
+        requires an idempotency key to prevent duplicate awards.
+      operationId: earnPoints
+      tags:
+        - earn
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EarnRequest'
+      responses:
+        '201':
+          description: Points awarded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+        '200':
+          description: Duplicate request - returning cached result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  # ===== Redeem Operations =====
+  /redeem:
+    post:
+      summary: Redeem points from user
+      description: |
+        Debit points from a user's wallet. This endpoint is idempotent and
+        requires an idempotency key to prevent duplicate redemptions.
+      operationId: redeemPoints
+      tags:
+        - redeem
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RedeemRequest'
+      responses:
+        '201':
+          description: Points redeemed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+        '200':
+          description: Duplicate request - returning cached result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          description: Insufficient balance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  # ===== Ledger Operations =====
+  /ledger/transactions:
+    get:
+      summary: List transactions
+      description: Retrieve transaction history with filtering and pagination
+      operationId: listTransactions
+      tags:
+        - ledger
+      parameters:
+        - $ref: '#/components/parameters/RequestIdHeader'
+        - name: userId
+          in: query
+          description: Filter by user ID
+          schema:
+            type: string
+        - name: type
+          in: query
+          description: Filter by transaction type
+          schema:
+            type: string
+            enum: [credit, debit, all]
+        - name: startDate
+          in: query
+          description: Filter transactions after this date (ISO 8601)
+          schema:
+            type: string
+            format: date-time
+        - name: endDate
+          in: query
+          description: Filter transactions before this date (ISO 8601)
+          schema:
+            type: string
+            format: date-time
+        - name: limit
+          in: query
+          description: Maximum number of results (max 1000)
+          schema:
+            type: integer
+            default: 100
+            minimum: 1
+            maximum: 1000
+        - name: offset
+          in: query
+          description: Pagination offset
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+      responses:
+        '200':
+          description: Transaction list retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /ledger/transactions/{transactionId}:
+    get:
+      summary: Get transaction details
+      description: Retrieve details of a specific transaction
+      operationId: getTransaction
+      tags:
+        - ledger
+      parameters:
+        - name: transactionId
+          in: path
+          required: true
+          description: Transaction identifier
+          schema:
+            type: string
+        - $ref: '#/components/parameters/RequestIdHeader'
+      responses:
+        '200':
+          description: Transaction details retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ===== Model Operations =====
+  /models/{modelId}/wallet:
+    get:
+      summary: Get model wallet
+      description: Retrieve promotional wallet for a model
+      operationId: getModelWallet
+      tags:
+        - models
+      parameters:
+        - name: modelId
+          in: path
+          required: true
+          description: Model identifier
+          schema:
+            type: string
+        - $ref: '#/components/parameters/RequestIdHeader'
+      responses:
+        '200':
+          description: Model wallet retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelWallet'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /models/{modelId}/earn:
+    post:
+      summary: Award points to model
+      description: Credit points to model's promotional wallet
+      operationId: modelEarnPoints
+      tags:
+        - models
+      parameters:
+        - name: modelId
+          in: path
+          required: true
+          description: Model identifier
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModelEarnRequest'
+      responses:
+        '201':
+          description: Points awarded to model
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+        '200':
+          description: Duplicate request - cached result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ===== Admin Operations =====
+  /admin/wallets:
+    post:
+      summary: Create wallet (admin)
+      description: Manually create a wallet for a user or model
+      operationId: adminCreateWallet
+      tags:
+        - admin
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWalletRequest'
+      responses:
+        '201':
+          description: Wallet created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wallet'
+        '200':
+          description: Duplicate request - wallet exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wallet'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/transactions/{transactionId}/audit:
+    get:
+      summary: Get full audit trail (admin)
+      description: Retrieve complete audit information for a transaction
+      operationId: adminGetAuditTrail
+      tags:
+        - admin
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: transactionId
+          in: path
+          required: true
+          description: Transaction identifier
+          schema:
+            type: string
+        - $ref: '#/components/parameters/RequestIdHeader'
+      responses:
+        '200':
+          description: Audit trail retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditTrail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # ===== Webhook Endpoints =====
+  /webhooks/external/award:
+    post:
+      summary: External award webhook
+      description: |
+        Webhook endpoint for external systems to award points.
+        Requires webhook signature verification.
+      operationId: webhookExternalAward
+      tags:
+        - webhooks
+      parameters:
+        - name: X-Webhook-Signature
+          in: header
+          required: true
+          description: HMAC signature for webhook verification
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookAwardPayload'
+      responses:
+        '202':
+          description: Webhook accepted and queued for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookResponse'
+        '200':
+          description: Duplicate webhook - already processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: Invalid webhook signature
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  # ===== Parameters =====
+  parameters:
+    UserIdPath:
+      name: userId
+      in: path
+      required: true
+      description: User identifier
+      schema:
+        type: string
+        pattern: '^[a-zA-Z0-9_-]+$'
+        minLength: 1
+        maxLength: 128
+
+    IdempotencyKeyHeader:
+      name: X-Idempotency-Key
+      in: header
+      required: true
+      description: Unique key for idempotent operations (UUID recommended)
+      schema:
+        type: string
+        format: uuid
+        minLength: 1
+        maxLength: 255
+
+    RequestIdHeader:
+      name: X-Request-ID
+      in: header
+      required: false
+      description: Request tracing identifier (auto-generated if not provided)
+      schema:
+        type: string
+        format: uuid
+
+  # ===== Schemas =====
+  schemas:
+    # Health
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - timestamp
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded, error]
+          example: ok
+        timestamp:
+          type: string
+          format: date-time
+        version:
+          type: string
+          example: 0.1.0
+        uptime:
+          type: integer
+          description: Uptime in seconds
+
+    # Wallet schemas
+    Wallet:
+      type: object
+      required:
+        - userId
+        - balance
+        - currency
+        - version
+      properties:
+        userId:
+          type: string
+          description: User identifier
+        balance:
+          type: number
+          format: double
+          description: Current point balance
+        currency:
+          type: string
+          description: Currency type
+          default: points
+          example: points
+        createdAt:
+          type: string
+          format: date-time
+        lastUpdated:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          description: Optimistic locking version
+          minimum: 0
+
+    BalanceResponse:
+      type: object
+      required:
+        - userId
+        - balance
+      properties:
+        userId:
+          type: string
+        balance:
+          type: number
+          format: double
+        asOf:
+          type: string
+          format: date-time
+
+    ModelWallet:
+      type: object
+      required:
+        - modelId
+        - balance
+        - currency
+        - type
+      properties:
+        modelId:
+          type: string
+        balance:
+          type: number
+          format: double
+        currency:
+          type: string
+          default: points
+        type:
+          type: string
+          enum: [promotional, earnings]
+          description: Wallet type for models
+        createdAt:
+          type: string
+          format: date-time
+        lastUpdated:
+          type: string
+          format: date-time
+
+    # Transaction schemas
+    Transaction:
+      type: object
+      required:
+        - id
+        - userId
+        - amount
+        - type
+        - reason
+        - timestamp
+        - idempotencyKey
+      properties:
+        id:
+          type: string
+          description: Unique transaction identifier
+        userId:
+          type: string
+        amount:
+          type: number
+          format: double
+          description: Transaction amount (positive for credit, negative for debit)
+        type:
+          type: string
+          enum: [credit, debit]
+        reason:
+          type: string
+          description: Reason code for transaction
+          example: user_signup_bonus
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Additional context data
+        timestamp:
+          type: string
+          format: date-time
+        idempotencyKey:
+          type: string
+          description: Idempotency key used for this transaction
+        previousBalance:
+          type: number
+          format: double
+        newBalance:
+          type: number
+          format: double
+        requestId:
+          type: string
+          description: Request ID for tracing
+
+    TransactionResponse:
+      type: object
+      required:
+        - transaction
+        - wallet
+      properties:
+        transaction:
+          $ref: '#/components/schemas/Transaction'
+        wallet:
+          $ref: '#/components/schemas/Wallet'
+
+    TransactionListResponse:
+      type: object
+      required:
+        - transactions
+        - pagination
+      properties:
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transaction'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    # Request schemas
+    EarnRequest:
+      type: object
+      required:
+        - userId
+        - amount
+        - reason
+      properties:
+        userId:
+          type: string
+        amount:
+          type: number
+          format: double
+          minimum: 0.01
+          description: Points to award (must be positive)
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Reason code for awarding points
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Optional metadata for audit trail
+
+    RedeemRequest:
+      type: object
+      required:
+        - userId
+        - amount
+        - reason
+      properties:
+        userId:
+          type: string
+        amount:
+          type: number
+          format: double
+          minimum: 0.01
+          description: Points to redeem (must be positive)
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Reason code for redemption
+        metadata:
+          type: object
+          additionalProperties: true
+
+    ModelEarnRequest:
+      type: object
+      required:
+        - amount
+        - reason
+      properties:
+        amount:
+          type: number
+          format: double
+          minimum: 0.01
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 255
+        metadata:
+          type: object
+          additionalProperties: true
+
+    CreateWalletRequest:
+      type: object
+      required:
+        - userId
+        - currency
+      properties:
+        userId:
+          type: string
+        currency:
+          type: string
+          default: points
+        initialBalance:
+          type: number
+          format: double
+          default: 0
+          description: Starting balance (default 0)
+
+    WebhookAwardPayload:
+      type: object
+      required:
+        - event
+        - userId
+        - amount
+        - reason
+      properties:
+        event:
+          type: string
+          description: Event type from external system
+        userId:
+          type: string
+        amount:
+          type: number
+          format: double
+          minimum: 0.01
+        reason:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+          additionalProperties: true
+
+    # Admin schemas
+    AuditTrail:
+      type: object
+      required:
+        - transaction
+        - auditLog
+      properties:
+        transaction:
+          $ref: '#/components/schemas/Transaction'
+        auditLog:
+          type: object
+          properties:
+            createdBy:
+              type: string
+            ipAddress:
+              type: string
+            userAgent:
+              type: string
+            additionalContext:
+              type: object
+              additionalProperties: true
+
+    # Webhook responses
+    WebhookResponse:
+      type: object
+      required:
+        - accepted
+        - requestId
+      properties:
+        accepted:
+          type: boolean
+        requestId:
+          type: string
+        queueId:
+          type: string
+          description: Queue identifier for async processing
+
+    # Common schemas
+    Pagination:
+      type: object
+      required:
+        - limit
+        - offset
+        - total
+      properties:
+        limit:
+          type: integer
+        offset:
+          type: integer
+        total:
+          type: integer
+          description: Total number of items
+        hasMore:
+          type: boolean
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          additionalProperties: true
+          description: Additional error context
+        requestId:
+          type: string
+          description: Request ID for tracing
+
+  # ===== Responses =====
+  responses:
+    BadRequest:
+      description: Invalid request parameters or body
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Unauthorized:
+      description: Missing or invalid authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Forbidden:
+      description: Insufficient permissions for this operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    UnprocessableEntity:
+      description: Request understood but cannot be processed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  # ===== Security Schemes =====
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT bearer token for authentication. Include in Authorization header:
+        `Authorization: Bearer <token>`
+
+# ===== Global Security =====
+security:
+  - bearerAuth: []
