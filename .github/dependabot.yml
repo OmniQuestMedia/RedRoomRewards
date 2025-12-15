@@ -1,6 +1,9 @@
 version: 2
 updates:
   - package-ecosystem: "npm"
+  # Keep npm / Node dependencies up to date (MERN, etc.)
+  - package-ecosystem: "npm"
+    directory: "/"            # root of the repo
     directory: "/"
     schedule:
       interval: "weekly"
@@ -9,6 +12,10 @@ updates:
     open-pull-requests-limit: 10
     rebase-strategy: "auto"
 
+  # Keep GitHub Actions up to date
+  - package-ecosystem: "github-actions"
+    directory: "/"            # .github/workflows
+  # Keep your GitHub Actions up to date
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -16,3 +23,4 @@ updates:
       day: "monday"
       time: "04:30"
     open-pull-requests-limit: 10
+    rebase-strategy: "auto"
