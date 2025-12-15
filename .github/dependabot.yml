@@ -3,6 +3,7 @@ updates:
   # Keep npm / Node dependencies up to date (MERN, etc.)
   - package-ecosystem: "npm"
     directory: "/"            # root of the repo
+    directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -13,6 +14,9 @@ updates:
   # Keep GitHub Actions up to date
   - package-ecosystem: "github-actions"
     directory: "/"            # .github/workflows
+  # Keep your GitHub Actions up to date
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
