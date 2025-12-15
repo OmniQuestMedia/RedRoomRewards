@@ -1,5 +1,6 @@
 version: 2
 updates:
+  - package-ecosystem: "npm"
   # Keep npm / Node dependencies up to date (MERN, etc.)
   - package-ecosystem: "npm"
     directory: "/"            # root of the repo
