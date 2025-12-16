@@ -2,9 +2,9 @@ name: CodeQL Analysis
 
 on:
   push:
-    branches: [ "main", "develop" ]
+    branches: ["main", "develop"]
   pull_request:
-    branches: [ "main", "develop" ]
+    branches: ["main", "develop"]
   schedule:
     - cron: "0 5 * * 1"
 
@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ "javascript-typescript" ]
+        language: ["javascript-typescript"]
 
     steps:
       - name: Checkout repository

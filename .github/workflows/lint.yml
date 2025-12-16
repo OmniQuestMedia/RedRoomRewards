@@ -15,7 +15,6 @@ jobs:
   lint:
     name: Lint Codebase
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -27,16 +26,13 @@ jobs:
         env:
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
           # ALLOW-LIST strategy: Only enable specific validators
           # Any validator not explicitly enabled is implicitly disabled
           VALIDATE_MARKDOWN: true
           VALIDATE_YAML: true
           VALIDATE_JSON: true
-          
           # Exclusions
           FILTER_REGEX_EXCLUDE: 'archive/.*'
-          
           # Linter configuration
           LINTER_RULES_PATH: /
           MARKDOWN_CONFIG_FILE: .markdownlint.json
