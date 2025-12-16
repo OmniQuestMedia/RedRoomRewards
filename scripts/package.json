@@ -1,0 +1,23 @@
+{
+  "name": "redroomrewards-workflow-manager",
+  "version": "1.0.0",
+  "description": "GitHub Actions workflow management utility for RedRoomRewards",
+  "type": "module",
+  "scripts": {
+    "cleanup": "node manage-workflows.js cleanup",
+    "list": "node manage-workflows.js list",
+    "cancel-failed": "node manage-workflows.js cancel-failed",
+    "delete-old": "node manage-workflows.js delete-old"
+  },
+  "keywords": [
+    "github-actions",
+    "workflow",
+    "cleanup"
+  ],
+  "author": "RedRoomRewards Team",
+  "license": "MIT",
+  "dependencies": {
+    "@octokit/rest": "^21.0.0",
+    "dotenv": "^16.4.0"
+  }
+}
