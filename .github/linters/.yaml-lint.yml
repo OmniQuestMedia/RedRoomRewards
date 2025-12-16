@@ -1,0 +1,37 @@
+---
+extends: default
+
+ignore: |
+  super-linter-output/
+  node_modules/
+  dist/
+  build/
+  coverage/
+  .venv/
+  vendor/
+
+rules:
+  # GitHub Actions workflows use 'on', which yamllint considers truthy by default
+  truthy: disable
+
+  # Many repos don't use '---' at the top of every YAML file
+  document-start: disable
+
+  # Keep comments readable, and satisfy strict linters
+  comments:
+    min-spaces-from-content: 2
+
+  # Stabilize the common failure: "too many spaces inside brackets"
+  # This allows BOTH ["a", "b"] and [ "a", "b" ] while we clean up files gradually.
+  brackets:
+    max-spaces-inside: 1
+    max-spaces-inside-empty: 1
+
+  indentation:
+    spaces: 2
+    indent-sequences: consistent
+
+  line-length:
+    max: 160
+    allow-non-breakable-words: true
+    allow-non-breakable-inline-mappings: true
