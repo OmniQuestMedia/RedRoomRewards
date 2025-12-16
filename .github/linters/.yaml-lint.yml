@@ -1,0 +1,16 @@
+extends: default
+
+rules:
+  truthy: disable        # needed for GitHub Actions workflows using `on:`
+  line-length:
+    max: 160
+    allow-non-breakable-words: true
+    allow-non-breakable-inline-mappings: true
+  comments-indentation: disable
+  document-start: disable
+
+ignore: |
+  node_modules/
+  dist/
+  build/
+  coverage/

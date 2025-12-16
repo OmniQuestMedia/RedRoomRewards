@@ -1,0 +1,13 @@
+default: true
+# Reduce noise for docs-heavy repos
+MD013: false            # line length
+MD033: false            # inline HTML
+MD041: false            # first line heading
+MD024:
+  allow_different_nesting: true  # duplicate headings in different sections
+MD026:
+  punctuation: ".,;:!?" # loosen trailing punctuation rule
+MD029: false            # ordered list item prefix
+MD036: false            # emphasis used instead of heading
+MD040: false            # fenced code blocks language requirement
+MD046: false            # code block style

@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ "javascript-typescript" ]
+        language: [ "actions" ]
 
     steps:
       - name: Checkout repository
@@ -32,6 +32,7 @@ jobs:
           languages: ${{ matrix.language }}
 
       - name: Autobuild
+        if: matrix.language != 'actions'
         uses: github/codeql-action/autobuild@v4
 
       - name: Perform CodeQL Analysis

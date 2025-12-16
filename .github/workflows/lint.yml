@@ -1,42 +1,33 @@
----
-name: Super-Linter
+name: Lint
 
 on:
-  push:
-    branches: [main, develop]
   pull_request:
-    branches: [main, develop]
+  push:
+    branches: [ main ]
 
 permissions:
   contents: read
   statuses: write
 
 jobs:
-  lint:
-    name: Lint Codebase
+  super-linter:
+    name: Super-Linter
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
+          persist-credentials: false
 
-      - name: Run Super-Linter
-        uses: super-linter/super-linter@v7
+      - name: Super-Linter
+        uses: super-linter/super-linter@v8.3.0
         env:
-          DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
-          # ALLOW-LIST strategy: Only enable specific validators
-          # Any validator not explicitly enabled is implicitly disabled
+          DEFAULT_BRANCH: main
+          VALIDATE_ALL_CODEBASE: false
+          MULTI_STATUS: true
+          LINTER_RULES_PATH: .github/linters
           VALIDATE_MARKDOWN: true
           VALIDATE_YAML: true
           VALIDATE_JSON: true
-          
-          # Exclusions
-          FILTER_REGEX_EXCLUDE: 'archive/.*'
-          
-          # Linter configuration
-          LINTER_RULES_PATH: /
-          MARKDOWN_CONFIG_FILE: .markdownlint.json
