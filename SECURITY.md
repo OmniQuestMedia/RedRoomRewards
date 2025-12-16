@@ -149,7 +149,6 @@ We take security vulnerabilities seriously. If you discover a security issue:
 ### Required Before Merge
 
 - ✅ CodeQL security analysis passes
-- ✅ Super-Linter checks pass
 - ✅ No known vulnerabilities in dependencies
 - ✅ Input validation tests for all endpoints
 - ✅ Authentication tests for protected routes
@@ -221,7 +220,7 @@ All pull requests must verify:
 - [ ] Authentication/authorization implemented
 - [ ] No legacy code patterns used
 - [ ] Dependencies have no critical CVEs
-- [ ] CodeQL and Super-Linter pass
+- [ ] CodeQL passes
 - [ ] Security-sensitive changes reviewed by human
 - [ ] Tests cover security scenarios
 

@@ -3,7 +3,6 @@
 **A Ledger-Based Loyalty and Rewards Platform**
 
 [![CodeQL](https://github.com/OmniQuestMedia/RedRoomRewards/workflows/CodeQL/badge.svg)](https://github.com/OmniQuestMedia/RedRoomRewards/actions/workflows/codeql.yml)
-[![Super-Linter](https://github.com/OmniQuestMedia/RedRoomRewards/workflows/Lint%20Code%20Base/badge.svg)](https://github.com/OmniQuestMedia/RedRoomRewards/actions/workflows/lint.yml)
 
 ---
 
@@ -54,7 +53,7 @@ All directories are currently **scaffolded** with placeholder READMEs. Core impl
 - ✅ OpenAPI contract specification (`/api/openapi.yaml`)
 - ✅ Architecture documentation
 - ✅ Security and governance policies
-- ✅ CI/CD workflows (CodeQL, Super-Linter, Dependabot)
+- ✅ CI/CD workflows (CodeQL, Dependabot)
 
 ### What's Next
 - 🔄 Ledger module implementation
@@ -126,7 +125,7 @@ npm run dev
 - **Database**: MongoDB with Mongoose ODM
 - **API Style**: REST with OpenAPI 3.0
 - **Testing**: Jest for unit/integration tests
-- **CI/CD**: GitHub Actions (CodeQL, Super-Linter)
+- **CI/CD**: GitHub Actions (CodeQL)
 
 For detailed development rules, see [`COPILOT_GOVERNANCE.md`](/COPILOT_GOVERNANCE.md).
 
