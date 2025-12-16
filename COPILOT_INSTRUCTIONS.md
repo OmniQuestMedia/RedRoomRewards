@@ -515,7 +515,6 @@ asdf                   ❌ Meaningless
 
 **CI/CD Pipeline**:
 - ✅ CodeQL security analysis
-- ✅ Super-Linter code quality
 - ✅ Unit test suite (100% pass required)
 - ✅ Integration test suite
 - ✅ TypeScript compilation

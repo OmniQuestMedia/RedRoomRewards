@@ -172,7 +172,6 @@ RedRoomRewards follows this **mandatory** structure:
 ### 6.2 Code Quality
 - TypeScript strict mode enabled
 - ESLint and Prettier for code style
-- Super-Linter for automated checks
 - 100% test coverage for financial logic
 
 ### 6.3 Git Workflow
@@ -245,7 +244,6 @@ RedRoomRewards integrates with external systems (e.g., XXXChatNow) via:
 - Ensure tests provide adequate coverage
 
 ### 9.2 Automated Checks
-- Super-Linter for code quality
 - CodeQL for security vulnerabilities
 - Dependabot for dependency updates
 - CI/CD pipeline must pass

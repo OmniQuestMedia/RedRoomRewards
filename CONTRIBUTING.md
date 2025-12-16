@@ -440,7 +440,6 @@ None / [Description of breaking changes and migration path]
 
 1. **Automated Checks**: CI/CD pipeline runs
    - CodeQL security analysis
-   - Super-Linter
    - Test suite
    - Build verification
 
