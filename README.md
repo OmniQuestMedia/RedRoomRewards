@@ -135,7 +135,7 @@ For detailed development rules, see [`COPILOT_GOVERNANCE.md`](/COPILOT_GOVERNANC
 
 ⚠️ **CRITICAL**: The following are strictly forbidden:
 
-- **NO legacy XXXChatNow code** may be used (see `/archive/xxxchatnow-seed/`)
+- **NO legacy archived code** may be used (see `/archive/xxxchatnow-seed/`)
 - **NO runtime UI, chat, broadcast, or tipping code** in this repository
 - **NO game logic or RNG implementations** (external systems provide facts)
 - **NO secrets or credentials** committed to source control
@@ -200,7 +200,7 @@ This project is licensed under the MIT License - see [`LICENSE`](/LICENSE) for d
 - Established canonical directory structure
 - Created OpenAPI contract specification
 - Documented universal architecture and prohibitions
-- Archived legacy XXXChatNow code (no reuse permitted)
+- Archived legacy code (no reuse permitted)
 - Added governance and compliance documentation
 
 See [`DECISIONS.md`](/DECISIONS.md) for detailed decision history.

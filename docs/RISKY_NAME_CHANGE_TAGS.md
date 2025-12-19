@@ -1,25 +1,25 @@
 # Risky Name Change Tags
 
-This document lists patterns and locations that require special scrutiny or approval before renaming in codebases—especially during branding migrations (e.g., xCams → XXXChatNow transitions). 
+This document lists patterns and locations that require special scrutiny or approval before renaming in codebases during branding migrations. 
 
 ## Definition: Risky Name Change Locations
 
-Any instance of a legacy name (e.g., "xCams", "xcam", etc.) MUST be flagged as risky if found in the following contexts:
+Any instance of a legacy name MUST be flagged as risky if found in the following contexts:
 
 - **API Endpoints & Routes**  
-  * Examples: `/api/xcams/*`, `/v1/xCamsAuth/login`
+  * Examples: `/api/legacy/*`, `/v1/legacyAuth/login`
 - **Environment Variables & Config Keys**  
-  * Examples: `XCAMS_API_KEY`, `XCAM_SECRET`, `.env`, `config.js`
+  * Examples: `LEGACY_API_KEY`, `LEGACY_SECRET`, `.env`, `config.js`
 - **Database Collections/Tables & Migration Scripts**  
-  * Examples: `db.xcams_users`, `"table": "xcams_transactions"`
+  * Examples: `db.legacy_users`, `"table": "legacy_transactions"`
 - **External Vendor/Integration IDs or Keys**  
   * API tokens, client IDs, OAuth configurations referencing external systems.
 - **Persistent Storage Keys, Event Names, or Bus Topics**  
-  * Examples: `localStorage['xCamsUser']`, `topic: xcams.events.userLogin`
+  * Examples: `localStorage['legacyUser']`, `topic: legacy.events.userLogin`
 - **3rd-Party URLs or Domains (Do Not Change!)**  
-  * Examples: `https://vendor.xcams.com/api`
+  * Examples: `https://vendor.example.com/api`
 - **Authentication, Licensing, or Other Security-Critical Identifiers**  
-  * Examples: JWT claims like `iss: "xCams"`, SSO provider IDs
+  * Examples: JWT claims like `iss: "LegacySystem"`, SSO provider IDs
 
 ---
 
@@ -37,9 +37,9 @@ Any instance of a legacy name (e.g., "xCams", "xcam", etc.) MUST be flagged as r
 
 | File Path                           | Line No. | Excerpt                                   | Risk Area          | Action/Status         | Notes/Reviewer   |
 |--------------------------------------|----------|--------------------------------------------|--------------------|----------------------|------------------|
-| `backend/app/api/xcams_auth.py`      | 12       | `@app.route("/xcams/v1/login")`            | API endpoint       | DO NOT CHANGE        | Pending review   |
-| `config/default.json`                | 5        | `"XCAMS_API_KEY": "..."`                   | Env/config         | Do with caution      | Refactor plan required |
-| `migrations/2021_add_xcams_table.sql`| 1        | `CREATE TABLE xcams_users (...`             | DB schema         | Do not change        | Migration needed |
+| `backend/app/api/legacy_auth.py`     | 12       | `@app.route("/legacy/v1/login")`           | API endpoint       | DO NOT CHANGE        | Pending review   |
+| `config/default.json`                | 5        | `"LEGACY_API_KEY": "..."`                  | Env/config         | Do with caution      | Refactor plan required |
+| `migrations/2021_add_legacy_table.sql`| 1       | `CREATE TABLE legacy_users (...`           | DB schema         | Do not change        | Migration needed |
 | ...                                  | ...      | ...                                        | ...                | ...                  | ...              |
 
 ---

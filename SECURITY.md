@@ -74,7 +74,7 @@ We take security vulnerabilities seriously. If you discover a security issue:
    - ⛔ NO code from `/archive/xxxchatnow-seed/` may be referenced or used
    - ⛔ Archived code contains known vulnerabilities and deprecated patterns
    - ⛔ Any PR using legacy code will be rejected immediately
-   - **Rationale**: Legacy XXXChatNow code has security vulnerabilities and architectural anti-patterns
+   - **Rationale**: Legacy archived code has security vulnerabilities and architectural anti-patterns
 
 2. **Inappropriate Functionality**:
    - ⛔ NO runtime UI code in this repository
