@@ -41,14 +41,14 @@ This document defines the mandatory architectural principles and prohibitions fo
 
 ### 2.1 Legacy Code Prohibition
 
-**ABSOLUTE PROHIBITION**: No code, patterns, or logic from archived XXXChatNow systems may be referenced, copied, adapted, or used in RedRoomRewards.
+**ABSOLUTE PROHIBITION**: No code, patterns, or logic from archived legacy systems may be referenced, copied, adapted, or used in RedRoomRewards.
 
 - **Archive Location**: `/archive/xxxchatnow-seed/`
 - **Purpose**: Historical reference and audit only
 - **Access**: View-only for understanding prior architecture mistakes
 - **Usage**: ZERO reuse permitted
 
-**Rationale**: Legacy XXXChatNow code contains:
+**Rationale**: Legacy archived code contains:
 - Architectural patterns incompatible with current design
 - Security vulnerabilities and technical debt
 - Entangled business logic that violates separation of concerns
@@ -192,7 +192,7 @@ RedRoomRewards follows this **mandatory** structure:
 
 ## 7. Integration Philosophy
 
-RedRoomRewards integrates with external systems (e.g., XXXChatNow) via:
+RedRoomRewards integrates with external systems (e.g., consuming applications) via:
 
 ### 7.1 API Contract
 - Well-defined OpenAPI specifications

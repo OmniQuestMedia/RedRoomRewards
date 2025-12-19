@@ -15,7 +15,7 @@ All subdirectories are currently **scaffolded only**. Implementation will be add
 
 ## Prohibitions
 
-- **NO legacy XXXChatNow code** may be referenced or used
+- **NO legacy archived code** may be referenced or used
 - **NO runtime UI, chat, broadcast, or tipping logic** belongs here
 - See `/docs/UNIVERSAL_ARCHITECTURE.md` and `/SECURITY.md` for architectural constraints
 

@@ -5,7 +5,7 @@
 **Major Restructure**: Mandated repository cleanup and foundation establishment per work order.
 
 #### Structural Changes
-- **Archived Legacy Code**: All XXXChatNow broadcasting application code moved to `/archive/xxxchatnow-seed/` with strict prohibition on reuse
+- **Archived Legacy Code**: All legacy broadcasting application code moved to `/archive/xxxchatnow-seed/` with strict prohibition on reuse
 - **Canonical Directory Structure**: Established standard layout:
   - `/api/` for OpenAPI contracts
   - `/src/` for application code (ledger, wallets, services, webhooks)
@@ -28,7 +28,7 @@
 - **Status**: All code is scaffolded only - no implementation in this phase
 
 #### Governance and Compliance
-- **Prohibition Documented**: Legacy XXXChatNow code strictly forbidden (see UNIVERSAL_ARCHITECTURE.md Section 2.1)
+- **Prohibition Documented**: Legacy archived code strictly forbidden (see UNIVERSAL_ARCHITECTURE.md Section 2.1)
 - **Runtime Scope Defined**: No UI, chat, broadcast, or tipping logic permitted (see UNIVERSAL_ARCHITECTURE.md Section 2.2)
 - **Security Mandates**: All documented in SECURITY.md and UNIVERSAL_ARCHITECTURE.md
 

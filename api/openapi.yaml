@@ -19,7 +19,7 @@ info:
     - Rate limiting enforced per endpoint
     
     **Prohibitions**:
-    - No legacy XXXChatNow code or patterns in implementation
+    - No legacy archived code or patterns in implementation
     - No business logic in this contract file
     - No database schema definitions here
     - See /docs/UNIVERSAL_ARCHITECTURE.md and /SECURITY.md

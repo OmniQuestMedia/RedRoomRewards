@@ -13,7 +13,7 @@ The services module contains:
 ## Key Principles
 
 - **Server-Side Authority**: All business logic runs server-side
-- **API Boundaries**: Clear separation from external systems (XXXChatNow)
+- **API Boundaries**: Clear separation from external consuming platforms
 - **Facts Not Logic**: Accept factual data, not game logic from external systems
 - **Graceful Degradation**: Handle external system failures gracefully
 

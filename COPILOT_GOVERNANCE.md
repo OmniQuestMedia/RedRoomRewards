@@ -10,12 +10,12 @@ This document extends the organization-level policy and defines specific rules f
 
 ## Section 1: Repository Summary
 
-**RedRoomRewards** is a loyalty and rewards platform designed to manage customer incentives across the XXXChatNow ecosystem.
+**RedRoomRewards** is a loyalty and rewards platform designed to manage customer incentives across partner platforms.
 
 ### Key Characteristics:
 - **Technology Stack:** Node.js and TypeScript APIs
 - **Core Functionality:** Ledger-based system for managing user accounts and point balances
-- **Architecture:** Clean separation from XXXChatNow core platform with defined API boundaries
+- **Architecture:** Clean separation from consuming platforms with defined API boundaries
 - **Purpose:** Manages loyalty points, model promo wallets, expiry rules, and comprehensive audit trails
 
 ### Domain Ownership:
@@ -72,11 +72,11 @@ When working on RedRoomRewards code, GitHub Copilot and AI assistants must adher
 - **Retention:** Audit logs must be retained for a minimum of 7 years or according to applicable regulatory requirements
 - **Tamper Evidence:** Audit logs MUST be write-only and include integrity verification mechanisms
 
-### 2.4 Documented API Boundary with XXXChatNow
+### 2.4 Documented API Boundary with External Platforms
 
 **Critical:** Integration points must be explicitly defined and documented.
 
-- **Contract Definition:** All API endpoints called by XXXChatNow must be documented with:
+- **Contract Definition:** All API endpoints called by external platforms must be documented with:
   - Endpoint path and HTTP method
   - Request/response schemas
   - Error codes and meanings
@@ -85,9 +85,9 @@ When working on RedRoomRewards code, GitHub Copilot and AI assistants must adher
 - **Ownership Clarity:** RedRoomRewards APIs MUST NOT:
   - Make decisions about game logic or randomness
   - Know details about UI/UX presentation
-  - Implement business rules belonging to XXXChatNow
+  - Implement business rules belonging to external platforms
 - **Facts Not Logic:** Integration points accept factual data (amounts, user IDs, reasons) not game logic
-- **Graceful Degradation:** XXXChatNow must be able to function if loyalty service is temporarily unavailable
+- **Graceful Degradation:** External platforms must be able to function if loyalty service is temporarily unavailable
 - **Version Management:** API changes must be versioned and backward compatible
 
 ---
