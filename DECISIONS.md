@@ -1,45 +1,34 @@
-## Changelog & Key Decisions
+# DECISIONS & ARCHITECTURAL RECORD — RedRoomRewards
 
-### 2025-12-15 - Repository Foundation Cleanup
-
-**Major Restructure**: Mandated repository cleanup and foundation establishment per work order.
-
-#### Structural Changes
-- **Archived Legacy Code**: All legacy broadcasting application code moved to `/archive/xxxchatnow-seed/` with strict prohibition on reuse
-- **Canonical Directory Structure**: Established standard layout:
-  - `/api/` for OpenAPI contracts
-  - `/src/` for application code (ledger, wallets, services, webhooks)
-  - `/infra/` for infrastructure (migrations, db, config)
-  - `/docs/` preserved and enhanced
-  - `/.github/workflows/` preserved
-- **Removed Runtime UI/Chat/Broadcast**: Confirmed no inappropriate functionality remains outside archive
-
-#### Documentation Updates
-- **Created**: `/docs/UNIVERSAL_ARCHITECTURE.md` - Authoritative architectural mandate with prohibitions
-- **Updated**: `README.md` - Complete rewrite reflecting new architecture and purpose
-- **Updated**: `SECURITY.md` - Added legacy code prohibition and security policy
-- **Created**: `CONTRIBUTING.md` - Contribution guidelines and workflow
-- **Created**: `LICENSE` - MIT License for the project
-- **Created**: `.gitignore` - Node.js/TypeScript project configuration
-
-#### API and Scaffolding
-- **Created**: `/api/openapi.yaml` - OpenAPI 3.0 contract with scaffolded endpoints
-- **Scaffolded**: All source directories with README documentation
-- **Status**: All code is scaffolded only - no implementation in this phase
-
-#### Governance and Compliance
-- **Prohibition Documented**: Legacy archived code strictly forbidden (see UNIVERSAL_ARCHITECTURE.md Section 2.1)
-- **Runtime Scope Defined**: No UI, chat, broadcast, or tipping logic permitted (see UNIVERSAL_ARCHITECTURE.md Section 2.2)
-- **Security Mandates**: All documented in SECURITY.md and UNIVERSAL_ARCHITECTURE.md
-
-#### Rationale
-This cleanup establishes a clean foundation for RedRoomRewards as a standalone loyalty platform, completely separated from legacy systems and focused solely on ledger-based point management.
+This document logs major architectural, feature, and security decisions. Each entry notes the date, decision summary, and rationale.
 
 ---
 
-### Earlier: 2025-12-15 - Initial Decisions
+## 2025-12-22
 
-- Adopted COPILOT.md as authoritative spec checklist, enforced repo-wide.
-- Versioned slot machine spec at v1.0, docs/specs/SLOT_MACHINE_SPEC_v1.0.md is now source of truth.
-- Engineering standards unified across all token systems: all token-affecting logic must be immutable, auditorily logged, server-side, and never regressive.
-- Add/modify features only via versioned specs and checklist.
+- **RedRoomRewards is a standalone service, NOT a fork of xxxchatnow.**
+    - Social, video, image, and chat features from xxxchatnow are not to be present in this repo.
+
+- **No user-to-user or model-to-user interaction.**
+    - No messaging, discovery, connections, or social/entertainment logic.
+
+- **No marketplace, commerce, or purchasing/posting features.**
+    - No product, offer, item, or service listings or any “sales”-related modules.
+
+- **User data boundaries are absolute.**
+    - Each user may only create and maintain their own profile.
+    - Users cannot see, search, browse, or connect to any other profile.
+
+- **Point and balance transfers require administrative mediation.**
+    - Users cannot transfer points/credits to each other via UI, API, or code except by formal admin workflows.
+
+- **All code supporting forbidden features must be removed, not just disabled.**
+    - No commented or dormant endpoints/modules left that could re-enable disallowed features.
+
+- **Security, audit, and no-backdoor policies are authoritative.**
+    - See `SECURITY_AUDIT_AND_NO_BACKDOOR_POLICY.md` for mandatory enforcement details.
+    - Any exceptions must be reviewed and documented in this file.
+
+---
+
+_Use this file as the single source of truth for project-wide decisions, constraints, and any future architecture or policy changes._
