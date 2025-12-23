@@ -58,6 +58,9 @@ export class RRRWebhookController {
 
     // Harden: reject MongoDB operator characters
     // This prevents patterns like {"$ne": null} from passing through
+    // Note: This is a blacklist approach that rejects only $ and . characters
+    // Alternative: Use whitelist regex /^[a-zA-Z0-9_-]+$/ for stricter validation
+    // Current approach allows flexibility for various ID formats (UUIDs, alphanumeric, etc.)
     if (trimmed.includes('$') || trimmed.includes('.')) {
       throw new BadRequestException('Invalid webhook payload: event_id contains illegal characters');
     }
