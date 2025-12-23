@@ -120,11 +120,40 @@ Result: Split between refund and settlement
 
 The system enforces strict boundaries:
 
-| Component | Allowed Actions | Prohibited Actions |
-|-----------|----------------|-------------------|
-| **Feature Modules** (slot, menu, spin wheel, etc.) | • Request escrow hold<br>• Emit queue intake event<br>• Report user actions | • Settle funds<br>• Refund funds<br>• Deduct user balance directly<br>• Make settlement decisions |
-| **Performance Queue** | • Decide settle/refund/abandon<br>• Authorize settlement<br>• Authorize refunds<br>• Track performance state | • Deduct user balance<br>• Execute ledger changes directly<br>• Modify wallet balances |
-| **Wallet Service** | • Execute atomic ledger changes<br>• Deduct to escrow<br>• Settle escrow to earned<br>• Refund escrow to available<br>• Enforce idempotency | • Make business decisions<br>• Decide settlement timing<br>• Determine refund amounts<br>• Apply feature-specific rules |
+**Feature Modules** (slot, menu, spin wheel, etc.)
+- **Allowed Actions**:
+  - Request escrow hold
+  - Emit queue intake event
+  - Report user actions
+- **Prohibited Actions**:
+  - Settle funds
+  - Refund funds
+  - Deduct user balance directly
+  - Make settlement decisions
+
+**Performance Queue**
+- **Allowed Actions**:
+  - Decide settle/refund/abandon
+  - Authorize settlement
+  - Authorize refunds
+  - Track performance state
+- **Prohibited Actions**:
+  - Deduct user balance
+  - Execute ledger changes directly
+  - Modify wallet balances
+
+**Wallet Service**
+- **Allowed Actions**:
+  - Execute atomic ledger changes
+  - Deduct to escrow
+  - Settle escrow to earned
+  - Refund escrow to available
+  - Enforce idempotency
+- **Prohibited Actions**:
+  - Make business decisions
+  - Decide settlement timing
+  - Determine refund amounts
+  - Apply feature-specific rules
 
 **Critical Principle**: Business logic is separate from financial execution. The queue decides WHAT to do; the wallet does HOW to do it.
 

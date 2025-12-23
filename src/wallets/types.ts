@@ -532,7 +532,7 @@ export interface IdempotencyRecord {
   requestHash: string;
   
   /** Result of the operation (stored response) */
-  result: any;
+  result: EscrowHoldResponse | EscrowSettleResponse | EscrowRefundResponse | EscrowPartialSettleResponse;
   
   /** HTTP status code */
   statusCode: number;

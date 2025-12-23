@@ -322,6 +322,23 @@ export interface IQueueService {
 }
 
 /**
+ * Base interface for feature action data
+ */
+export interface FeatureActionData {
+  /** Amount involved in the action */
+  amount: number;
+  
+  /** User initiating the action */
+  userId: string;
+  
+  /** Model involved in the action (if applicable) */
+  modelId?: string;
+  
+  /** Additional feature-specific data */
+  [key: string]: any;
+}
+
+/**
  * Feature module interface
  * Modules request escrow and emit queue events, never settle directly
  */
@@ -336,7 +353,7 @@ export interface IFeatureModule {
    */
   processAction(
     userId: string,
-    actionData: any
+    actionData: FeatureActionData
   ): Promise<{
     escrowHold: EscrowHoldResponse;
     queueIntake: QueueIntakeEvent;
@@ -345,7 +362,7 @@ export interface IFeatureModule {
   /**
    * Validate action parameters
    */
-  validateAction(actionData: any): Promise<boolean>;
+  validateAction(actionData: FeatureActionData): Promise<boolean>;
 }
 
 /**

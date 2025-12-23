@@ -27,7 +27,8 @@ This document defines the MongoDB schema for the RedRoomRewards wallet and escro
 
 **Purpose**: Store user wallet balances with multiple states
 
-**Schema**:
+**Schema** (TypeScript representation of MongoDB document):
+
 ```typescript
 {
   _id: ObjectId,
@@ -40,6 +41,8 @@ This document defines the MongoDB schema for the RedRoomRewards wallet and escro
   updatedAt: Date
 }
 ```
+
+**Note**: The schemas shown use TypeScript syntax for clarity. In actual MongoDB documents, these translate to BSON types (e.g., `Decimal128` for monetary values, `ObjectId` for `_id`).
 
 **Indexes**:
 ```javascript
