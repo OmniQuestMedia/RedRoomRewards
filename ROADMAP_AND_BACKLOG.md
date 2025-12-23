@@ -40,6 +40,42 @@ A robust, auditable loyalty service with production-grade security, ready to int
 
 ## Milestone 2: Enhanced Functionality
 
+### EPIC 7: Points Transfer System
+- [ ] Member-to-member point transfers (per ACCOUNT_MERGE_TRANSFER_POLICY_v1.md)
+- [ ] Trust level system (L0-L3) with verification gates
+- [ ] Transfer limits enforcement (daily, weekly, single transaction caps)
+- [ ] Cooling period logic
+- [ ] Transfer reversal workflow (24-hour window)
+- [ ] Transfer escrow for high-risk transactions
+
+### EPIC 8: Model Award System
+- [ ] Model-to-viewer point gifting
+- [ ] Model allocation wallet management
+- [ ] Stream session proof validation
+- [ ] Model award limits (per viewer, per stream, per hour, per day)
+- [ ] Velocity checks and abuse controls
+
+### EPIC 9: Account Merge Operations
+- [ ] Two-stage merge workflow (ticket + execution)
+- [ ] Multi-admin approval system
+- [ ] Evidence validation (email, phone, payment fingerprint, etc.)
+- [ ] Link resolution for XCN profiles
+- [ ] Ledger-safe balance consolidation
+- [ ] Merge audit records
+
+### EPIC 10: Manual Adjustments & Exception Handling
+- [ ] Tiered approval thresholds (based on point amount)
+- [ ] Reason code system
+- [ ] Ticket reference tracking
+- [ ] Customer service credit workflows
+
+### EPIC 11: Account Locks & Security Controls
+- [ ] Transfer locks
+- [ ] Redemption locks
+- [ ] Full account locks
+- [ ] Time-bounded lock support
+- [ ] Lock reason codes and admin visibility
+
 - [ ] Third-party hooks/triggers for partner apps
 - [ ] Multi-tier rewards or loyalty statuses
 - [ ] Notification hooks for client-side updates
@@ -55,3 +91,11 @@ A robust, auditable loyalty service with production-grade security, ready to int
 ### 2025-12-23
 - Backlog seeded with security and audit-first minimum features
 - No UI/registration slated for MVP (assume external integration)
+- **Account Merge, Points Transfer, and Exception Policy v1** added to Milestone 2
+  - Added comprehensive policy document (ACCOUNT_MERGE_TRANSFER_POLICY_v1.md)
+  - Extended OpenAPI spec with transfer, merge, and admin endpoints
+  - Created data models specification (DATA_MODELS_TRANSFERS_MERGES_v1.md)
+  - Created enforcement guide (POLICY_ENFORCEMENT_GUIDE_v1.md)
+  - Defined trust level system (L0-L3) for transfer eligibility
+  - Specified approval thresholds for manual adjustments
+  - Documented account merge workflow and evidence requirements

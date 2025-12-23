@@ -3,27 +3,27 @@ info:
   title: RedRoomRewards API
   description: |
     **Canonical API Contract for RedRoomRewards Loyalty Platform**
-    
+
     This contract defines all API endpoints for RedRoomRewards without implementing
     business logic. This is a scaffolded contract only - handlers to be implemented
     in subsequent phases.
-    
-    **Architecture Intent**: 
+
+    **Architecture Intent**:
     Ledger-based loyalty system managing user wallets, point earning/redemption,
     model wallets, admin operations, and external webhook integrations.
-    
+
     **Security Requirements**:
     - All endpoints require JWT bearer authentication
     - Idempotency keys mandatory for all state-changing operations
     - Request tracing via X-Request-ID header
     - Rate limiting enforced per endpoint
-    
+
     **Prohibitions**:
     - No legacy archived code or patterns in implementation
     - No business logic in this contract file
     - No database schema definitions here
     - See /docs/UNIVERSAL_ARCHITECTURE.md and /SECURITY.md
-    
+
     **Work Order**: 2025-12-15 Repository foundation/cleanup phase
     **Status**: Scaffolded contract only - no implementation
   version: 0.1.0
