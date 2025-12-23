@@ -44,6 +44,8 @@ tags:
     description: Service health and status checks
   - name: wallets
     description: User wallet and balance operations
+  - name: escrow
+    description: Escrow hold, settlement, and refund operations
   - name: earn
     description: Point earning operations
   - name: redeem
@@ -115,6 +117,285 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BalanceResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ===== Escrow Operations =====
+  /wallets/{userId}/escrow/hold:
+    post:
+      summary: Hold funds in escrow
+      description: |
+        Deduct funds from user's available balance and place in escrow.
+        This is the first step in the escrow flow. Requires idempotency key.
+        
+        **Authorization**: Feature modules can call this endpoint.
+        **Next Step**: Feature must emit queue intake event.
+      operationId: holdInEscrow
+      tags:
+        - escrow
+      parameters:
+        - $ref: '#/components/parameters/UserIdPath'
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EscrowHoldRequest'
+      responses:
+        '201':
+          description: Funds held in escrow successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EscrowHoldResponse'
+        '200':
+          description: Duplicate request - returning cached result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EscrowHoldResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          description: Insufficient available balance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  /wallets/escrow/{escrowId}/settle:
+    post:
+      summary: Settle escrow to model earnings
+      description: |
+        Transfer funds from escrow to model's earned balance.
+        
+        **Authorization**: ONLY Performance Queue can call this endpoint.
+        Requires valid queue authorization token in header.
+        
+        This completes the escrow flow for successful performance.
+      operationId: settleEscrow
+      tags:
+        - escrow
+      parameters:
+        - name: escrowId
+          in: path
+          required: true
+          description: Escrow identifier
+          schema:
+            type: string
+        - name: X-Queue-Auth-Token
+          in: header
+          required: true
+          description: Queue authorization token (signed JWT)
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EscrowSettleRequest'
+      responses:
+        '200':
+          description: Escrow settled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EscrowSettleResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Invalid queue authorization
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Escrow not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Escrow already processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  /wallets/escrow/{escrowId}/refund:
+    post:
+      summary: Refund escrow to user
+      description: |
+        Return funds from escrow to user's available balance.
+        
+        **Authorization**: ONLY Performance Queue can call this endpoint.
+        Requires valid queue authorization token in header.
+        
+        This completes the escrow flow for cancelled/abandoned performance.
+      operationId: refundEscrow
+      tags:
+        - escrow
+      parameters:
+        - name: escrowId
+          in: path
+          required: true
+          description: Escrow identifier
+          schema:
+            type: string
+        - name: X-Queue-Auth-Token
+          in: header
+          required: true
+          description: Queue authorization token (signed JWT)
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EscrowRefundRequest'
+      responses:
+        '200':
+          description: Escrow refunded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EscrowRefundResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Invalid queue authorization
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Escrow not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Escrow already processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  /wallets/escrow/{escrowId}/partial-settle:
+    post:
+      summary: Partial settlement (refund + settle)
+      description: |
+        Split escrow funds between refund to user and settlement to model.
+        Used for partial performance or quality issues.
+        
+        **Authorization**: ONLY Performance Queue can call this endpoint.
+        Requires valid queue authorization token in header.
+        
+        refundAmount + settleAmount must equal original escrow amount.
+      operationId: partialSettleEscrow
+      tags:
+        - escrow
+      parameters:
+        - name: escrowId
+          in: path
+          required: true
+          description: Escrow identifier
+          schema:
+            type: string
+        - name: X-Queue-Auth-Token
+          in: header
+          required: true
+          description: Queue authorization token (signed JWT)
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EscrowPartialSettleRequest'
+      responses:
+        '200':
+          description: Partial settlement completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EscrowPartialSettleResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Invalid queue authorization
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Escrow not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Escrow already processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  /wallets/{userId}/escrow:
+    get:
+      summary: Get user's escrow items
+      description: |
+        Retrieve all escrow items for a user, showing pending holds,
+        settled items, and refunded items.
+      operationId: getUserEscrow
+      tags:
+        - escrow
+      parameters:
+        - $ref: '#/components/parameters/UserIdPath'
+        - name: status
+          in: query
+          description: Filter by escrow status
+          schema:
+            type: string
+            enum: [held, settled, refunded, all]
+            default: all
+        - $ref: '#/components/parameters/RequestIdHeader'
+      responses:
+        '200':
+          description: Escrow items retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EscrowDetailsResponse'
         '404':
           $ref: '#/components/responses/NotFound'
         '401':
@@ -538,17 +819,26 @@ components:
       type: object
       required:
         - userId
-        - balance
+        - availableBalance
+        - escrowBalance
         - currency
         - version
       properties:
         userId:
           type: string
           description: User identifier
-        balance:
+        availableBalance:
           type: number
           format: double
-          description: Current point balance
+          description: Points available for spending
+        escrowBalance:
+          type: number
+          format: double
+          description: Points held in escrow
+        totalBalance:
+          type: number
+          format: double
+          description: Total balance (available + escrow)
         currency:
           type: string
           description: Currency type
@@ -569,13 +859,24 @@ components:
       type: object
       required:
         - userId
-        - balance
+        - available
+        - escrow
+        - total
       properties:
         userId:
           type: string
-        balance:
+        available:
           type: number
           format: double
+          description: Available balance for spending
+        escrow:
+          type: number
+          format: double
+          description: Balance held in escrow
+        total:
+          type: number
+          format: double
+          description: Total balance (available + escrow)
         asOf:
           type: string
           format: date-time
@@ -761,6 +1062,302 @@ components:
           format: double
           default: 0
           description: Starting balance (default 0)
+
+    # Escrow schemas
+    EscrowHoldRequest:
+      type: object
+      required:
+        - amount
+        - reason
+        - queueItemId
+        - featureType
+      properties:
+        amount:
+          type: number
+          format: double
+          minimum: 0.01
+          description: Amount to hold in escrow
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Transaction reason code
+          example: chip_menu_purchase
+        queueItemId:
+          type: string
+          description: Performance queue item ID
+        featureType:
+          type: string
+          description: Feature initiating the hold
+          example: chip_menu
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Additional context (no PII)
+
+    EscrowHoldResponse:
+      type: object
+      required:
+        - transactionId
+        - escrowId
+        - previousBalance
+        - newAvailableBalance
+        - escrowBalance
+        - timestamp
+      properties:
+        transactionId:
+          type: string
+          description: Created transaction identifier
+        escrowId:
+          type: string
+          description: Created escrow identifier
+        previousBalance:
+          type: number
+          format: double
+          description: User's previous available balance
+        newAvailableBalance:
+          type: number
+          format: double
+          description: User's new available balance
+        escrowBalance:
+          type: number
+          format: double
+          description: Amount now in escrow
+        timestamp:
+          type: string
+          format: date-time
+
+    EscrowSettleRequest:
+      type: object
+      required:
+        - modelId
+        - amount
+        - queueItemId
+        - reason
+      properties:
+        modelId:
+          type: string
+          description: Model to credit
+        amount:
+          type: number
+          format: double
+          minimum: 0.01
+          description: Amount to settle (must match escrow)
+        queueItemId:
+          type: string
+          description: Performance queue item ID
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Settlement reason code
+          example: performance_completed
+        metadata:
+          type: object
+          additionalProperties: true
+
+    EscrowSettleResponse:
+      type: object
+      required:
+        - transactionId
+        - settledAmount
+        - modelEarnedBalance
+        - timestamp
+      properties:
+        transactionId:
+          type: string
+          description: Settlement transaction ID
+        settledAmount:
+          type: number
+          format: double
+          description: Amount settled to model
+        modelEarnedBalance:
+          type: number
+          format: double
+          description: Model's new earned balance
+        timestamp:
+          type: string
+          format: date-time
+
+    EscrowRefundRequest:
+      type: object
+      required:
+        - userId
+        - amount
+        - queueItemId
+        - reason
+      properties:
+        userId:
+          type: string
+          description: User to refund
+        amount:
+          type: number
+          format: double
+          minimum: 0.01
+          description: Amount to refund (must match escrow)
+        queueItemId:
+          type: string
+          description: Performance queue item ID
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Refund reason code
+          example: performance_abandoned
+        metadata:
+          type: object
+          additionalProperties: true
+
+    EscrowRefundResponse:
+      type: object
+      required:
+        - transactionId
+        - refundedAmount
+        - userAvailableBalance
+        - timestamp
+      properties:
+        transactionId:
+          type: string
+          description: Refund transaction ID
+        refundedAmount:
+          type: number
+          format: double
+          description: Amount refunded to user
+        userAvailableBalance:
+          type: number
+          format: double
+          description: User's new available balance
+        timestamp:
+          type: string
+          format: date-time
+
+    EscrowPartialSettleRequest:
+      type: object
+      required:
+        - userId
+        - modelId
+        - refundAmount
+        - settleAmount
+        - queueItemId
+        - reason
+      properties:
+        userId:
+          type: string
+          description: User to refund partial amount
+        modelId:
+          type: string
+          description: Model to settle remaining amount
+        refundAmount:
+          type: number
+          format: double
+          minimum: 0
+          description: Amount to refund to user
+        settleAmount:
+          type: number
+          format: double
+          minimum: 0
+          description: Amount to settle to model
+        queueItemId:
+          type: string
+          description: Performance queue item ID
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Partial settlement reason code
+          example: partial_performance
+        metadata:
+          type: object
+          additionalProperties: true
+
+    EscrowPartialSettleResponse:
+      type: object
+      required:
+        - transactionId
+        - refundedAmount
+        - settledAmount
+        - userAvailableBalance
+        - modelEarnedBalance
+        - timestamp
+      properties:
+        transactionId:
+          type: string
+          description: Partial settlement transaction ID
+        refundedAmount:
+          type: number
+          format: double
+          description: Amount refunded to user
+        settledAmount:
+          type: number
+          format: double
+          description: Amount settled to model
+        userAvailableBalance:
+          type: number
+          format: double
+          description: User's new available balance
+        modelEarnedBalance:
+          type: number
+          format: double
+          description: Model's new earned balance
+        timestamp:
+          type: string
+          format: date-time
+
+    EscrowDetailsResponse:
+      type: object
+      required:
+        - userId
+        - escrowItems
+        - totalEscrow
+      properties:
+        userId:
+          type: string
+        escrowItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/EscrowItem'
+        totalEscrow:
+          type: number
+          format: double
+          description: Total amount in escrow
+
+    EscrowItem:
+      type: object
+      required:
+        - escrowId
+        - amount
+        - status
+        - queueItemId
+        - featureType
+        - createdAt
+      properties:
+        escrowId:
+          type: string
+        amount:
+          type: number
+          format: double
+        status:
+          type: string
+          enum: [held, settled, refunded]
+        queueItemId:
+          type: string
+        featureType:
+          type: string
+        reason:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        createdAt:
+          type: string
+          format: date-time
+        processedAt:
+          type: string
+          format: date-time
+          description: When settled or refunded (null if still held)
+        modelId:
+          type: string
+          description: Model ID if settled
 
     WebhookAwardPayload:
       type: object
