@@ -106,6 +106,7 @@ npm run dev
 - **[Decisions Log](/DECISIONS.md)** - Key architectural decisions and rationale
 - **[Copilot Governance](/COPILOT_GOVERNANCE.md)** - AI development rules and standards
 - **[API Contract](/api/openapi.yaml)** - OpenAPI specification
+- **[Account Merge & Transfer Policy](/docs/ACCOUNT_MERGE_TRANSFER_POLICY_v1.md)** - Points transfer, account merge, and exception handling policy
 
 ---
 

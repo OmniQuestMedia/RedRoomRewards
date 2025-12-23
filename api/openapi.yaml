@@ -359,6 +359,138 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  /models/{modelId}/gift:
+    post:
+      summary: Gift points to viewer (model award)
+      description: |
+        Model gifts points from their allocation wallet to a viewer.
+        Implements Model Award policy per ACCOUNT_MERGE_TRANSFER_POLICY_v1.md
+      operationId: modelGiftPoints
+      tags:
+        - models
+      parameters:
+        - name: modelId
+          in: path
+          required: true
+          description: Model identifier
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModelGiftRequest'
+      responses:
+        '201':
+          description: Points gifted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferResponse'
+        '200':
+          description: Duplicate request - cached result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          description: Insufficient balance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - model award limits exceeded or viewer not eligible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ===== Transfer Operations =====
+  /transfers:
+    post:
+      summary: Transfer points between members
+      description: |
+        Member-to-member points transfer.
+        Implements Points Transfer policy per ACCOUNT_MERGE_TRANSFER_POLICY_v1.md
+      operationId: transferPoints
+      tags:
+        - wallets
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRequest'
+      responses:
+        '201':
+          description: Transfer completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferResponse'
+        '200':
+          description: Duplicate request - cached result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          description: Insufficient balance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - transfer limits exceeded or trust level insufficient
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  /transfers/{transferId}:
+    get:
+      summary: Get transfer details
+      description: Retrieve details of a specific transfer
+      operationId: getTransfer
+      tags:
+        - wallets
+      parameters:
+        - name: transferId
+          in: path
+          required: true
+          description: Transfer identifier
+          schema:
+            type: string
+        - $ref: '#/components/parameters/RequestIdHeader'
+      responses:
+        '200':
+          description: Transfer details retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferDetails'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
   # ===== Admin Operations =====
   /admin/wallets:
     post:
@@ -424,6 +556,174 @@ paths:
                 $ref: '#/components/schemas/AuditTrail'
         '404':
           $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/transfers/{transferId}/reverse:
+    post:
+      summary: Reverse a transfer (admin)
+      description: |
+        Reverse a transfer within policy constraints.
+        Per ACCOUNT_MERGE_TRANSFER_POLICY_v1.md: within 24 hours OR before receiver redeems
+      operationId: adminReverseTransfer
+      tags:
+        - admin
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: transferId
+          in: path
+          required: true
+          description: Transfer identifier
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReversalRequest'
+      responses:
+        '201':
+          description: Transfer reversed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          description: Reversal not permitted (outside time window or points redeemed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /admin/adjustments:
+    post:
+      summary: Manual points adjustment (admin)
+      description: |
+        Manual adjustment with approval thresholds per ACCOUNT_MERGE_TRANSFER_POLICY_v1.md.
+        Requires reason codes and ticket references.
+      operationId: adminManualAdjustment
+      tags:
+        - admin
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdjustmentRequest'
+      responses:
+        '201':
+          description: Adjustment applied successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Forbidden - insufficient approval permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /admin/merges:
+    post:
+      summary: Merge accounts (admin)
+      description: |
+        Execute account merge per ACCOUNT_MERGE_TRANSFER_POLICY_v1.md.
+        Requires multi-admin approval and evidence validation.
+      operationId: adminMergeAccounts
+      tags:
+        - admin
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MergeRequest'
+      responses:
+        '201':
+          description: Accounts merged successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MergeResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Forbidden - insufficient approvals or evidence
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Unprocessable - accounts cannot be merged (fraud lock, link violations)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /admin/accounts/{userId}/lock:
+    post:
+      summary: Lock/unlock account (admin)
+      description: |
+        Apply account locks per ACCOUNT_MERGE_TRANSFER_POLICY_v1.md.
+        Supports transfer lock, redemption lock, or full account lock.
+      operationId: adminLockAccount
+      tags:
+        - admin
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: User identifier
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LockRequest'
+      responses:
+        '200':
+          description: Lock applied/removed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LockResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -787,6 +1087,364 @@ components:
         metadata:
           type: object
           additionalProperties: true
+
+    # Transfer schemas
+    TransferRequest:
+      type: object
+      required:
+        - fromUserId
+        - toUserId
+        - amount
+        - reason
+      properties:
+        fromUserId:
+          type: string
+          description: Sender user identifier
+        toUserId:
+          type: string
+          description: Receiver user identifier
+        amount:
+          type: number
+          format: double
+          minimum: 1
+          description: Points to transfer (must be positive)
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Reason for transfer
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Additional context
+
+    ModelGiftRequest:
+      type: object
+      required:
+        - viewerUserId
+        - amount
+        - streamContext
+      properties:
+        viewerUserId:
+          type: string
+          description: Viewer user identifier
+        amount:
+          type: number
+          format: double
+          minimum: 1
+          description: Points to gift (must be positive)
+        streamContext:
+          type: object
+          required:
+            - streamId
+            - roomId
+          properties:
+            streamId:
+              type: string
+            roomId:
+              type: string
+            sessionProof:
+              type: string
+              description: Proof that viewer is present in stream
+          description: Stream context for model awards
+
+    TransferResponse:
+      type: object
+      required:
+        - transferId
+        - status
+        - sender
+        - receiver
+      properties:
+        transferId:
+          type: string
+          description: Unique transfer identifier
+        status:
+          type: string
+          enum: [completed, escrowed, pending]
+          description: Transfer status
+        sender:
+          type: object
+          required:
+            - userId
+            - newBalance
+          properties:
+            userId:
+              type: string
+            previousBalance:
+              type: number
+              format: double
+            newBalance:
+              type: number
+              format: double
+        receiver:
+          type: object
+          required:
+            - userId
+            - newBalance
+          properties:
+            userId:
+              type: string
+            previousBalance:
+              type: number
+              format: double
+            newBalance:
+              type: number
+              format: double
+        timestamp:
+          type: string
+          format: date-time
+        reversible:
+          type: boolean
+          description: Whether transfer can still be reversed
+        reversibleUntil:
+          type: string
+          format: date-time
+          description: Deadline for reversal
+
+    TransferDetails:
+      type: object
+      required:
+        - transferId
+        - fromUserId
+        - toUserId
+        - amount
+        - status
+        - createdAt
+      properties:
+        transferId:
+          type: string
+        fromUserId:
+          type: string
+        toUserId:
+          type: string
+        amount:
+          type: number
+          format: double
+        status:
+          type: string
+          enum: [completed, escrowed, reversed, pending]
+        reason:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        reversedAt:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+          additionalProperties: true
+
+    ReversalRequest:
+      type: object
+      required:
+        - reasonCode
+        - adminNote
+      properties:
+        reasonCode:
+          type: string
+          enum: [error, fraud, dispute, policy_violation, customer_request]
+          description: Reason code for reversal
+        adminNote:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          description: Internal admin note
+        ticketId:
+          type: string
+          description: Support ticket reference
+
+    AdjustmentRequest:
+      type: object
+      required:
+        - userId
+        - amount
+        - reasonCode
+        - ticketId
+        - adminNote
+      properties:
+        userId:
+          type: string
+        amount:
+          type: number
+          format: double
+          description: Adjustment amount (positive for credit, negative for debit)
+        reasonCode:
+          type: string
+          enum: [customer_service, compensation, correction, promotional, fraud_recovery]
+          description: Reason code for adjustment
+        ticketId:
+          type: string
+          description: Support ticket or reference ID
+        adminNote:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          description: Internal admin note (not visible to user)
+        approvals:
+          type: array
+          items:
+            type: object
+            properties:
+              adminId:
+                type: string
+              timestamp:
+                type: string
+                format: date-time
+          description: Required approvals per policy thresholds
+
+    MergeRequest:
+      type: object
+      required:
+        - sourceUserId
+        - targetUserId
+        - evidenceSummary
+        - approvals
+        - acknowledgement
+      properties:
+        sourceUserId:
+          type: string
+          description: Account to merge from (will be retired)
+        targetUserId:
+          type: string
+          description: Account to merge into (will be surviving)
+        evidenceSummary:
+          type: object
+          required:
+            - evidenceTypes
+            - strongEvidenceCount
+            - totalEvidenceCount
+          properties:
+            evidenceTypes:
+              type: array
+              items:
+                type: string
+                enum: [verified_email, verified_phone, payment_fingerprint, device_cluster, region_consistency, client_sso, government_id]
+            strongEvidenceCount:
+              type: integer
+              minimum: 1
+              description: Count of strong evidence types
+            totalEvidenceCount:
+              type: integer
+              minimum: 2
+              description: Total evidence types provided
+        approvals:
+          type: array
+          minItems: 2
+          items:
+            type: object
+            required:
+              - adminId
+              - role
+              - timestamp
+            properties:
+              adminId:
+                type: string
+              role:
+                type: string
+                enum: [xcn_admin, rrr_admin]
+              timestamp:
+                type: string
+                format: date-time
+          description: Required multi-admin approvals
+        acknowledgement:
+          type: object
+          required:
+            - userConsent
+            - consentTimestamp
+          properties:
+            userConsent:
+              type: boolean
+              description: User acknowledged merge consequences
+            consentTimestamp:
+              type: string
+              format: date-time
+        clientTicketId:
+          type: string
+          description: Client system ticket reference
+
+    MergeResponse:
+      type: object
+      required:
+        - mergeId
+        - status
+        - survivingUserId
+        - retiredUserId
+      properties:
+        mergeId:
+          type: string
+          description: Unique merge operation identifier
+        status:
+          type: string
+          enum: [completed, failed]
+        survivingUserId:
+          type: string
+        retiredUserId:
+          type: string
+        finalBalance:
+          type: number
+          format: double
+          description: Final balance after merge
+        ledgerEntries:
+          type: array
+          items:
+            type: string
+          description: IDs of ledger entries created during merge
+        timestamp:
+          type: string
+          format: date-time
+
+    LockRequest:
+      type: object
+      required:
+        - action
+        - lockType
+        - reasonCode
+      properties:
+        action:
+          type: string
+          enum: [lock, unlock]
+        lockType:
+          type: string
+          enum: [transfer, redemption, full_account]
+          description: Type of lock to apply
+        reasonCode:
+          type: string
+          enum: [fraud_suspected, chargeback, dispute, policy_violation, user_request, investigation]
+        duration:
+          type: integer
+          description: Lock duration in seconds (null for indefinite)
+        adminNote:
+          type: string
+          maxLength: 1000
+
+    LockResponse:
+      type: object
+      required:
+        - userId
+        - locks
+      properties:
+        userId:
+          type: string
+        locks:
+          type: array
+          items:
+            type: object
+            properties:
+              lockType:
+                type: string
+                enum: [transfer, redemption, full_account]
+              active:
+                type: boolean
+              appliedAt:
+                type: string
+                format: date-time
+              expiresAt:
+                type: string
+                format: date-time
+              reasonCode:
+                type: string
 
     # Admin schemas
     AuditTrail:
