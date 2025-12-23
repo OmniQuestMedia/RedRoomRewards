@@ -427,7 +427,7 @@ All transfer operations create two ledger entries with shared `correlation_id`:
   wallet_id: senderWalletId,
   points_delta: -amount,
   correlation_id: transferId,
-  metadata: { transferId, receiverId, ... }
+  metadata: { receiverId, reason, ... }  // No transferId - it's in correlation_id
 }
 
 // Receiver entry
@@ -437,7 +437,7 @@ All transfer operations create two ledger entries with shared `correlation_id`:
   wallet_id: receiverWalletId,
   points_delta: +amount,
   correlation_id: transferId,
-  metadata: { transferId, senderId, ... }
+  metadata: { senderId, reason, ... }    // No transferId - it's in correlation_id
 }
 ```
 

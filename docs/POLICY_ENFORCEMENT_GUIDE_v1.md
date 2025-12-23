@@ -88,26 +88,55 @@ User initiates transfer
   → Return success
 ```
 
-### Database Queries
+### Validation Logic (Pseudocode)
 
-```javascript
+```pseudocode
 // Check daily limit
-const todayTransfers = await Transfer.aggregate([
-  {
-    $match: {
-      'sender.userId': userId,
-      createdAt: { $gte: startOfDay, $lte: now },
-      status: { $in: ['completed', 'escrowed'] }
-    }
-  },
-  { $group: { _id: null, total: { $sum: '$amount' } } }
-]);
+function checkDailyLimit(userId, requestedAmount):
+  startOfDay = getCurrentDay().startTime()
+  endOfDay = getCurrentDay().endTime()
+  
+  todayTransfers = query(
+    table: 'transfers',
+    where: {
+      sender_user_id: userId,
+      created_at: between(startOfDay, endOfDay),
+      status: in(['completed', 'escrowed'])
+    },
+    aggregate: sum('amount')
+  )
+  
+  totalToday = todayTransfers.sum
+  limit = getTransferLimit(userId).dailyCapPoints
+  
+  if (totalToday + requestedAmount > limit):
+    throw LimitExceededError('Daily limit exceeded')
+  
+  return true
 
 // Check last transfer for cooling period
-const lastTransfer = await Transfer.findOne(
-  { 'sender.userId': userId, status: 'completed' },
-  null,
-  { sort: { createdAt: -1 } }
+function checkCoolingPeriod(userId):
+  lastTransfer = query(
+    table: 'transfers',
+    where: {
+      sender_user_id: userId,
+      status: 'completed'
+    },
+    orderBy: 'created_at DESC',
+    limit: 1
+  )
+  
+  if not lastTransfer:
+    return true
+  
+  hoursSinceLastTransfer = (now() - lastTransfer.created_at) / 3600
+  coolingPeriodHours = getTransferLimit(userId).coolingPeriodHours
+  
+  if (hoursSinceLastTransfer < coolingPeriodHours):
+    throw CoolingPeriodError('Cooling period not elapsed')
+  
+  return true
+```
 );
 ```
 

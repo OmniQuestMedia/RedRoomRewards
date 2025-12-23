@@ -24,6 +24,11 @@ info:
     - No database schema definitions here
     - See /docs/UNIVERSAL_ARCHITECTURE.md and /SECURITY.md
 
+    **Implementation Notes**:
+    - Point amounts use `number` type (double) for API simplicity. Implementation
+      should use integer representation internally (e.g., smallest denomination)
+      to avoid floating-point precision issues. All point values are whole numbers.
+
     **Work Order**: 2025-12-15 Repository foundation/cleanup phase
     **Status**: Scaffolded contract only - no implementation
   version: 0.1.0
@@ -1509,14 +1514,22 @@ components:
       properties:
         error:
           type: string
-          description: Error code
+          description: Machine-readable error code
+          example: INSUFFICIENT_BALANCE
+        errorCode:
+          type: string
+          description: |
+            Structured error code for programmatic handling.
+            Examples: INSUFFICIENT_BALANCE, TRUST_LEVEL_TOO_LOW, ACCOUNT_LOCKED,
+            TRANSFER_LIMIT_EXCEEDED, COOLING_PERIOD_ACTIVE, FRAUD_LOCK,
+            LINK_VIOLATION, INSUFFICIENT_APPROVALS, EVIDENCE_INSUFFICIENT
         message:
           type: string
           description: Human-readable error message
         details:
           type: object
           additionalProperties: true
-          description: Additional error context
+          description: Additional error context (limits, thresholds, etc.)
         requestId:
           type: string
           description: Request ID for tracing
