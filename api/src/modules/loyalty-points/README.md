@@ -67,17 +67,33 @@ await this.webhookEventModel.findOne({
 ## Files
 
 - `controllers/rrr-webhook.controller.ts` - Main webhook handler
-- `controllers/rrr-webhook.controller.spec.ts` - Comprehensive test suite
+- `controllers/rrr-webhook.controller.spec.ts` - Unit test suite
+- `controllers/rrr-webhook.controller.e2e-spec.ts` - E2E test suite (SuperTest)
 - `models/webhook-event.model.ts` - Mongoose schema for webhook events
 - `loyalty-points.module.ts` - NestJS module configuration
 
 ## Testing
 
-Run tests with:
+### Unit Tests
+
+Run unit tests with:
 
 ```bash
 npm test -- rrr-webhook.controller.spec.ts
 ```
+
+### E2E Tests
+
+End-to-end tests using SuperTest to validate HTTP endpoint behavior:
+
+```bash
+npm test -- rrr-webhook.controller.e2e-spec.ts
+```
+
+The e2e test suite validates the webhook endpoint via HTTP requests, ensuring:
+- NoSQL operator injection is blocked at the HTTP layer
+- Proper HTTP status codes are returned
+- Error messages are correctly formatted in responses
 
 ### Critical Test Cases
 
