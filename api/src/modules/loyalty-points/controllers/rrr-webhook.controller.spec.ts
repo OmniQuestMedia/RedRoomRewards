@@ -81,7 +81,7 @@ describe('RRRWebhookController', () => {
 
       await expect(
         controller.handleWebhook(signature, maliciousPayload),
-      ).rejects.toThrow('event_id must be a string');
+      ).rejects.toThrow(/must be a string/);
 
       // Verify no database query was made
       expect(mockWebhookEventModel.findOne).not.toHaveBeenCalled();
@@ -138,7 +138,7 @@ describe('RRRWebhookController', () => {
 
       await expect(
         controller.handleWebhook(signature, payload),
-      ).rejects.toThrow('event_id is required');
+      ).rejects.toThrow(/required/);
     });
 
     it('should reject event_id that is too long', async () => {
@@ -156,7 +156,7 @@ describe('RRRWebhookController', () => {
 
       await expect(
         controller.handleWebhook(signature, payload),
-      ).rejects.toThrow('event_id too long');
+      ).rejects.toThrow(/too long/);
     });
 
     it('should reject payload with missing event_id', async () => {
@@ -173,7 +173,7 @@ describe('RRRWebhookController', () => {
 
       await expect(
         controller.handleWebhook(signature, payload),
-      ).rejects.toThrow('event_id must be a string');
+      ).rejects.toThrow(/must be a string/);
     });
   });
 

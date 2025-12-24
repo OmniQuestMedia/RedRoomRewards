@@ -2,6 +2,7 @@ import { BadRequestException, Body, Controller, Headers, Logger, Post } from '@n
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as crypto from 'crypto';
+import { validateMongoSafeString } from '../../../common/validation/validate-mongo-safe-string';
 
 /**
  * RRR Webhook Controller
@@ -30,7 +31,7 @@ export class RRRWebhookController {
   /**
    * Validates and extracts event_id from untrusted payload
    * 
-   * Security: Enforces primitive string type, prevents operator injection
+   * Security: Uses shared validateMongoSafeString utility to prevent operator injection
    * CodeQL: Breaks data flow by validating input before DB query
    * 
    * @param event_id - Untrusted input from webhook payload
@@ -38,34 +39,15 @@ export class RRRWebhookController {
    * @throws BadRequestException if validation fails
    */
   private getValidatedEventId(event_id: unknown): string {
-    // Type guard: must be primitive string
-    if (typeof event_id !== 'string') {
-      throw new BadRequestException('Invalid webhook payload: event_id must be a string');
+    try {
+      return validateMongoSafeString(event_id, 'event_id', {
+        maxLen: 128,
+        forbidDollarDot: true,
+      });
+    } catch (e: any) {
+      // Wrap validation errors in BadRequestException for NestJS
+      throw new BadRequestException(`Invalid webhook payload: ${e?.message ?? 'Invalid event_id'}`);
     }
-
-    // Sanitize: trim whitespace
-    const trimmed = event_id.trim();
-
-    // Validate: non-empty
-    if (!trimmed) {
-      throw new BadRequestException('Invalid webhook payload: event_id is required');
-    }
-
-    // Validate: reasonable length (conservative limit)
-    if (trimmed.length > 128) {
-      throw new BadRequestException('Invalid webhook payload: event_id too long');
-    }
-
-    // Harden: reject MongoDB operator characters
-    // This prevents patterns like {"$ne": null} from passing through
-    // Note: This is a blacklist approach that rejects only $ and . characters
-    // Alternative: Use whitelist regex /^[a-zA-Z0-9_-]+$/ for stricter validation
-    // Current approach allows flexibility for various ID formats (UUIDs, alphanumeric, etc.)
-    if (trimmed.includes('$') || trimmed.includes('.')) {
-      throw new BadRequestException('Invalid webhook payload: event_id contains illegal characters');
-    }
-
-    return trimmed;
   }
 
   /**
