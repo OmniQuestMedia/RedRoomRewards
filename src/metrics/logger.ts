@@ -59,7 +59,7 @@ export class MetricsLogger {
    * Helper to log a simple counter metric
    */
   static incrementCounter(type: MetricEventType, metadata?: Record<string, any>): void {
-    this.logMetric({
+    MetricsLogger.logMetric({
       type,
       value: 1,
       timestamp: new Date(),
@@ -71,7 +71,7 @@ export class MetricsLogger {
    * Helper to log a duration metric (in milliseconds)
    */
   static recordDuration(type: MetricEventType, durationMs: number, metadata?: Record<string, any>): void {
-    this.logMetric({
+    MetricsLogger.logMetric({
       type,
       value: durationMs,
       timestamp: new Date(),

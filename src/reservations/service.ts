@@ -100,8 +100,9 @@ export class ReservationService {
   /**
    * Mark expired reservations
    * This should be called by a scheduled job
+   * Processes in batches to avoid performance impact
    */
-  async markExpiredReservations(): Promise<number> {
+  async markExpiredReservations(batchSize: number = 1000): Promise<number> {
     const now = new Date();
 
     const result = await ReservationModel.updateMany(
@@ -115,7 +116,7 @@ export class ReservationService {
           updatedAt: now,
         },
       }
-    );
+    ).limit(batchSize);
 
     const expiredCount = result.modifiedCount;
 
