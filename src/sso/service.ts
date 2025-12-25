@@ -63,13 +63,19 @@ class SimpleJWT {
     try {
       const [headerB64, claimsB64, signatureB64] = token.split('.');
       
-      // Verify signature
+      // Verify signature using timing-safe comparison
       const expectedSignature = crypto
         .createHmac('sha256', this.secret)
         .update(`${headerB64}.${claimsB64}`)
         .digest('base64url');
       
-      if (signatureB64 !== expectedSignature) {
+      const expectedBuffer = Buffer.from(expectedSignature, 'utf8');
+      const providedBuffer = Buffer.from(signatureB64, 'utf8');
+      
+      if (
+        expectedBuffer.length !== providedBuffer.length ||
+        !crypto.timingSafeEqual(expectedBuffer, providedBuffer)
+      ) {
         return null;
       }
       

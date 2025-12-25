@@ -190,13 +190,26 @@ export class LinkingService {
     }
     
     // Verify token (timing-safe comparison)
-    const expectedToken = Buffer.from(link.verificationToken, 'utf8');
-    const providedToken = Buffer.from(request.verificationToken, 'utf8');
+    // Pad tokens to fixed length to prevent length-based timing leaks
+    const FIXED_TOKEN_LENGTH = 128; // Accommodate longest possible token
+    const expectedToken = Buffer.from(
+      link.verificationToken.padEnd(FIXED_TOKEN_LENGTH, '\0'),
+      'utf8'
+    );
+    const providedToken = Buffer.from(
+      request.verificationToken.padEnd(FIXED_TOKEN_LENGTH, '\0'),
+      'utf8'
+    );
     
-    if (
-      expectedToken.length !== providedToken.length ||
-      !crypto.timingSafeEqual(expectedToken, providedToken)
-    ) {
+    // Compare using timing-safe comparison
+    let isValid = true;
+    try {
+      isValid = crypto.timingSafeEqual(expectedToken, providedToken);
+    } catch {
+      isValid = false;
+    }
+    
+    if (!isValid) {
       return {
         linkId: request.linkId,
         verified: false,
