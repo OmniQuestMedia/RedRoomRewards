@@ -1,7 +1,7 @@
 /**
  * DLQ Replay Controller
  * 
- * Provides replay functionality for DLQ events
+ * Provides replay functionality for DLQ events with safety checks
  */
 
 import {
@@ -11,18 +11,26 @@ import {
   IdempotencyRecordModel,
 } from '../db/models';
 import { ReplayOptions, ReplayResult } from './types';
+import { MetricsLogger, MetricEventType, AlertSeverity } from '../metrics';
 
 export class ReplayController {
   /**
    * Replay events from DLQ based on options
    */
   async replay(options: ReplayOptions): Promise<ReplayResult> {
+    const startTime = Date.now();
+    
     const result: ReplayResult = {
       totalReplayed: 0,
       successful: 0,
       failed: 0,
       skipped: 0,
     };
+    
+    // Log replay start
+    MetricsLogger.incrementCounter(MetricEventType.DLQ_REPLAY_STARTED, {
+      options,
+    });
 
     // Build query based on options
     const query: any = {};
@@ -57,10 +65,29 @@ export class ReplayController {
     // Replay each event
     for (const dlqEvent of dlqEvents) {
       try {
-        // Check if already processed (idempotency)
+        // Safety check: verify idempotency before replay
         const isProcessed = await this.checkIdempotency(dlqEvent.eventId);
         if (isProcessed) {
           result.skipped++;
+          
+          // Log double-processing prevention
+          MetricsLogger.incrementCounter(MetricEventType.DLQ_DOUBLE_PROCESS_PREVENTED, {
+            eventId: dlqEvent.eventId,
+            eventType: dlqEvent.eventType,
+          });
+          
+          // Log alert for double-processing attempt (operational safety)
+          MetricsLogger.logAlert({
+            severity: AlertSeverity.INFO,
+            message: `Replay skipped - event already processed: ${dlqEvent.eventId}`,
+            metricType: MetricEventType.DLQ_DOUBLE_PROCESS_PREVENTED,
+            timestamp: new Date(),
+            metadata: {
+              eventId: dlqEvent.eventId,
+              eventType: dlqEvent.eventType,
+            },
+          });
+          
           continue;
         }
 
@@ -97,12 +124,41 @@ export class ReplayController {
 
         result.successful++;
         result.totalReplayed++;
+        
+        // Log successful replay
+        MetricsLogger.incrementCounter(MetricEventType.DLQ_REPLAY_SUCCESS, {
+          eventId: dlqEvent.eventId,
+          eventType: dlqEvent.eventType,
+        });
       } catch (error) {
         console.error(`Failed to replay event ${dlqEvent.eventId}:`, error);
         result.failed++;
         result.totalReplayed++;
+        
+        // Log failed replay
+        MetricsLogger.incrementCounter(MetricEventType.DLQ_REPLAY_FAILED, {
+          eventId: dlqEvent.eventId,
+          eventType: dlqEvent.eventType,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
       }
     }
+    
+    // Log skipped events
+    if (result.skipped > 0) {
+      MetricsLogger.incrementCounter(MetricEventType.DLQ_REPLAY_SKIPPED, {
+        count: result.skipped,
+      });
+    }
+    
+    // Record duration metric
+    const duration = Date.now() - startTime;
+    MetricsLogger.recordDuration(MetricEventType.DLQ_REPLAY_STARTED, duration, {
+      totalReplayed: result.totalReplayed,
+      successful: result.successful,
+      failed: result.failed,
+      skipped: result.skipped,
+    });
 
     return result;
   }

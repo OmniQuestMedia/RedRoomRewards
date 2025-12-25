@@ -16,6 +16,7 @@ import {
   ProcessingResult,
   EventProcessingContext,
 } from './types';
+import { MetricsLogger, MetricEventType, AlertSeverity } from '../metrics';
 
 export class IngestWorker {
   private isRunning = false;
@@ -217,6 +218,13 @@ export class IngestWorker {
         
         // Store idempotency record
         await this.storeIdempotency(event.eventId);
+        
+        // Log success metric
+        MetricsLogger.incrementCounter(MetricEventType.INGEST_EVENT_PROCESSED, {
+          eventId: event.eventId,
+          eventType: event.eventType,
+          attempts: event.attempts,
+        });
         break;
 
       case ProcessingResult.RETRYABLE_FAILURE:
@@ -241,6 +249,15 @@ export class IngestWorker {
               },
             }
           );
+          
+          // Log failure metric
+          MetricsLogger.incrementCounter(MetricEventType.INGEST_EVENT_FAILED, {
+            eventId: event.eventId,
+            eventType: event.eventType,
+            attempts: event.attempts,
+            errorCode: response.errorCode,
+            willRetry: true,
+          });
         }
         break;
 
@@ -251,6 +268,15 @@ export class IngestWorker {
           response.errorCode || 'NON_RETRYABLE_ERROR',
           response.errorMessage || 'Non-retryable failure'
         );
+        
+        // Log failure metric
+        MetricsLogger.incrementCounter(MetricEventType.INGEST_EVENT_FAILED, {
+          eventId: event.eventId,
+          eventType: event.eventType,
+          attempts: event.attempts,
+          errorCode: response.errorCode,
+          willRetry: false,
+        });
         break;
     }
   }
@@ -300,6 +326,36 @@ export class IngestWorker {
         },
       }
     );
+    
+    // Log DLQ metric
+    MetricsLogger.incrementCounter(MetricEventType.INGEST_EVENT_DLQ, {
+      eventId: event.eventId,
+      eventType: event.eventType,
+      attempts: event.attempts,
+      errorCode,
+    });
+    
+    // Log DLQ event moved metric
+    MetricsLogger.incrementCounter(MetricEventType.DLQ_EVENT_MOVED, {
+      eventId: event.eventId,
+      eventType: event.eventType,
+      errorCode,
+    });
+    
+    // Log alert for DLQ events (may indicate systemic issues)
+    MetricsLogger.logAlert({
+      severity: AlertSeverity.WARNING,
+      message: `Event moved to DLQ: ${event.eventId}`,
+      metricType: MetricEventType.DLQ_EVENT_MOVED,
+      timestamp: new Date(),
+      metadata: {
+        eventId: event.eventId,
+        eventType: event.eventType,
+        errorCode,
+        errorMessage,
+        attempts: event.attempts,
+      },
+    });
   }
 
   /**
@@ -311,7 +367,16 @@ export class IngestWorker {
       eventScope: 'ingest_event',
     });
 
-    return record !== null;
+    const isProcessed = record !== null;
+    
+    // Log idempotency hit for monitoring
+    if (isProcessed) {
+      MetricsLogger.incrementCounter(MetricEventType.INGEST_IDEMPOTENCY_HIT, {
+        eventId,
+      });
+    }
+
+    return isProcessed;
   }
 
   /**
