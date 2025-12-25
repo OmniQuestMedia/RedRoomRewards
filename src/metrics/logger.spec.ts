@@ -2,7 +2,7 @@
  * Metrics Logger Tests
  */
 
-import { MetricsLogger, MetricEventType, AlertSeverity } from '../index';
+import { MetricsLogger, MetricEventType, AlertSeverity } from './index';
 
 describe('MetricsLogger', () => {
   let consoleLogSpy: jest.SpyInstance;

@@ -1,4 +1,212 @@
-# Status Report: RRR Webhook Controller Implementation
+# Status Report: RedRoomRewards Platform
+
+**Last Updated:** December 25, 2025
+
+---
+
+## RRR-M1: Production Hardening for New Surfaces
+
+**Report Date:** December 25, 2025  
+**Task Reference:** RRR-M1 Production Hardening  
+**Status:** ✅ COMPLETED SUCCESSFULLY  
+**Branch:** `copilot/rrr-m1-prod-hardening`
+
+### Executive Summary
+
+Milestone 1 (M1) successfully implemented production hardening for new surfaces in the RedRoomRewards loyalty platform. The implementation adds **comprehensive monitoring and alerting hooks** for ingest/DLQ/replay operations, reservations/holds, and provides foundation for future activity feed and partner admin operations.
+
+**Key Achievements:**
+- **Monitoring Framework:** Lightweight metrics/alerting system integrated across critical services
+- **Operational Safety:** Double-processing prevention and idempotency checks for DLQ replay
+- **Index Documentation:** Complete index verification and scaling guidance for production deployment
+- **Test Coverage:** 8 test cases validating metrics framework
+- **Zero Breaking Changes:** All changes are additive and backward-compatible
+
+### Changes Implemented
+
+#### 1. Metrics & Monitoring Framework (4 Files)
+
+**`src/metrics/types.ts`** (85 lines)
+- Defined metric event types for all M1 surfaces
+- Alert severity levels (INFO, WARNING, ERROR, CRITICAL)
+- Type-safe metric and alert data structures
+
+**`src/metrics/logger.ts`** (76 lines)
+- Lightweight console-based metrics logger
+- Follows existing logging patterns (console.log/warn/error)
+- Helper methods: incrementCounter, recordDuration
+- Designed for easy integration with external monitoring systems
+
+**`src/metrics/index.ts`** (10 lines)
+- Module exports for metrics framework
+
+**`src/metrics/logger.spec.ts`** (145 lines)
+- 8 comprehensive test cases
+- ✅ All tests passing
+- Coverage: metric logging, alert routing, counter/duration helpers
+
+#### 2. Ingest Worker Monitoring (2 Files Modified)
+
+**`src/ingest-worker/worker.ts`** (Modified)
+- Added metrics for processed events (INGEST_EVENT_PROCESSED)
+- Added metrics for failed events with retry tracking (INGEST_EVENT_FAILED)
+- Added metrics for DLQ movement (INGEST_EVENT_DLQ, DLQ_EVENT_MOVED)
+- Added idempotency hit tracking (INGEST_IDEMPOTENCY_HIT)
+- Added WARNING alerts for DLQ events (potential systemic issues)
+
+**Metrics Added:**
+- `INGEST_EVENT_PROCESSED` - Successful event processing
+- `INGEST_EVENT_FAILED` - Failed events with retry status
+- `INGEST_EVENT_DLQ` - Events moved to DLQ
+- `INGEST_IDEMPOTENCY_HIT` - Duplicate event prevention
+
+#### 3. DLQ/Replay Safety Checks (1 File Modified)
+
+**`src/ingest-worker/replay.ts`** (Modified)
+- Added replay operation metrics (DLQ_REPLAY_STARTED, SUCCESS, FAILED, SKIPPED)
+- Added double-processing prevention with explicit checks
+- Added duration tracking for replay operations
+- Added INFO alerts for prevented double-processing
+- Added safety validations before replay
+
+**Safety Features:**
+- Idempotency check before replaying events
+- Alert on double-processing attempts
+- Duration metrics for replay performance monitoring
+- Success/failure/skip counters for operational visibility
+
+**Metrics Added:**
+- `DLQ_REPLAY_STARTED` - Replay operation initiated (includes duration)
+- `DLQ_REPLAY_SUCCESS` - Successfully replayed events
+- `DLQ_REPLAY_FAILED` - Failed replay attempts
+- `DLQ_REPLAY_SKIPPED` - Already-processed events skipped
+- `DLQ_DOUBLE_PROCESS_PREVENTED` - Safety check prevented duplicate
+
+#### 4. Reservation/Hold Monitoring (3 Files Created)
+
+**`src/reservations/service.ts`** (162 lines)
+- Reservation lifecycle management with monitoring
+- Metrics for create, commit, release, expire operations
+- Statistics endpoint for operational dashboards
+
+**`src/reservations/types.ts`** (25 lines)
+- Type definitions for reservation operations
+
+**`src/reservations/index.ts`** (4 lines)
+- Module exports
+
+**Metrics Added:**
+- `RESERVATION_CREATED` - New reservation created
+- `RESERVATION_COMMITTED` - Reservation committed (transaction complete)
+- `RESERVATION_RELEASED` - Reservation released (transaction cancelled)
+- `RESERVATION_EXPIRED` - Expired reservations cleaned up
+
+#### 5. Activity Feed & Partner Admin Placeholders (4 Files Created)
+
+**`src/activity-feed/service.ts`** (21 lines)
+- Placeholder service with monitoring guidance
+- Documentation for future M2+ implementation
+
+**`src/activity-feed/index.ts`** (3 lines)
+- Module exports
+
+**`src/admin-ops/service.ts`** (37 lines)
+- Placeholder service with security considerations
+- Monitoring hooks prepared for disputes and fraud detection
+
+**`src/admin-ops/index.ts`** (3 lines)
+- Module exports
+
+**Metrics Prepared (Future Use):**
+- `ACTIVITY_FEED_EVENT` - Feed event generation
+- `ADMIN_DISPUTE_OPENED` - Dispute creation
+- `ADMIN_DISPUTE_RESOLVED` - Dispute resolution
+- `ADMIN_FRAUD_FLAGGED` - Fraud detection
+
+#### 6. Index Verification & Scaling Guidance (1 File Modified)
+
+**`infra/migrations/README.md`** (Modified)
+- Added M1-specific index requirements for ingest, DLQ, reservations
+- Added index verification script for MongoDB
+- Added scaling guidance with load estimates and alert thresholds
+- Documented operational considerations for each surface
+
+**Index Documentation:**
+- Ingest events: eventId (unique), status+nextAttemptAt (compound)
+- DLQ events: eventId (unique), movedToDLQAt, eventType
+- Idempotency: pointsIdempotencyKey+eventScope (compound unique)
+- Reservations: reservationId (unique), userId+createdAt, status+expiresAt, TTL
+
+**Scaling Guidance:**
+- Ingest: 100-1000 events/sec, queue depth alerts at 10K events
+- DLQ: <1% of ingest, alert at 1000 events (systemic issues)
+- Reservations: 10-100/sec, alert at 100K active reservations
+
+### Testing & Quality
+
+**Test Results:**
+- ✅ 8 tests passing (metrics framework)
+- ✅ TypeScript compilation successful
+- ✅ No breaking changes to existing code
+
+**Code Quality:**
+- Follows existing patterns (console-based logging)
+- Minimal modifications to existing services
+- Type-safe interfaces throughout
+- Comprehensive inline documentation
+
+### Operational Impact
+
+**Monitoring Visibility:**
+- Real-time metrics for all critical operations
+- Alert routing by severity (info/warning/error/critical)
+- Metadata-rich logs for troubleshooting
+- JSON-structured output for easy parsing
+
+**Safety Improvements:**
+- Double-processing prevention in replay
+- Idempotency tracking across all surfaces
+- DLQ movement alerts for systemic issues
+- Reservation lifecycle visibility
+
+**Production Readiness:**
+- Index verification script for deployment
+- Scaling guidance with specific thresholds
+- Performance considerations documented
+- Alert configuration recommendations
+
+### Migration Path
+
+**No Migration Required:**
+- All changes are additive
+- No database schema changes
+- No breaking API changes
+- Existing services continue to work unchanged
+
+**Recommended Actions:**
+1. Deploy changes to staging
+2. Run index verification script
+3. Configure external monitoring to consume JSON logs
+4. Set up alerts based on documented thresholds
+5. Deploy to production
+
+### Future Work (M2+)
+
+**Activity Feed Implementation:**
+- User transaction timelines
+- Model earnings feed
+- Performance history tracking
+- Metrics hooks already in place
+
+**Partner Admin Operations:**
+- Dispute management system
+- Fraud detection and flagging
+- Admin action audit trail
+- Metrics and alerts prepared
+
+---
+
+## Previous Work: RRR Webhook Controller Implementation
 
 **Report Date:** December 24, 2025  
 **Task Reference:** PR #42 - "Verify consumer boundary and implement idempotent points posting"  
