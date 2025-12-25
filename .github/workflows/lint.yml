@@ -46,3 +46,6 @@ jobs:
 
           # Ensure regexes apply to repo-relative paths if used later
           STRIP_DEFAULT_WORKSPACE_FOR_REGEX: true
+
+          # Enable verbose output for actionable diagnostics
+          LOG_LEVEL: VERBOSE

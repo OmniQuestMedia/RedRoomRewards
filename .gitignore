@@ -161,7 +161,8 @@ docs/.vitepress/dist
 
 # ===== Archive (Do not commit archive contents) =====
 # Archive is for reference only, not for active use
-# If you need to preserve specific archive files, list them explicitly
+# Exclude from linting and scanning
+archive/
 
 # ===== Custom Exclusions =====
 # Add project-specific exclusions below this line

@@ -490,6 +490,36 @@ The implementation follows RedRoomRewards core principles:
    - Security vulnerability monitoring
    - ✅ Active
 
+### Running Linters Locally
+
+To run linters locally before pushing, use these commands:
+
+**Markdown linting:**
+```bash
+npx markdownlint-cli2 "**/*.md" "#node_modules" "#archive"
+```
+
+**YAML linting:**
+```bash
+npx yamllint-cli "**/*.{yml,yaml}" --ignore "node_modules/**" --ignore "archive/**"
+```
+
+**All linters (via Super-Linter Docker):**
+```bash
+docker run --rm \
+  -e RUN_LOCAL=true \
+  -e VALIDATE_MARKDOWN=true \
+  -e VALIDATE_YAML=true \
+  -e VALIDATE_JSON=true \
+  -e LINTER_RULES_PATH=.github/linters \
+  -v $(pwd):/tmp/lint \
+  github/super-linter:latest
+```
+
+**Configuration locations:**
+- Markdownlint: `.github/linters/.markdownlint.yml`
+- Yamllint: `.github/linters/.yaml-lint.yml`
+
 ---
 
 ## Production Readiness
