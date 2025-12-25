@@ -296,3 +296,116 @@ The code provides a **template for future webhook handlers** in the RedRoomRewar
 **Test Coverage:** 100% of validation logic  
 **Documentation:** Complete  
 **Production Ready:** Yes (pending environment configuration)
+
+---
+
+## M1 Production Hardening Implementation
+
+**Date:** December 25, 2025  
+**Milestone:** RRR-M1 Production Hardening for New Surfaces
+
+### Overview
+
+M1 adds production-grade monitoring and operational safety to critical platform surfaces:
+- Ingest worker and DLQ/replay operations
+- Reservation/hold lifecycle management
+- Foundation for activity feed and partner admin operations
+
+### Implementation Approach
+
+**Minimal, Additive Changes:**
+- No breaking changes to existing APIs
+- No refactoring of pre-existing code
+- Tiny metrics wrapper following existing console.log patterns
+- Tests added only for new functionality
+
+**Key Design Decisions:**
+
+1. **Console-Based Metrics**: Uses existing logging pattern (console.log/warn/error) with JSON-structured output for easy external monitoring integration
+2. **Type-Safe Framework**: Enum-based metric types prevent typos and enable compile-time validation
+3. **Safety-First Replay**: Idempotency checks before replay prevent double-processing
+4. **Operational Visibility**: Metrics capture success/failure/skip counts with rich metadata
+
+### Monitoring Integration
+
+The metrics framework outputs JSON logs that can be consumed by:
+- CloudWatch Logs (AWS)
+- Stackdriver Logging (GCP)
+- Application Insights (Azure)
+- Datadog, New Relic, or other APM tools
+- Custom log aggregation pipelines
+
+**Example Metric Output:**
+```json
+{
+  "level": "METRIC",
+  "type": "ingest.event.processed",
+  "value": 1,
+  "timestamp": "2025-12-25T11:00:00.000Z",
+  "metadata": {
+    "eventId": "evt-123",
+    "eventType": "points.awarded",
+    "attempts": 1
+  }
+}
+```
+
+**Example Alert Output:**
+```json
+{
+  "level": "ALERT",
+  "severity": "warning",
+  "message": "Event moved to DLQ: evt-123",
+  "metricType": "dlq.event.moved",
+  "timestamp": "2025-12-25T11:00:00.000Z",
+  "metadata": {
+    "eventId": "evt-123",
+    "errorCode": "MAX_RETRIES_EXCEEDED",
+    "attempts": 5
+  }
+}
+```
+
+### Operational Safeguards
+
+**Double-Processing Prevention:**
+- Replay controller checks idempotency before re-queuing events
+- Logs prevented double-processing attempts for audit
+- Skipped events tracked separately from failures
+
+**DLQ Monitoring:**
+- Warning alerts on DLQ movement (may indicate systemic issues)
+- Metrics include error codes and attempt counts
+- Replay operations tracked end-to-end with duration
+
+**Reservation Safety:**
+- Full lifecycle tracking (create, commit, release, expire)
+- Expiry cleanup job with metric tracking
+- Active reservation monitoring for capacity planning
+
+### Production Deployment
+
+**Required Infrastructure:**
+1. Index creation (see infra/migrations/README.md)
+2. External monitoring configured to consume JSON logs
+3. Alerts configured based on documented thresholds
+4. Dashboard for operational metrics
+
+**No Migration Required:**
+- All changes are additive
+- Existing services continue unchanged
+- Metrics activate automatically on deployment
+
+### Scaling Considerations
+
+Documented in `infra/migrations/README.md`:
+- Ingest worker: 100-1000 events/sec capacity
+- DLQ: Alert at 1000 events (indicates problems)
+- Reservations: Alert at 100K active reservations
+
+---
+
+**M1 Status:** ✅ COMPLETE  
+**Test Coverage:** 8 tests, all passing  
+**Breaking Changes:** 0  
+**Production Ready:** Yes
