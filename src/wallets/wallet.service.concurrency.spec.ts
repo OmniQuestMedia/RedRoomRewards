@@ -6,11 +6,11 @@
  * operations safely without data corruption.
  */
 
-import { WalletService } from '../wallets/wallet.service';
+import { WalletService } from './wallet.service';
 import { LedgerService } from '../ledger/ledger.service';
 import { WalletModel } from '../db/models/wallet.model';
 import { OptimisticLockError } from '../services/types';
-import { TransactionReason } from '../wallets/types';
+import { TransactionReason } from './types';
 
 describe('Wallet Service - Concurrency and Race Conditions', () => {
   let walletService: WalletService;

@@ -51,6 +51,7 @@ export class EventBus {
   private subscriptions: Map<WalletEventType, EventSubscription[]> = new Map();
   private processedEvents: Map<string, number> = new Map(); // eventId -> timestamp
   private config: EventBusConfig;
+  private cleanupInterval?: NodeJS.Timeout;
 
   constructor(config: Partial<EventBusConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
@@ -156,8 +157,8 @@ export class EventBus {
     });
     
     if (this.config.asyncProcessing) {
-      // Fire and forget
-      Promise.allSettled(notifications);
+      // Fire and forget - intentionally not awaiting
+      void Promise.allSettled(notifications);
     } else {
       // Wait for all
       await Promise.allSettled(notifications);
@@ -235,7 +236,7 @@ export class EventBus {
    * Start cleanup interval for deduplication cache
    */
   private startCleanupInterval(): void {
-    setInterval(() => {
+    this.cleanupInterval = setInterval(() => {
       const now = Date.now();
       const ttl = this.config.deduplicationTtlMs;
       
@@ -245,6 +246,17 @@ export class EventBus {
         }
       }
     }, 60000); // Cleanup every minute
+  }
+
+  /**
+   * Stop cleanup interval and clear resources
+   */
+  destroy(): void {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = undefined;
+    }
+    this.clearSubscriptions();
   }
 
   /**
