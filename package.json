@@ -19,6 +19,8 @@
   "author": "OmniQuestMedia",
   "license": "UNLICENSED",
   "dependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
+    "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.8.4",
     "uuid": "^10.0.0"
   },
