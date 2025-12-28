@@ -36,6 +36,19 @@ export enum MetricEventType {
   ADMIN_DISPUTE_OPENED = 'admin.dispute.opened',
   ADMIN_DISPUTE_RESOLVED = 'admin.dispute.resolved',
   ADMIN_FRAUD_FLAGGED = 'admin.fraud.flagged',
+  
+  // Event bus metrics
+  EVENT_PUBLISHED = 'event.published',
+  EVENT_DUPLICATE_DETECTED = 'event.duplicate.detected',
+  EVENT_NO_SUBSCRIBERS = 'event.no_subscribers',
+  EVENT_HANDLER_SUCCESS = 'event.handler.success',
+  EVENT_HANDLER_ERROR = 'event.handler.error',
+  EVENT_SUBSCRIBER_REGISTERED = 'event.subscriber.registered',
+  EVENT_SUBSCRIBER_UNREGISTERED = 'event.subscriber.unregistered',
+  
+  // Wallet event metrics
+  WALLET_EVENT_PUBLISHED = 'wallet.event.published',
+  WALLET_EVENT_PUBLISH_ERROR = 'wallet.event.publish.error',
 }
 
 /**
