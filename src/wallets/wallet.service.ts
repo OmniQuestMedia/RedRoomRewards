@@ -31,6 +31,7 @@ import { WalletModel } from '../db/models/wallet.model';
 import { ModelWalletModel } from '../db/models/model-wallet.model';
 import { EscrowItemModel } from '../db/models/escrow-item.model';
 import { ILedgerService } from '../ledger/types';
+import { WalletEventPublisher } from '../events/wallet-event-publisher';
 
 /**
  * Wallet Service configuration
@@ -197,7 +198,7 @@ export class WalletService implements IWalletService {
       metadata: request.metadata,
     });
 
-    return {
+    const response = {
       transactionId,
       escrowId,
       previousBalance,
@@ -205,6 +206,28 @@ export class WalletService implements IWalletService {
       escrowBalance: newEscrowBalance,
       timestamp,
     };
+
+    // Publish escrow held event for real-time updates
+    try {
+      await WalletEventPublisher.publishEscrowHeld({
+        userId: request.userId,
+        escrowId,
+        amount: request.amount,
+        reason: request.reason,
+        queueItemId: request.queueItemId,
+        featureType: request.featureType,
+        transactionId,
+        userAvailableBalance: newAvailableBalance,
+        userEscrowBalance: newEscrowBalance,
+        idempotencyKey: request.idempotencyKey,
+        metadata: request.metadata,
+      });
+    } catch (eventError) {
+      // Log but don't fail the operation if event publishing fails
+      console.error('Failed to publish escrow held event:', eventError);
+    }
+
+    return response;
   }
 
   /**
@@ -334,12 +357,33 @@ export class WalletService implements IWalletService {
       metadata: request.metadata,
     });
 
-    return {
+    const response = {
       transactionId,
       settledAmount: request.amount,
       modelEarnedBalance: newEarnedBalance,
       timestamp: new Date(),
     };
+
+    // Publish escrow settled event for real-time updates
+    try {
+      await WalletEventPublisher.publishEscrowSettled({
+        userId: escrow.userId,
+        modelId: request.modelId,
+        escrowId: request.escrowId,
+        amount: request.amount,
+        reason: request.reason,
+        queueItemId: request.queueItemId,
+        transactionId,
+        modelEarnedBalance: newEarnedBalance,
+        idempotencyKey: request.idempotencyKey,
+        metadata: request.metadata,
+      });
+    } catch (eventError) {
+      // Log but don't fail the operation if event publishing fails
+      console.error('Failed to publish escrow settled event:', eventError);
+    }
+
+    return response;
   }
 
   /**
@@ -438,12 +482,33 @@ export class WalletService implements IWalletService {
       metadata: request.metadata,
     });
 
-    return {
+    const response = {
       transactionId,
       refundedAmount: request.amount,
       userAvailableBalance: newAvailableBalance,
       timestamp: new Date(),
     };
+
+    // Publish escrow refunded event for real-time updates
+    try {
+      await WalletEventPublisher.publishEscrowRefunded({
+        userId: request.userId,
+        escrowId: request.escrowId,
+        amount: request.amount,
+        reason: request.reason,
+        queueItemId: request.queueItemId,
+        transactionId,
+        userAvailableBalance: newAvailableBalance,
+        userEscrowBalance: updatedWallet!.escrowBalance,
+        idempotencyKey: request.idempotencyKey,
+        metadata: request.metadata,
+      });
+    } catch (eventError) {
+      // Log but don't fail the operation if event publishing fails
+      console.error('Failed to publish escrow refunded event:', eventError);
+    }
+
+    return response;
   }
 
   /**
@@ -606,7 +671,7 @@ export class WalletService implements IWalletService {
       });
     }
 
-    return {
+    const response = {
       transactionId,
       refundedAmount: request.refundAmount,
       settledAmount: request.settleAmount,
@@ -614,6 +679,29 @@ export class WalletService implements IWalletService {
       modelEarnedBalance: newModelEarnedBalance,
       timestamp: new Date(),
     };
+
+    // Publish partial escrow settlement event for real-time updates
+    try {
+      await WalletEventPublisher.publishEscrowPartialSettled({
+        userId: request.userId,
+        modelId: request.modelId,
+        escrowId: request.escrowId,
+        refundAmount: request.refundAmount,
+        settleAmount: request.settleAmount,
+        reason: request.reason,
+        queueItemId: request.queueItemId,
+        transactionId,
+        userAvailableBalance: newUserAvailableBalance,
+        modelEarnedBalance: newModelEarnedBalance,
+        idempotencyKey: request.idempotencyKey,
+        metadata: request.metadata,
+      });
+    } catch (eventError) {
+      // Log but don't fail the operation if event publishing fails
+      console.error('Failed to publish escrow partial settled event:', eventError);
+    }
+
+    return response;
   }
 
   /**
