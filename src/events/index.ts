@@ -8,3 +8,4 @@
 export * from './types';
 export * from './event-bus';
 export * from './wallet-event-publisher';
+export * from './balance-snapshot-cache';
