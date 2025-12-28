@@ -10,7 +10,6 @@ import {
   BaseRewardEvent,
   RewardEvent,
   WalletEventType,
-  EventHandler,
   EventSubscription,
   EventPublishResult,
 } from './types';
@@ -330,11 +329,11 @@ export class EventBuilder {
   /**
    * Create a base event with common fields
    */
-  static createBase(
-    eventType: WalletEventType,
+  static createBase<T extends WalletEventType>(
+    eventType: T,
     idempotencyKey: string,
     source: string = 'reward-service'
-  ): Pick<BaseRewardEvent, 'eventId' | 'eventType' | 'idempotencyKey' | 'timestamp' | 'source' | 'version'> {
+  ): { eventId: string; eventType: T; idempotencyKey: string; timestamp: Date; source: string; version: string } {
     return {
       eventId: uuidv4(),
       eventType,

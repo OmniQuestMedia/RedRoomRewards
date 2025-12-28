@@ -12,6 +12,7 @@ import {
   EscrowRefundedEvent,
   EscrowPartialSettledEvent,
   WalletEventType,
+  RewardEvent,
 } from './types';
 import { getEventBus } from './event-bus';
 import { MetricsLogger, MetricEventType } from '../metrics';
@@ -101,8 +102,13 @@ export class BalanceSnapshotCache {
    * Handle wallet events and update cache
    */
   private async handleEvent(
-    event: BalanceUpdatedEvent | EscrowHeldEvent | EscrowSettledEvent | EscrowRefundedEvent | EscrowPartialSettledEvent
+    event: RewardEvent
   ): Promise<void> {
+    // Only process wallet balance events, not ledger entry events
+    if (event.eventType === WalletEventType.LEDGER_ENTRY_CREATED) {
+      return;
+    }
+
     try {
       switch (event.eventType) {
         case WalletEventType.BALANCE_UPDATED:
