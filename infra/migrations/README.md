@@ -20,10 +20,36 @@ When creating migrations:
 For performance, ensure these indexes exist when implementing:
 
 ### Core Wallet & Ledger Indexes
-- Wallet lookups by userId (unique)
-- Transaction lookups by userId
-- Transaction lookups by idempotencyKey (unique)
-- Transaction lookups by timestamp
+
+**wallets collection:**
+- `userId` (unique) - Primary lookup
+- `availableBalance` - Balance queries
+- `escrowBalance` - Escrow tracking
+
+**model_wallets collection:**
+- `modelId` (unique) - Primary lookup
+- `earnedBalance` - Balance queries
+- `type, earnedBalance` (compound) - Type-based balance queries
+
+**ledger_entries collection:**
+- `entryId` (unique) - Primary lookup
+- `idempotencyKey` (unique) - Prevent duplicate transactions
+- `transactionId, timestamp` (compound) - Transaction history
+- `accountId, timestamp` (compound) - User transaction history
+- `accountId, type, timestamp` (compound) - Filtered transaction queries
+- `accountId, balanceState, timestamp` (compound) - Balance state queries
+- `escrowId` (sparse) - Escrow-related entries
+- `queueItemId` (sparse) - Queue-related entries
+- `correlationId` (sparse) - Batch transaction tracking
+- `timestamp` - Time-based queries and retention
+
+**escrow_items collection:**
+- `escrowId` (unique) - Primary lookup
+- `queueItemId` (unique) - One escrow per queue item
+- `userId, status, createdAt` (compound) - User escrow history
+- `modelId, status, processedAt` (compound, sparse) - Model settlement tracking
+- `status, createdAt` (compound) - Status-based queries
+- `featureType, status` (compound) - Feature tracking
 
 ### Ingest & DLQ Indexes (M1)
 - **ingest_events.eventId** (unique) - Fast idempotency checks
