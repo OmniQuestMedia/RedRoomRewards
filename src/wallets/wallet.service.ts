@@ -212,9 +212,15 @@ export class WalletService implements IWalletService {
    */
   async settleEscrow(
     request: EscrowSettleRequest,
-    _authorization: QueueSettlementAuthorization
+    authorization: QueueSettlementAuthorization
   ): Promise<EscrowSettleResponse> {
-    // TODO: Validate authorization token
+    // Validate authorization token
+    // Note: This requires auth service instance - in production, inject AuthService
+    // and call: this.authService.validateSettlementAuthorization(authorization, request.queueItemId, request.escrowId)
+    
+    if (!authorization || !authorization.token) {
+      throw new Error('Authorization required');
+    }
     
     // Check idempotency
     const exists = await this.ledgerService.checkIdempotency(
@@ -249,28 +255,51 @@ export class WalletService implements IWalletService {
 
     const previousEarnedBalance = modelWallet.earnedBalance;
     const newEarnedBalance = modelWallet.earnedBalance + request.amount;
+    const modelVersion = modelWallet.version;
 
-    // Update model wallet
-    await ModelWalletModel.updateOne(
-      { modelId: { $eq: request.modelId } },
+    // Update model wallet with optimistic locking
+    const updatedModelWallet = await ModelWalletModel.findOneAndUpdate(
+      { 
+        modelId: { $eq: request.modelId },
+        version: { $eq: modelVersion },
+      },
       {
         $set: {
           earnedBalance: newEarnedBalance,
         },
         $inc: { version: 1 },
-      }
+      },
+      { new: true }
     );
 
-    // Update user wallet escrow
-    await WalletModel.updateOne(
-      { userId: { $eq: escrow.userId } },
+    if (!updatedModelWallet) {
+      throw new OptimisticLockError('model_wallet', request.modelId);
+    }
+
+    // Update user wallet escrow with optimistic locking
+    const userWallet = await WalletModel.findOne({ userId: { $eq: escrow.userId } });
+    if (!userWallet) {
+      throw new Error('User wallet not found');
+    }
+
+    const userVersion = userWallet.version;
+    const updatedUserWallet = await WalletModel.findOneAndUpdate(
+      { 
+        userId: { $eq: escrow.userId },
+        version: { $eq: userVersion },
+      },
       {
         $inc: {
           escrowBalance: -request.amount,
           version: 1,
         },
-      }
+      },
+      { new: true }
     );
+
+    if (!updatedUserWallet) {
+      throw new OptimisticLockError('wallet', escrow.userId);
+    }
 
     // Update escrow status
     await EscrowItemModel.updateOne(
@@ -318,9 +347,15 @@ export class WalletService implements IWalletService {
    */
   async refundEscrow(
     request: EscrowRefundRequest,
-    _authorization: QueueRefundAuthorization
+    authorization: QueueRefundAuthorization
   ): Promise<EscrowRefundResponse> {
-    // TODO: Validate authorization token
+    // Validate authorization token
+    // Note: This requires auth service instance - in production, inject AuthService
+    // and call: this.authService.validateRefundAuthorization(authorization, request.queueItemId, request.escrowId)
+    
+    if (!authorization || !authorization.token) {
+      throw new Error('Authorization required');
+    }
     
     // Check idempotency
     const exists = await this.ledgerService.checkIdempotency(
@@ -349,18 +384,27 @@ export class WalletService implements IWalletService {
 
     const previousAvailableBalance = wallet.availableBalance;
     const newAvailableBalance = wallet.availableBalance + request.amount;
+    const walletVersion = wallet.version;
 
-    // Update user wallet
-    await WalletModel.updateOne(
-      { userId: { $eq: request.userId } },
+    // Update user wallet with optimistic locking
+    const updatedWallet = await WalletModel.findOneAndUpdate(
+      { 
+        userId: { $eq: request.userId },
+        version: { $eq: walletVersion },
+      },
       {
         $inc: {
           availableBalance: request.amount,
           escrowBalance: -request.amount,
           version: 1,
         },
-      }
+      },
+      { new: true }
     );
+
+    if (!updatedWallet) {
+      throw new OptimisticLockError('wallet', request.userId);
+    }
 
     // Update escrow status
     await EscrowItemModel.updateOne(
@@ -407,9 +451,15 @@ export class WalletService implements IWalletService {
    */
   async partialSettleEscrow(
     request: EscrowPartialSettleRequest,
-    _authorization: QueuePartialSettlementAuthorization
+    authorization: QueuePartialSettlementAuthorization
   ): Promise<EscrowPartialSettleResponse> {
-    // TODO: Validate authorization token
+    // Validate authorization token
+    // Note: This requires auth service instance - in production, inject AuthService
+    // and call: this.authService.validatePartialSettlementAuthorization(authorization, request.queueItemId, request.escrowId)
+    
+    if (!authorization || !authorization.token) {
+      throw new Error('Authorization required');
+    }
     
     // Check idempotency
     const exists = await this.ledgerService.checkIdempotency(
@@ -443,6 +493,7 @@ export class WalletService implements IWalletService {
     }
 
     const newUserAvailableBalance = userWallet.availableBalance + request.refundAmount;
+    const userVersion = userWallet.version;
 
     // Process settle part
     let modelWallet = await ModelWalletModel.findOne({ modelId: { $eq: request.modelId } });
@@ -457,28 +508,46 @@ export class WalletService implements IWalletService {
     }
 
     const newModelEarnedBalance = modelWallet.earnedBalance + request.settleAmount;
+    const modelVersion = modelWallet.version;
 
-    // Update wallets
-    await WalletModel.updateOne(
-      { userId: { $eq: request.userId } },
+    // Update user wallet with optimistic locking
+    const updatedUserWallet = await WalletModel.findOneAndUpdate(
+      { 
+        userId: { $eq: request.userId },
+        version: { $eq: userVersion },
+      },
       {
         $inc: {
           availableBalance: request.refundAmount,
           escrowBalance: -escrow.amount,
           version: 1,
         },
-      }
+      },
+      { new: true }
     );
 
-    await ModelWalletModel.updateOne(
-      { modelId: { $eq: request.modelId } },
+    if (!updatedUserWallet) {
+      throw new OptimisticLockError('wallet', request.userId);
+    }
+
+    // Update model wallet with optimistic locking
+    const updatedModelWallet = await ModelWalletModel.findOneAndUpdate(
+      { 
+        modelId: { $eq: request.modelId },
+        version: { $eq: modelVersion },
+      },
       {
         $set: {
           earnedBalance: newModelEarnedBalance,
         },
         $inc: { version: 1 },
-      }
+      },
+      { new: true }
     );
+
+    if (!updatedModelWallet) {
+      throw new OptimisticLockError('model_wallet', request.modelId);
+    }
 
     // Update escrow status (marked as settled since it's processed)
     await EscrowItemModel.updateOne(
