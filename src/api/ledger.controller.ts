@@ -106,7 +106,7 @@ export class LedgerController {
         id: entry.transactionId,
         userId: entry.accountId,
         amount: entry.amount,
-        type: entry.type,
+        type: entry.type.toLowerCase() as 'credit' | 'debit',
         reason: entry.reason,
         metadata: entry.metadata,
         timestamp: entry.timestamp.toISOString(),
