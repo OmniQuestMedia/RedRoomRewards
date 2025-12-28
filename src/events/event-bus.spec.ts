@@ -4,13 +4,13 @@
  * Tests for event publishing, subscription, idempotency, and concurrency handling.
  */
 
-import { EventBus, resetEventBus } from '../event-bus';
+import { EventBus, resetEventBus } from './event-bus';
 import {
   WalletEventType,
   EscrowHeldEvent,
   EventHandler,
   BaseRewardEvent,
-} from '../types';
+} from './types';
 
 describe('EventBus', () => {
   let eventBus: EventBus;

@@ -12,8 +12,8 @@ import {
   EscrowRefundedEvent,
   EscrowPartialSettledEvent,
   WalletEventType,
-} from '../events/types';
-import { getEventBus } from '../events/event-bus';
+} from './types';
+import { getEventBus } from './event-bus';
 import { MetricsLogger, MetricEventType } from '../metrics';
 
 /**
