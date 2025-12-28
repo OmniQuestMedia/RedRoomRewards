@@ -122,7 +122,12 @@ export class BalanceSnapshotCache {
           break;
       }
     } catch (error) {
-      console.error('Error updating balance cache:', error);
+      MetricsLogger.incrementCounter(MetricEventType.EVENT_HANDLER_ERROR, {
+        subscriberId: 'balance-snapshot-cache',
+        eventId: event.eventId,
+        eventType: event.eventType,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
       throw error;
     }
   }
@@ -256,13 +261,14 @@ export class BalanceSnapshotCache {
         accountId: event.userId,
         accountType: 'user',
         availableBalance: event.userAvailableBalance,
-        escrowBalance: 0, // Escrow is fully processed
+        escrowBalance: event.userEscrowBalance,
         lastUpdated: event.timestamp,
         version: 1,
       };
       this.cache.set(userKey, newEntry);
     } else {
       userCached.availableBalance = event.userAvailableBalance;
+      userCached.escrowBalance = event.userEscrowBalance;
       userCached.lastUpdated = event.timestamp;
       userCached.version++;
     }

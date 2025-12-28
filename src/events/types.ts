@@ -229,6 +229,9 @@ export interface EscrowPartialSettledEvent extends BaseRewardEvent {
   /** User's new available balance */
   userAvailableBalance: number;
   
+  /** User's new escrow balance (after partial settlement) */
+  userEscrowBalance: number;
+  
   /** Model's new earned balance */
   modelEarnedBalance: number;
   

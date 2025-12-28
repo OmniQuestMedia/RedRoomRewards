@@ -32,6 +32,8 @@ import { ModelWalletModel } from '../db/models/model-wallet.model';
 import { EscrowItemModel } from '../db/models/escrow-item.model';
 import { ILedgerService } from '../ledger/types';
 import { WalletEventPublisher } from '../events/wallet-event-publisher';
+import { WalletEventType } from '../events/types';
+import { MetricsLogger, MetricEventType } from '../metrics';
 
 /**
  * Wallet Service configuration
@@ -224,7 +226,11 @@ export class WalletService implements IWalletService {
       });
     } catch (eventError) {
       // Log but don't fail the operation if event publishing fails
-      console.error('Failed to publish escrow held event:', eventError);
+      MetricsLogger.incrementCounter(MetricEventType.WALLET_EVENT_PUBLISH_ERROR, {
+        eventType: WalletEventType.ESCROW_HELD,
+        userId: request.userId,
+        error: eventError instanceof Error ? eventError.message : 'Unknown error',
+      });
     }
 
     return response;
@@ -380,7 +386,11 @@ export class WalletService implements IWalletService {
       });
     } catch (eventError) {
       // Log but don't fail the operation if event publishing fails
-      console.error('Failed to publish escrow settled event:', eventError);
+      MetricsLogger.incrementCounter(MetricEventType.WALLET_EVENT_PUBLISH_ERROR, {
+        eventType: WalletEventType.ESCROW_SETTLED,
+        modelId: request.modelId,
+        error: eventError instanceof Error ? eventError.message : 'Unknown error',
+      });
     }
 
     return response;
@@ -505,7 +515,11 @@ export class WalletService implements IWalletService {
       });
     } catch (eventError) {
       // Log but don't fail the operation if event publishing fails
-      console.error('Failed to publish escrow refunded event:', eventError);
+      MetricsLogger.incrementCounter(MetricEventType.WALLET_EVENT_PUBLISH_ERROR, {
+        eventType: WalletEventType.ESCROW_REFUNDED,
+        userId: request.userId,
+        error: eventError instanceof Error ? eventError.message : 'Unknown error',
+      });
     }
 
     return response;
@@ -692,13 +706,19 @@ export class WalletService implements IWalletService {
         queueItemId: request.queueItemId,
         transactionId,
         userAvailableBalance: newUserAvailableBalance,
+        userEscrowBalance: updatedUserWallet!.escrowBalance,
         modelEarnedBalance: newModelEarnedBalance,
         idempotencyKey: request.idempotencyKey,
         metadata: request.metadata,
       });
     } catch (eventError) {
       // Log but don't fail the operation if event publishing fails
-      console.error('Failed to publish escrow partial settled event:', eventError);
+      MetricsLogger.incrementCounter(MetricEventType.WALLET_EVENT_PUBLISH_ERROR, {
+        eventType: WalletEventType.ESCROW_PARTIAL_SETTLED,
+        userId: request.userId,
+        modelId: request.modelId,
+        error: eventError instanceof Error ? eventError.message : 'Unknown error',
+      });
     }
 
     return response;

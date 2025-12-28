@@ -180,6 +180,7 @@ export class WalletEventPublisher {
     queueItemId: string;
     transactionId: string;
     userAvailableBalance: number;
+    userEscrowBalance: number;
     modelEarnedBalance: number;
     idempotencyKey: string;
     metadata?: Record<string, any>;
@@ -196,6 +197,7 @@ export class WalletEventPublisher {
       queueItemId: params.queueItemId,
       transactionId: params.transactionId,
       userAvailableBalance: params.userAvailableBalance,
+      userEscrowBalance: params.userEscrowBalance,
       modelEarnedBalance: params.modelEarnedBalance,
       metadata: params.metadata,
       correlationId: params.correlationId,
