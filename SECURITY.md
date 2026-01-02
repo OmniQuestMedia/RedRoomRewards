@@ -1,23 +1,32 @@
-# Security Policy
+## Security Policy
 
-## Reporting a Vulnerability
+### Last Updated: January 2, 2026
 
-If you find a security vulnerability in this project or have concerns related to security, please contact our security team at security@omniquestmedia.com. Your report will be reviewed and addressed promptly.
+At OmniQuestMedia, the security of our platform and user data is of the utmost priority. Below, we outline the standards and practices used to ensure a secure environment for RedRoomRewards.
 
-## Promotion Payload Handling
+---
 
-To ensure the security and reliability of our promotion payload handling process, we have implemented the following safeguards:
+### Secure Promotion Payload Processing
+We have enhanced safety measures when processing promotion payloads. Our system:
+- Validates all incoming payloads against strict security schemas to prevent malformed or malicious data.
+- Filters all data to prevent injection attacks or unauthorized access.
+- Monitors and logs all payload processing for anomalies, with robust alert systems for suspicious activities.
 
-1. **Validation of Incoming Payloads:**
-   - All incoming payloads will be rigorously validated against a predefined schema.
-   - Any payload that fails to meet the schema requirements will be rejected immediately.
+---
 
-2. **Idempotency for Updates:**
-   - To avoid duplicate processing, each request must include a unique identifier.
-   - Our system ensures that only one update per identifier is processed, guaranteeing idempotency.
+### Secure Defaults for Expiration Dates
+- All promotions automatically use secure default expiration dates aligned with standard retention guidelines unless explicitly defined.
+- Expirations are capped to ensure no unintended prolonged activity.
+- Default settings are reviewed monthly to keep up-to-date with new security insights.
 
-3. **Rejection of Malformed Payloads:**
-   - Any payload detected as malformed or containing malicious data will be logged and rejected securely.
-   - Rejection responses will include appropriate error codes and minimal, non-sensitive error information.
+---
 
-Our team monitors the system for compliance with these measures and applies immediate corrective actions for any violations.
+### Idempotency for Payload Submissions
+- To ensure that no promotion payload is processed multiple times, all payload submissions are idempotent. Any reprocessing attempts of the same payload will be intercepted and logged.
+- Properly configured idempotency keys are a mandatory field, validated at the API level.
+
+---
+
+For any further security concerns or reports, please reach out via [security@omniquestmedia.com](mailto:security@omniquestmedia.com).
+
+Thank you for your commitment to a secure platform.
