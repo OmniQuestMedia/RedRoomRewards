@@ -1,34 +1,19 @@
-# DECISIONS & ARCHITECTURAL RECORD — RedRoomRewards
+## 2026-01-02
 
-This document logs major architectural, feature, and security decisions. Each entry notes the date, decision summary, and rationale.
+- **Promotion Payload Responsibilities**:
+  - Promotions and loyalty reward cards are designed within XXXChatNow, including point allocation (base/bonus).
+  - Promotion payloads contain only essential information (`user_id`, `membership_level`, `base_points`, `bonus_points`, optionally `model_id` and `bonus_expiration_days`).
+  - RedRoomRewards processes the payload, applying multipliers and expiration rules based on membership level, with defaults of 365+1 days (base) and 45+1 days (bonus).
+  - Explicit expiration overrides in payloads take precedence, e.g., for campaigns like Pride Week.
 
----
+- **Boundary Clarification**:
+  - XXXChatNow handles all promotion design and payload preparation.
+  - RedRoomRewards ensures ledger immutability and applies deterministic, auditable rules to points.
 
-## 2025-12-22
+- **Courtesy Rules**:
+  - All expiration timelines include a courtesy "+1 day" for user convenience.
 
-- **RedRoomRewards is a standalone service, NOT a fork of xxxchatnow.**
-    - Social, video, image, and chat features from xxxchatnow are not to be present in this repo.
+- **Immutability & Traceability**:
+  - Transactions from promotion payload processing are strictly immutable and logged in the ledger.
 
-- **No user-to-user or model-to-user interaction.**
-    - No messaging, discovery, connections, or social/entertainment logic.
-
-- **No marketplace, commerce, or purchasing/posting features.**
-    - No product, offer, item, or service listings or any “sales”-related modules.
-
-- **User data boundaries are absolute.**
-    - Each user may only create and maintain their own profile.
-    - Users cannot see, search, browse, or connect to any other profile.
-
-- **Point and balance transfers require administrative mediation.**
-    - Users cannot transfer points/credits to each other via UI, API, or code except by formal admin workflows.
-
-- **All code supporting forbidden features must be removed, not just disabled.**
-    - No commented or dormant endpoints/modules left that could re-enable disallowed features.
-
-- **Security, audit, and no-backdoor policies are authoritative.**
-    - See `SECURITY_AUDIT_AND_NO_BACKDOOR_POLICY.md` for mandatory enforcement details.
-    - Any exceptions must be reviewed and documented in this file.
-
----
-
-_Use this file as the single source of truth for project-wide decisions, constraints, and any future architecture or policy changes._
+These decisions align with clear service boundaries and ensure consistency across promotion processing and loyalty mechanics.
