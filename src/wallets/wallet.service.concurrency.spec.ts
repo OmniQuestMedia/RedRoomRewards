@@ -9,7 +9,6 @@
 import { WalletService } from './wallet.service';
 import { LedgerService } from '../ledger/ledger.service';
 import { WalletModel } from '../db/models/wallet.model';
-import { OptimisticLockError } from '../services/types';
 import { TransactionReason } from './types';
 
 describe('Wallet Service - Concurrency and Race Conditions', () => {
@@ -234,7 +233,16 @@ describe('Wallet Service - Concurrency and Race Conditions', () => {
           idempotencyKey: 'idem-settle-1',
           requestId: 'req-settle-1',
         },
-        { token: 'auth-token-1', queueItemId: 'queue-hold-1', escrowId: holdResult1.escrowId }
+        { 
+          token: 'auth-token-1', 
+          queueItemId: 'queue-hold-1', 
+          escrowId: holdResult1.escrowId,
+          modelId,
+          amount: 1000,
+          reason: TransactionReason.PERFORMANCE_COMPLETED,
+          issuedAt: new Date(),
+          expiresAt: new Date(Date.now() + 60000),
+        }
       );
 
       // Refund the other
@@ -249,7 +257,16 @@ describe('Wallet Service - Concurrency and Race Conditions', () => {
           idempotencyKey: 'idem-refund-1',
           requestId: 'req-refund-1',
         },
-        { token: 'auth-token-2', queueItemId: 'queue-hold-2', escrowId: holdResult2.escrowId }
+        { 
+          token: 'auth-token-2', 
+          queueItemId: 'queue-hold-2', 
+          escrowId: holdResult2.escrowId,
+          userId,
+          amount: 1000,
+          reason: TransactionReason.PERFORMANCE_ABANDONED,
+          issuedAt: new Date(),
+          expiresAt: new Date(Date.now() + 60000),
+        }
       );
 
       // Verify final state

@@ -44,9 +44,9 @@ For detailed architecture, see [`/docs/UNIVERSAL_ARCHITECTURE.md`](/docs/UNIVERS
 
 ## Current Status
 
-**Phase**: Foundation and Structure (v0.1.0)
+**Phase**: Core Implementation Complete (v0.2.0)
 
-All directories are currently **scaffolded** with placeholder READMEs. Core implementation will be added in subsequent phases.
+All core modules are **implemented and tested** with comprehensive functionality.
 
 ### What's Ready
 - ✅ Canonical directory structure
@@ -54,14 +54,45 @@ All directories are currently **scaffolded** with placeholder READMEs. Core impl
 - ✅ Architecture documentation
 - ✅ Security and governance policies
 - ✅ CI/CD workflows (CodeQL, Dependabot)
+- ✅ **Ledger module** - Immutable transaction logging
+- ✅ **Wallet module** - Balance management with escrow
+- ✅ **Business logic services** - Point accrual, redemption, expiration, admin ops
+- ✅ Database models and migrations
+- ✅ Comprehensive unit tests (46 passing)
+- ✅ Security scan (0 vulnerabilities)
+
+### Core Modules
+
+#### Ledger Module
+Immutable, append-only event store for all point/balance changes:
+- All mutations are new entries; no destructive edits
+- Atomic, idempotent operations with full audit trails
+- 7-year retention compliance
+- Point-in-time balance snapshots
+- Reconciliation reporting
+
+#### Wallet Module
+Per-user and model wallets with optimistic locking:
+- Three-state balance tracking (available/escrow/earned)
+- Version-based concurrency control
+- Queue-authorized settlement/refund
+- No double-spend exposure
+- Safeguards around balance updates
+
+#### Business Logic Services
+Domain services strictly separated from client/UI/auth logic:
+- **PointAccrualService**: Signup bonuses, referrals, promotions, admin credits
+- **PointRedemptionService**: Escrow holds for chip menu, slot machine, performances
+- **PointExpirationService**: Scheduled expiration with batch processing
+- **AdminOpsService**: Manual adjustments, refunds, balance corrections
 
 ### What's Next
-- 🔄 Ledger module implementation
-- 🔄 Wallet module implementation
-- 🔄 Service layer and business logic
-- 🔄 Database migrations and models
-- 🔄 Authentication and authorization
-- 🔄 Comprehensive test suite
+- 🔄 API endpoint implementation (controllers and routes)
+- 🔄 Queue service for settlement authority
+- 🔄 Integration tests for end-to-end flows
+- 🔄 External system integration adapters
+- 🔄 Rate limiting and throttling
+- 🔄 Production deployment configuration
 
 ---
 

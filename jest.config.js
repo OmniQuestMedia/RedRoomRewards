@@ -14,6 +14,10 @@ module.exports = {
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
-  moduleFileExtensions: ['ts', 'js', 'json', 'mjs'],
+  moduleFileExtensions: ['ts', 'js', 'json', 'node'],
   verbose: true,
+  // Mock uuid to avoid ES module issues
+  moduleNameMapper: {
+    '^uuid$': '<rootDir>/node_modules/uuid/dist/index.js',
+  },
 };
