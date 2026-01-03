@@ -3,27 +3,27 @@ info:
   title: RedRoomRewards API
   description: |
     **Canonical API Contract for RedRoomRewards Loyalty Platform**
-    
+
     This contract defines all API endpoints for RedRoomRewards without implementing
     business logic. This is a scaffolded contract only - handlers to be implemented
     in subsequent phases.
-    
-    **Architecture Intent**: 
+
+    **Architecture Intent**:
     Ledger-based loyalty system managing user wallets, point earning/redemption,
     model wallets, admin operations, and external webhook integrations.
-    
+
     **Security Requirements**:
     - All endpoints require JWT bearer authentication
     - Idempotency keys mandatory for all state-changing operations
     - Request tracing via X-Request-ID header
     - Rate limiting enforced per endpoint
-    
+
     **Prohibitions**:
     - No legacy archived code or patterns in implementation
     - No business logic in this contract file
     - No database schema definitions here
     - See /docs/UNIVERSAL_ARCHITECTURE.md and /SECURITY.md
-    
+
     **Work Order**: 2025-12-15 Repository foundation/cleanup phase
     **Status**: Scaffolded contract only - no implementation
   version: 0.1.0
@@ -129,7 +129,7 @@ paths:
       description: |
         Deduct funds from user's available balance and place in escrow.
         This is the first step in the escrow flow. Requires idempotency key.
-        
+
         **Authorization**: Feature modules can call this endpoint.
         **Next Step**: Feature must emit queue intake event.
       operationId: holdInEscrow
@@ -176,10 +176,10 @@ paths:
       summary: Settle escrow to model earnings
       description: |
         Transfer funds from escrow to model's earned balance.
-        
+
         **Authorization**: ONLY Performance Queue can call this endpoint.
         Requires valid queue authorization token in header.
-        
+
         This completes the escrow flow for successful performance.
       operationId: settleEscrow
       tags:
@@ -244,10 +244,10 @@ paths:
       summary: Refund escrow to user
       description: |
         Return funds from escrow to user's available balance.
-        
+
         **Authorization**: ONLY Performance Queue can call this endpoint.
         Requires valid queue authorization token in header.
-        
+
         This completes the escrow flow for cancelled/abandoned performance.
       operationId: refundEscrow
       tags:
@@ -313,10 +313,10 @@ paths:
       description: |
         Split escrow funds between refund to user and settlement to model.
         Used for partial performance or quality issues.
-        
+
         **Authorization**: ONLY Performance Queue can call this endpoint.
         Requires valid queue authorization token in header.
-        
+
         refundAmount + settleAmount must equal original escrow amount.
       operationId: partialSettleEscrow
       tags:
