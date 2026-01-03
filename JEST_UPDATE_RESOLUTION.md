@@ -56,7 +56,7 @@ The conflicts **are** resolved in terms of the final code state - both branches 
 1. Have Dependabot rebase the PR (comment `@dependabot rebase`)
    - This will likely result in a PR with no changes since main already has the updates
 2. Manually merge main into the dependabot branch
-   - This fails with "refusing to merge unrelated histories"
+   - This fails with: `refusing to merge unrelated histories`
 
 ## Conclusion
 **PR #81 should be closed** because:
