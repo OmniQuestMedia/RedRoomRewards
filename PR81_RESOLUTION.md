@@ -75,8 +75,8 @@ Since I cannot directly close PRs, please:
 ### Why Other Approaches Won't Work
 
 **Rebasing the PR** (`@dependabot rebase`):
-- Would likely result in an empty PR since main already has the changes
-- Dependabot might close it automatically if no changes remain
+- Would typically result in an empty PR since main already has the changes
+- Dependabot will typically close it automatically if no changes remain after rebasing
 
 **Manual merge**:
 - Fails with: `refusing to merge unrelated histories`
