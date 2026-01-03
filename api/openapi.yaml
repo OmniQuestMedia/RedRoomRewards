@@ -3,14 +3,14 @@ info:
   title: RedRoomRewards API
   description: |
     **Canonical API Contract for RedRoomRewards Loyalty Platform**
-    
+
     This contract defines all API endpoints for RedRoomRewards loyalty platform,
     aligned with the implemented core modules and business logic services.
-    
-    **Architecture Intent**: 
+
+    **Architecture Intent**:
     Ledger-based loyalty system managing user wallets, point earning/redemption,
     point expiration, model wallets, admin operations, and external webhook integrations.
-    
+
     **Core Features**:
     - Immutable ledger with full audit trails
     - Escrow-based point holding for performance workflows
@@ -18,7 +18,7 @@ info:
     - Optimistic locking for concurrency control
     - Point expiration with grace periods
     - Admin operations with full audit context
-    
+
     **Security Requirements**:
     - All endpoints require JWT bearer authentication (except /health)
     - Idempotency keys mandatory for all state-changing operations
@@ -26,19 +26,19 @@ info:
     - Rate limiting enforced per endpoint
     - Queue operations require signed JWT tokens
     - Admin operations require role-based authorization
-    
+
     **Idempotency**:
     - All POST operations accept X-Idempotency-Key header
     - Duplicate requests return cached responses (200 vs 201)
     - Idempotency keys prevent double-spend and duplicate operations
     - Request tampering detection (same key, different payload)
-    
+
     **References**:
     - Architecture: /docs/UNIVERSAL_ARCHITECTURE.md
     - Security: /SECURITY.md
     - Testing: /docs/TESTING_STRATEGY.md
     - Database: /docs/DATABASE_SCHEMA.md
-    
+
     **Work Order**: 2026-01-03 API contracts and test implementation
     **Status**: ✅ Aligned with core module implementation v0.2.0
   version: 0.2.0
@@ -144,7 +144,7 @@ paths:
       description: |
         Deduct funds from user's available balance and place in escrow.
         This is the first step in the escrow flow. Requires idempotency key.
-        
+
         **Authorization**: Feature modules can call this endpoint.
         **Next Step**: Feature must emit queue intake event.
       operationId: holdInEscrow
@@ -191,10 +191,10 @@ paths:
       summary: Settle escrow to model earnings
       description: |
         Transfer funds from escrow to model's earned balance.
-        
+
         **Authorization**: ONLY Performance Queue can call this endpoint.
         Requires valid queue authorization token in header.
-        
+
         This completes the escrow flow for successful performance.
       operationId: settleEscrow
       tags:
@@ -259,10 +259,10 @@ paths:
       summary: Refund escrow to user
       description: |
         Return funds from escrow to user's available balance.
-        
+
         **Authorization**: ONLY Performance Queue can call this endpoint.
         Requires valid queue authorization token in header.
-        
+
         This completes the escrow flow for cancelled/abandoned performance.
       operationId: refundEscrow
       tags:
@@ -328,10 +328,10 @@ paths:
       description: |
         Split escrow funds between refund to user and settlement to model.
         Used for partial performance or quality issues.
-        
+
         **Authorization**: ONLY Performance Queue can call this endpoint.
         Requires valid queue authorization token in header.
-        
+
         refundAmount + settleAmount must equal original escrow amount.
       operationId: partialSettleEscrow
       tags:
@@ -429,7 +429,7 @@ paths:
       description: |
         Credit points to a user's wallet. This endpoint is idempotent and
         requires an idempotency key to prevent duplicate awards.
-        
+
         **Examples**:
         - Signup bonus: Award 100 points to new user
         - Referral: Award 50 points for successful referral
@@ -521,7 +521,7 @@ paths:
       description: |
         Debit points from a user's wallet. This endpoint is idempotent and
         requires an idempotency key to prevent duplicate redemptions.
-        
+
         **Note**: This creates an escrow hold. Actual settlement to model
         is performed by the queue service after performance completion.
       operationId: redeemPoints
