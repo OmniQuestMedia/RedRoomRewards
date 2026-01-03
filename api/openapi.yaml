@@ -4,29 +4,44 @@ info:
   description: |
     **Canonical API Contract for RedRoomRewards Loyalty Platform**
     
-    This contract defines all API endpoints for RedRoomRewards without implementing
-    business logic. This is a scaffolded contract only - handlers to be implemented
-    in subsequent phases.
+    This contract defines all API endpoints for RedRoomRewards loyalty platform,
+    aligned with the implemented core modules and business logic services.
     
     **Architecture Intent**: 
     Ledger-based loyalty system managing user wallets, point earning/redemption,
-    model wallets, admin operations, and external webhook integrations.
+    point expiration, model wallets, admin operations, and external webhook integrations.
+    
+    **Core Features**:
+    - Immutable ledger with full audit trails
+    - Escrow-based point holding for performance workflows
+    - Queue-authorized settlements (no direct money mixing)
+    - Optimistic locking for concurrency control
+    - Point expiration with grace periods
+    - Admin operations with full audit context
     
     **Security Requirements**:
-    - All endpoints require JWT bearer authentication
+    - All endpoints require JWT bearer authentication (except /health)
     - Idempotency keys mandatory for all state-changing operations
     - Request tracing via X-Request-ID header
     - Rate limiting enforced per endpoint
+    - Queue operations require signed JWT tokens
+    - Admin operations require role-based authorization
     
-    **Prohibitions**:
-    - No legacy archived code or patterns in implementation
-    - No business logic in this contract file
-    - No database schema definitions here
-    - See /docs/UNIVERSAL_ARCHITECTURE.md and /SECURITY.md
+    **Idempotency**:
+    - All POST operations accept X-Idempotency-Key header
+    - Duplicate requests return cached responses (200 vs 201)
+    - Idempotency keys prevent double-spend and duplicate operations
+    - Request tampering detection (same key, different payload)
     
-    **Work Order**: 2025-12-15 Repository foundation/cleanup phase
-    **Status**: Scaffolded contract only - no implementation
-  version: 0.1.0
+    **References**:
+    - Architecture: /docs/UNIVERSAL_ARCHITECTURE.md
+    - Security: /SECURITY.md
+    - Testing: /docs/TESTING_STRATEGY.md
+    - Database: /docs/DATABASE_SCHEMA.md
+    
+    **Work Order**: 2026-01-03 API contracts and test implementation
+    **Status**: ✅ Aligned with core module implementation v0.2.0
+  version: 0.2.0
   contact:
     name: RedRoomRewards Team
     url: https://github.com/OmniQuestMedia/RedRoomRewards
@@ -414,6 +429,11 @@ paths:
       description: |
         Credit points to a user's wallet. This endpoint is idempotent and
         requires an idempotency key to prevent duplicate awards.
+        
+        **Examples**:
+        - Signup bonus: Award 100 points to new user
+        - Referral: Award 50 points for successful referral
+        - Promotional: Award points with expiration date
       operationId: earnPoints
       tags:
         - earn
@@ -426,6 +446,32 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/EarnRequest'
+            examples:
+              signup_bonus:
+                summary: Signup bonus award
+                value:
+                  userId: "user-123"
+                  amount: 100
+                  reason: "user_signup_bonus"
+                  metadata:
+                    campaign: "new_user_2026"
+              referral:
+                summary: Referral bonus
+                value:
+                  userId: "user-456"
+                  amount: 50
+                  reason: "referral_bonus"
+                  metadata:
+                    referredBy: "user-123"
+              promotional:
+                summary: Promotional points with expiration
+                value:
+                  userId: "user-789"
+                  amount: 500
+                  reason: "promotional_campaign"
+                  metadata:
+                    campaign: "holiday_2026"
+                    expiresAt: "2026-12-31T23:59:59Z"
       responses:
         '201':
           description: Points awarded successfully
@@ -433,6 +479,28 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TransactionResponse'
+              examples:
+                success:
+                  summary: Successful point award
+                  value:
+                    transaction:
+                      id: "txn-abc123"
+                      userId: "user-123"
+                      amount: 100
+                      type: "credit"
+                      reason: "user_signup_bonus"
+                      timestamp: "2026-01-03T12:00:00Z"
+                      idempotencyKey: "idem-key-123"
+                      previousBalance: 0
+                      newBalance: 100
+                      requestId: "req-xyz789"
+                    wallet:
+                      userId: "user-123"
+                      availableBalance: 100
+                      escrowBalance: 0
+                      totalBalance: 100
+                      currency: "points"
+                      version: 1
         '200':
           description: Duplicate request - returning cached result
           content:
@@ -453,6 +521,9 @@ paths:
       description: |
         Debit points from a user's wallet. This endpoint is idempotent and
         requires an idempotency key to prevent duplicate redemptions.
+        
+        **Note**: This creates an escrow hold. Actual settlement to model
+        is performed by the queue service after performance completion.
       operationId: redeemPoints
       tags:
         - redeem
@@ -465,6 +536,27 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/RedeemRequest'
+            examples:
+              chip_menu:
+                summary: Chip menu action redemption
+                value:
+                  userId: "user-123"
+                  amount: 100
+                  reason: "chip_menu_purchase"
+                  metadata:
+                    featureType: "chip_menu"
+                    queueItemId: "queue-abc123"
+                    modelId: "model-456"
+                    action: "dance"
+              slot_machine:
+                summary: Slot machine play
+                value:
+                  userId: "user-789"
+                  amount: 50
+                  reason: "slot_machine_play"
+                  metadata:
+                    featureType: "slot_machine"
+                    queueItemId: "queue-xyz789"
       responses:
         '201':
           description: Points redeemed successfully
@@ -472,6 +564,28 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TransactionResponse'
+              examples:
+                success:
+                  summary: Successful redemption (escrow hold)
+                  value:
+                    transaction:
+                      id: "txn-def456"
+                      userId: "user-123"
+                      amount: -100
+                      type: "debit"
+                      reason: "chip_menu_purchase"
+                      timestamp: "2026-01-03T12:05:00Z"
+                      idempotencyKey: "idem-key-456"
+                      previousBalance: 500
+                      newBalance: 400
+                      requestId: "req-abc123"
+                    wallet:
+                      userId: "user-123"
+                      availableBalance: 400
+                      escrowBalance: 100
+                      totalBalance: 500
+                      currency: "points"
+                      version: 5
         '200':
           description: Duplicate request - returning cached result
           content:
@@ -488,6 +602,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                insufficient_balance:
+                  summary: User has insufficient balance
+                  value:
+                    error: "INSUFFICIENT_BALANCE"
+                    message: "User has insufficient available balance for this redemption"
+                    details:
+                      required: 100
+                      available: 50
+                    requestId: "req-abc123"
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
 
@@ -685,6 +809,87 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
 
+  /admin/adjustments:
+    post:
+      summary: Manual point adjustment (admin)
+      description: |
+        Manually credit or debit points from a user wallet.
+        Requires admin authorization and creates full audit trail.
+        Amount can be positive (credit) or negative (debit).
+      operationId: adminManualAdjustment
+      tags:
+        - admin
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminAdjustmentRequest'
+      responses:
+        '201':
+          description: Adjustment completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminAdjustmentResponse'
+        '200':
+          description: Duplicate request - returning cached result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminAdjustmentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/refunds:
+    post:
+      summary: Process admin refund
+      description: |
+        Issue a refund to a user account. Creates audit trail and
+        optionally references original transaction.
+      operationId: adminProcessRefund
+      tags:
+        - admin
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminRefundRequest'
+      responses:
+        '201':
+          description: Refund processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminRefundResponse'
+        '200':
+          description: Duplicate request - returning cached result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminRefundResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
   /admin/transactions/{transactionId}/audit:
     get:
       summary: Get full audit trail (admin)
@@ -711,6 +916,74 @@ paths:
                 $ref: '#/components/schemas/AuditTrail'
         '404':
           $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/expiration/process:
+    post:
+      summary: Process point expirations (admin)
+      description: |
+        Manually trigger batch expiration processing for expired points.
+        Typically run by scheduled jobs but can be triggered manually.
+      operationId: adminProcessExpiration
+      tags:
+        - admin
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExpirationProcessRequest'
+      responses:
+        '200':
+          description: Expiration processing completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExpirationBatchResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/expiration/warnings:
+    get:
+      summary: Get users with expiring points (admin)
+      description: |
+        Retrieve list of users with points expiring soon.
+        Used for notification systems.
+      operationId: adminGetExpirationWarnings
+      tags:
+        - admin
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: daysAhead
+          in: query
+          description: Number of days ahead to check for expirations
+          schema:
+            type: integer
+            default: 7
+            minimum: 1
+            maximum: 90
+        - $ref: '#/components/parameters/RequestIdHeader'
+      responses:
+        '200':
+          description: List of users with expiring points
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExpirationWarningsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -1392,6 +1665,218 @@ components:
           additionalProperties: true
 
     # Admin schemas
+    AdminAdjustmentRequest:
+      type: object
+      required:
+        - userId
+        - amount
+        - reason
+        - adminContext
+      properties:
+        userId:
+          type: string
+          description: User to adjust
+        amount:
+          type: number
+          format: double
+          description: Amount to adjust (positive for credit, negative for debit)
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: Detailed reason for adjustment
+        adminContext:
+          $ref: '#/components/schemas/AdminContext'
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Additional context (no PII)
+
+    AdminAdjustmentResponse:
+      type: object
+      required:
+        - transactionId
+        - amountAdjusted
+        - previousBalance
+        - newBalance
+        - timestamp
+      properties:
+        transactionId:
+          type: string
+        amountAdjusted:
+          type: number
+          format: double
+        previousBalance:
+          type: number
+          format: double
+        newBalance:
+          type: number
+          format: double
+        timestamp:
+          type: string
+          format: date-time
+
+    AdminRefundRequest:
+      type: object
+      required:
+        - userId
+        - amount
+        - reason
+        - adminContext
+      properties:
+        userId:
+          type: string
+          description: User to refund
+        amount:
+          type: number
+          format: double
+          minimum: 0.01
+          description: Amount to refund (must be positive)
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: Reason for refund
+        referenceTransactionId:
+          type: string
+          description: Optional reference to original transaction
+        adminContext:
+          $ref: '#/components/schemas/AdminContext'
+        metadata:
+          type: object
+          additionalProperties: true
+
+    AdminRefundResponse:
+      type: object
+      required:
+        - transactionId
+        - amountRefunded
+        - newBalance
+        - timestamp
+      properties:
+        transactionId:
+          type: string
+        amountRefunded:
+          type: number
+          format: double
+        newBalance:
+          type: number
+          format: double
+        timestamp:
+          type: string
+          format: date-time
+
+    AdminContext:
+      type: object
+      required:
+        - adminId
+        - adminUsername
+        - roles
+      properties:
+        adminId:
+          type: string
+          description: Admin user ID
+        adminUsername:
+          type: string
+          description: Admin username/email
+        roles:
+          type: array
+          items:
+            type: string
+          description: Admin roles
+        ipAddress:
+          type: string
+          description: IP address of admin
+        userAgent:
+          type: string
+          description: User agent string
+
+    ExpirationProcessRequest:
+      type: object
+      properties:
+        batchSize:
+          type: integer
+          default: 100
+          minimum: 1
+          maximum: 1000
+          description: Number of users to process in batch
+        dryRun:
+          type: boolean
+          default: false
+          description: If true, only report what would be expired
+
+    ExpirationBatchResult:
+      type: object
+      required:
+        - usersProcessed
+        - totalPointsExpired
+        - successCount
+        - failureCount
+        - timestamp
+      properties:
+        usersProcessed:
+          type: integer
+          description: Number of users processed
+        totalPointsExpired:
+          type: number
+          format: double
+          description: Total points expired across all users
+        successCount:
+          type: integer
+          description: Number of successful expirations
+        failureCount:
+          type: integer
+          description: Number of failed expirations
+        timestamp:
+          type: string
+          format: date-time
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              userId:
+                type: string
+              error:
+                type: string
+
+    ExpirationWarningsResponse:
+      type: object
+      required:
+        - users
+        - totalUsers
+        - totalPointsExpiring
+      properties:
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserExpirationWarning'
+        totalUsers:
+          type: integer
+          description: Total number of users with expiring points
+        totalPointsExpiring:
+          type: number
+          format: double
+          description: Total points expiring across all users
+
+    UserExpirationWarning:
+      type: object
+      required:
+        - userId
+        - pointsExpiring
+        - expirationDate
+      properties:
+        userId:
+          type: string
+        pointsExpiring:
+          type: number
+          format: double
+        expirationDate:
+          type: string
+          format: date-time
+        daysUntilExpiration:
+          type: integer
+
     AuditTrail:
       type: object
       required:

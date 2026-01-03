@@ -13,11 +13,17 @@ module.exports = {
     '!src/**/*.test.ts',
   ],
   coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'lcov', 'html'],
+  coverageReporters: ['text', 'lcov', 'html', 'json-summary'],
+  coverageThreshold: {
+    global: {
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80,
+    },
+  },
   moduleFileExtensions: ['ts', 'js', 'json', 'node'],
   verbose: true,
-  // Mock uuid to avoid ES module issues
-  moduleNameMapper: {
-    '^uuid$': '<rootDir>/node_modules/uuid/dist/index.js',
-  },
+  // Mock uuid as a simple function returning predictable IDs in tests
+  setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
 };
