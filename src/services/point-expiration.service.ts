@@ -191,6 +191,10 @@ export class PointExpirationService {
     const transactionId = uuidv4();
     const timestamp = new Date();
     
+    // Use deterministic idempotency key based on user and expiration date
+    const expirationDateKey = timestamp.toISOString().split('T')[0]; // YYYY-MM-DD
+    const idempotencyKey = `expiration-${userId}-${expirationDateKey}`;
+    
     await this.ledgerService.createEntry({
       transactionId,
       accountId: userId,
@@ -200,7 +204,7 @@ export class PointExpirationService {
       balanceState: 'available',
       stateTransition: 'available→expired',
       reason: TransactionReason.POINT_EXPIRY,
-      idempotencyKey: `expiration-${userId}-${timestamp.toISOString()}`,
+      idempotencyKey,
       requestId,
       balanceBefore: previousBalance,
       balanceAfter: newBalance,

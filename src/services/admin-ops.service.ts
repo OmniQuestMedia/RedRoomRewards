@@ -279,6 +279,9 @@ export class AdminOpsService {
     const transactionId = uuidv4();
     const timestamp = new Date();
     
+    // Use deterministic idempotency key based on admin, user, and request
+    const idempotencyKey = `admin-adjustment-${request.admin.adminId}-${request.userId}-${request.requestId}`;
+    
     const transactionType = request.amount > 0 
       ? TransactionType.CREDIT 
       : TransactionType.DEBIT;
@@ -296,7 +299,7 @@ export class AdminOpsService {
       balanceState: 'available',
       stateTransition: request.amount > 0 ? 'none→available' : 'available→none',
       reason,
-      idempotencyKey: uuidv4(),
+      idempotencyKey,
       requestId: request.requestId,
       balanceBefore: previousBalance,
       balanceAfter: newBalance,

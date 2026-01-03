@@ -10,7 +10,6 @@
  * @module services/point-redemption
  */
 
-import { v4 as uuidv4 } from 'uuid';
 import { IWalletService } from './types';
 import { 
   EscrowHoldRequest, 
@@ -144,13 +143,16 @@ export class PointRedemptionService {
     }
     
     // Hold in escrow via wallet service
+    // Use request-specific idempotency key for proper duplicate detection
+    const idempotencyKey = `redemption-${request.userId}-${request.queueItemId}`;
+    
     const escrowRequest: EscrowHoldRequest = {
       userId: request.userId,
       amount: request.amount,
       reason: request.reason,
       queueItemId: request.queueItemId,
       featureType: request.featureType,
-      idempotencyKey: uuidv4(),
+      idempotencyKey,
       requestId: request.requestId,
       metadata: {
         ...request.metadata,

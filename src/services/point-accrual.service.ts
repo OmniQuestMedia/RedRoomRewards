@@ -302,11 +302,14 @@ export class PointAccrualService {
     reason: string,
     requestId: string
   ): Promise<AwardPointsResponse> {
+    // Use deterministic idempotency key based on admin, user, and request
+    const idempotencyKey = `admin-credit-${adminId}-${userId}-${requestId}`;
+    
     return this.awardPoints({
       userId,
       amount,
       reason: TransactionReason.ADMIN_CREDIT,
-      idempotencyKey: uuidv4(),
+      idempotencyKey,
       requestId,
       metadata: {
         adminId,
