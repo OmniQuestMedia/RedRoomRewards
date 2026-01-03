@@ -77,7 +77,7 @@ describe('Wallet Service - Concurrency and Race Conditions', () => {
       const userId = 'user-version-test';
       
       // Create wallet with specific version
-      const wallet = await WalletModel.create({
+      await WalletModel.create({
         userId,
         availableBalance: 1000,
         escrowBalance: 0,

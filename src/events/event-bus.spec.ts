@@ -77,13 +77,17 @@ describe('EventBus', () => {
       eventBus.subscribe({
         subscriberId: 'subscriber-1',
         eventTypes: [WalletEventType.ESCROW_HELD],
-        handler: async (event) => handledBy1.push(event),
+        handler: async (event) => {
+          handledBy1.push(event);
+        },
       });
 
       eventBus.subscribe({
         subscriberId: 'subscriber-2',
         eventTypes: [WalletEventType.ESCROW_HELD],
-        handler: async (event) => handledBy2.push(event),
+        handler: async (event) => {
+          handledBy2.push(event);
+        },
       });
 
       const event: EscrowHeldEvent = {
@@ -117,14 +121,18 @@ describe('EventBus', () => {
       eventBus.subscribe({
         subscriberId: 'low-priority',
         eventTypes: [WalletEventType.ESCROW_HELD],
-        handler: async () => executionOrder.push('low'),
+        handler: async () => {
+          executionOrder.push('low');
+        },
         priority: 100,
       });
 
       eventBus.subscribe({
         subscriberId: 'high-priority',
         eventTypes: [WalletEventType.ESCROW_HELD],
-        handler: async () => executionOrder.push('high'),
+        handler: async () => {
+          executionOrder.push('high');
+        },
         priority: 1,
       });
 

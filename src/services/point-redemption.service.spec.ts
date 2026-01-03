@@ -112,7 +112,7 @@ describe('PointRedemptionService', () => {
           reason: TransactionReason.CHIP_MENU_PURCHASE,
           requestId: 'req-3',
         })
-      ).rejects.toThrow('Amount must be a positive finite number');
+      ).rejects.toThrow('Amount must be at least');
     });
 
     it('should reject invalid amount (too large)', async () => {
