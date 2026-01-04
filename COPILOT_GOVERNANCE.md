@@ -1,6 +1,6 @@
 # COPILOT_GOVERNANCE.md
 
-**Repository-Specific GitHub Copilot Governance**
+## Repository-Specific GitHub Copilot Governance
 
 This document extends the organization-level policy and defines specific rules for the RedRoomRewards repository.
 

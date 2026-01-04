@@ -144,7 +144,7 @@ The system enforces strict boundaries:
   - Deduct user balance directly
   - Make settlement decisions
 
-**Performance Queue**
+#### Performance Queue
 
 - **Allowed Actions**:
   - Decide settle/refund/abandon
@@ -156,7 +156,7 @@ The system enforces strict boundaries:
   - Execute ledger changes directly
   - Modify wallet balances
 
-**Wallet Service**
+#### Wallet Service
 
 - **Allowed Actions**:
   - Execute atomic ledger changes

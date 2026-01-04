@@ -1,6 +1,6 @@
 # RedRoomRewards
 
-**A Ledger-Based Loyalty and Rewards Platform**
+## A Ledger-Based Loyalty and Rewards Platform
 
 [![CodeQL](https://github.com/OmniQuestMedia/RedRoomRewards/workflows/CodeQL/badge.svg)](https://github.com/OmniQuestMedia/RedRoomRewards/actions/workflows/codeql.yml)
 

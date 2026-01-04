@@ -338,6 +338,7 @@ POST /escrow/request { ... same data ... }
      "award_amount": 0
    }
    ```
+
 3. **RedRoomRewards**:
    - Validates queue authorization
    - Completes escrow (forfeit 100 bet)
@@ -370,6 +371,7 @@ POST /escrow/request { ... same data ... }
      "reason": "system_error"
    }
    ```
+
 3. **RedRoomRewards**:
    - Validates queue authorization
    - Refunds escrow (escrow: -100, available: +100)

@@ -1,6 +1,6 @@
 # RedRoomRewards Loyalty Engine: Updated Roadmap & Backlog
 
-_Last updated: 2026-01-02_
+Last updated: 2026-01-02
 
 ## General Product Direction
 

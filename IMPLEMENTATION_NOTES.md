@@ -96,7 +96,7 @@ JWT-based authentication and authorization.
 
 ### CodeQL Analysis
 
-**Result: 0 alerts found**
+Result: 0 alerts found
 
 ### Security Measures
 
