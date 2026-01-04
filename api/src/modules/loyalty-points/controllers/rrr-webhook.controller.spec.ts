@@ -17,8 +17,8 @@ describe('RRRWebhookController', () => {
   let controller: RRRWebhookController;
   let mockWebhookEventModel: any;
 
-  // Mock webhook secret for testing
-  const WEBHOOK_SECRET = 'test-secret-key';
+  // Mock webhook secret for testing (must be 32+ characters for validation)
+  const WEBHOOK_SECRET = 'test-secret-key-with-minimum-32-characters-for-security';
 
   beforeEach(async () => {
     // Mock Mongoose model

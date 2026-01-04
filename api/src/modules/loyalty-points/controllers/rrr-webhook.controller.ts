@@ -23,8 +23,24 @@ export class RRRWebhookController {
   constructor(
     @InjectModel('WebhookEvent') private readonly webhookEventModel: Model<any>,
   ) {
-    // In production, load from environment variable
-    this.webhookSecret = process.env.RRR_WEBHOOK_SECRET || 'changeme';
+    // SECURITY: Require webhook secret in production, no insecure defaults
+    const secret = process.env.RRR_WEBHOOK_SECRET;
+    if (!secret) {
+      throw new Error(
+        'SECURITY ERROR: RRR_WEBHOOK_SECRET environment variable is required. ' +
+        'Webhook authentication cannot be bypassed with insecure defaults.'
+      );
+    }
+    
+    // Validate secret strength (minimum 32 characters for production)
+    if (secret.length < 32) {
+      throw new Error(
+        'SECURITY ERROR: RRR_WEBHOOK_SECRET must be at least 32 characters long. ' +
+        'Current length: ' + secret.length
+      );
+    }
+    
+    this.webhookSecret = secret;
   }
 
   /**

@@ -5,6 +5,8 @@
  */
 
 import mongoose from 'mongoose';
+import { MetricsLogger } from '../metrics/logger';
+import { AlertSeverity } from '../metrics/types';
 
 export interface DatabaseConfig {
   uri: string;
@@ -21,10 +23,31 @@ export async function connectDatabase(config: DatabaseConfig): Promise<typeof mo
 
   try {
     await mongoose.connect(config.uri, options);
-    console.log('MongoDB connected successfully');
+    
+    // Log connection success (no sensitive data)
+    MetricsLogger.logAlert({
+      severity: AlertSeverity.INFO,
+      message: 'MongoDB connected successfully',
+      metricType: 'database_connection',
+      timestamp: new Date(),
+      metadata: {
+        readyState: mongoose.connection.readyState,
+      },
+    });
+    
     return mongoose;
   } catch (error) {
-    console.error('MongoDB connection error:', error);
+    // Log connection error (no sensitive data in error message)
+    MetricsLogger.logAlert({
+      severity: AlertSeverity.CRITICAL,
+      message: 'MongoDB connection error',
+      metricType: 'database_connection_error',
+      timestamp: new Date(),
+      metadata: {
+        errorType: error instanceof Error ? error.name : 'Unknown',
+        // Do not log full error details which may contain connection strings
+      },
+    });
     throw error;
   }
 }
@@ -34,7 +57,13 @@ export async function connectDatabase(config: DatabaseConfig): Promise<typeof mo
  */
 export async function disconnectDatabase(): Promise<void> {
   await mongoose.disconnect();
-  console.log('MongoDB disconnected');
+  
+  MetricsLogger.logAlert({
+    severity: AlertSeverity.INFO,
+    message: 'MongoDB disconnected',
+    metricType: 'database_disconnection',
+    timestamp: new Date(),
+  });
 }
 
 /**

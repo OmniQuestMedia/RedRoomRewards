@@ -131,15 +131,21 @@ export class ReplayController {
           eventType: dlqEvent.eventType,
         });
       } catch (error) {
-        console.error(`Failed to replay event ${dlqEvent.eventId}:`, error);
         result.failed++;
         result.totalReplayed++;
         
-        // Log failed replay
-        MetricsLogger.incrementCounter(MetricEventType.DLQ_REPLAY_FAILED, {
-          eventId: dlqEvent.eventId,
-          eventType: dlqEvent.eventType,
-          error: error instanceof Error ? error.message : 'Unknown error',
+        // Log failed replay with structured logging
+        MetricsLogger.logAlert({
+          severity: AlertSeverity.ERROR,
+          message: `Failed to replay event ${dlqEvent.eventId}`,
+          metricType: MetricEventType.DLQ_REPLAY_FAILED,
+          timestamp: new Date(),
+          metadata: {
+            eventId: dlqEvent.eventId,
+            eventType: dlqEvent.eventType,
+            errorType: error instanceof Error ? error.name : 'Unknown',
+            errorMessage: error instanceof Error ? error.message : String(error),
+          },
         });
       }
     }

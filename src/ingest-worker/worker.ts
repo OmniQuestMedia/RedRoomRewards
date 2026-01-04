@@ -46,12 +46,23 @@ export class IngestWorker {
    */
   async start(): Promise<void> {
     if (this.isRunning) {
-      console.log('Worker is already running');
+      MetricsLogger.logAlert({
+        severity: AlertSeverity.WARNING,
+        message: 'Worker is already running',
+        metricType: MetricEventType.WORKER_ERROR,
+        timestamp: new Date(),
+      });
       return;
     }
 
     this.isRunning = true;
-    console.log('Ingest worker started');
+    MetricsLogger.logAlert({
+      severity: AlertSeverity.INFO,
+      message: 'Ingest worker started',
+      metricType: MetricEventType.WORKER_STARTED,
+      timestamp: new Date(),
+      metadata: { config: this.config },
+    });
 
     // Start polling loop
     this.pollLoop();
@@ -62,7 +73,12 @@ export class IngestWorker {
    */
   async stop(): Promise<void> {
     this.isRunning = false;
-    console.log('Ingest worker stopped');
+    MetricsLogger.logAlert({
+      severity: AlertSeverity.INFO,
+      message: 'Ingest worker stopped',
+      metricType: MetricEventType.WORKER_STOPPED,
+      timestamp: new Date(),
+    });
   }
 
   /**
@@ -73,7 +89,16 @@ export class IngestWorker {
       try {
         await this.processNextBatch();
       } catch (error) {
-        console.error('Error in poll loop:', error);
+        MetricsLogger.logAlert({
+          severity: AlertSeverity.ERROR,
+          message: 'Error in poll loop',
+          metricType: MetricEventType.WORKER_ERROR,
+          timestamp: new Date(),
+          metadata: {
+            errorType: error instanceof Error ? error.name : 'Unknown',
+            errorMessage: error instanceof Error ? error.message : String(error),
+          },
+        });
       }
 
       // Wait before next poll
@@ -162,7 +187,18 @@ export class IngestWorker {
       // Handle result
       await this.handleProcessingResult(event, response);
     } catch (error) {
-      console.error(`Error processing event ${eventMongoId}:`, error);
+      MetricsLogger.logAlert({
+        severity: AlertSeverity.ERROR,
+        message: `Error processing event ${eventMongoId}`,
+        metricType: MetricEventType.WORKER_ERROR,
+        timestamp: new Date(),
+        metadata: {
+          eventId: event?.eventId,
+          eventType: event?.eventType,
+          errorType: error instanceof Error ? error.name : 'Unknown',
+          errorMessage: error instanceof Error ? error.message : String(error),
+        },
+      });
       
       // Fetch event again to handle error
       const event = await IngestEventModel.findById(eventMongoId);
@@ -195,7 +231,16 @@ export class IngestWorker {
   private async defaultHandler(
     context: EventProcessingContext
   ): Promise<{ result: ProcessingResult }> {
-    console.log(`Processing event ${context.eventId} (default handler)`);
+    MetricsLogger.logAlert({
+      severity: AlertSeverity.INFO,
+      message: `Processing event ${context.eventId} (default handler)`,
+      metricType: MetricEventType.EVENT_PROCESSED,
+      timestamp: new Date(),
+      metadata: {
+        eventId: context.eventId,
+        eventType: context.eventType,
+      },
+    });
     
     // For now, just mark as success
     // In real implementation, this would validate and route to appropriate logic
