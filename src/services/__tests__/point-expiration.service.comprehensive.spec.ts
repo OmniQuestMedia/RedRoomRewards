@@ -351,15 +351,13 @@ describe('PointExpirationService - Comprehensive Tests', () => {
           pagination: { total: 1, limit: 100, offset: 0 },
         });
 
-      const result = await expirationService.getUsersWithExpiringPoints({
-        daysAhead,
-      });
+      const result = await expirationService.getUsersWithExpiringPoints();
 
       expect(result).toHaveLength(2);
       expect(result[0].userId).toBe('user-1');
-      expect(result[0].pointsExpiring).toBe(100);
+      expect(result[0].amountExpiring).toBe(100);
       expect(result[1].userId).toBe('user-2');
-      expect(result[1].pointsExpiring).toBe(50);
+      expect(result[1].amountExpiring).toBe(50);
     });
 
     it('should not include users with no expiring points', async () => {
@@ -372,9 +370,7 @@ describe('PointExpirationService - Comprehensive Tests', () => {
         pagination: { total: 0, limit: 100, offset: 0 },
       });
 
-      const result = await expirationService.getUsersWithExpiringPoints({
-        daysAhead: 7,
-      });
+      const result = await expirationService.getUsersWithExpiringPoints();
 
       expect(result).toHaveLength(0);
     });
@@ -398,11 +394,10 @@ describe('PointExpirationService - Comprehensive Tests', () => {
         pagination: { total: 1, limit: 100, offset: 0 },
       });
 
-      const result = await expirationService.getUsersWithExpiringPoints({
-        daysAhead: 7,
-      });
+      const result = await expirationService.getUsersWithExpiringPoints();
 
-      expect(result[0].daysUntilExpiration).toBe(5);
+      expect(result[0].amountExpiring).toBe(100);
+      expect(result[0].expiresAt).toEqual(expirationDate);
     });
   });
 
@@ -438,13 +433,13 @@ describe('PointExpirationService - Comprehensive Tests', () => {
         entryId: 'exp-entry',
       });
 
-      const result = await expirationService.processUserExpiration({
-        userId: 'user-123',
-        asOfDate: new Date('2026-01-03'),
-      });
+      const result = await expirationService.processUserExpiration(
+        'user-123',
+        'req-exp-1'
+      );
 
       // Only expired points should be processed
-      expect(result.amountExpired).toBe(100);
+      expect(result?.amountExpired).toBe(100);
     });
 
     it('should not create negative balance', async () => {
@@ -471,13 +466,13 @@ describe('PointExpirationService - Comprehensive Tests', () => {
         entryId: 'exp-entry',
       });
 
-      const result = await expirationService.processUserExpiration({
-        userId: 'user-123',
-        asOfDate: new Date('2026-01-03'),
-      });
+      const result = await expirationService.processUserExpiration(
+        'user-123',
+        'req-exp-2'
+      );
 
       // Should only expire what's available
-      expect(result.amountExpired).toBe(50);
+      expect(result?.amountExpired).toBe(50);
     });
   });
 });

@@ -17,8 +17,8 @@ const mockLedgerModel = {
 };
 
 // Mock modules
-jest.mock('../../db/models/ledger.model', () => ({
-  LedgerModel: mockLedgerModel,
+jest.mock('../../db/models/ledger-entry.model', () => ({
+  LedgerEntryModel: mockLedgerModel,
 }));
 
 describe('LedgerService - Comprehensive Tests', () => {
@@ -247,9 +247,9 @@ describe('LedgerService - Comprehensive Tests', () => {
       });
 
       // Assert
-      expect(result.pagination.limit).toBe(limit);
-      expect(result.pagination.offset).toBe(offset);
-      expect(result.pagination.total).toBe(100);
+      expect(result.limit).toBe(limit);
+      expect(result.offset).toBe(offset);
+      expect(result.totalCount).toBe(100);
     });
 
     it('should support filtering by transaction type', async () => {
@@ -288,13 +288,13 @@ describe('LedgerService - Comprehensive Tests', () => {
       });
 
       // Act
-      const snapshot = await ledgerService.getBalanceSnapshot({
+      const snapshot = await ledgerService.getBalanceSnapshot(
         accountId,
-        accountType: 'user',
-      });
+        'user'
+      );
 
       // Assert
-      expect(snapshot.balance).toBe(120); // 100 - 30 + 50
+      expect(snapshot.availableBalance).toBe(120); // 100 - 30 + 50
     });
 
     it('should support point-in-time queries', async () => {
@@ -326,14 +326,14 @@ describe('LedgerService - Comprehensive Tests', () => {
       });
 
       // Act
-      const snapshot = await ledgerService.getBalanceSnapshot({
+      const snapshot = await ledgerService.getBalanceSnapshot(
         accountId,
-        accountType: 'user',
-        asOfDate,
-      });
+        'user',
+        asOfDate
+      );
 
       // Assert
-      expect(snapshot.balance).toBe(70); // 100 - 30 (excludes the 50 from Jan 20)
+      expect(snapshot.availableBalance).toBe(70); // 100 - 30 (excludes the 50 from Jan 20)
       expect(mockLedgerModel.find).toHaveBeenCalledWith(
         expect.objectContaining({
           timestamp: { $lte: asOfDate },
@@ -346,6 +346,8 @@ describe('LedgerService - Comprehensive Tests', () => {
     it('should detect balance mismatches', async () => {
       // Arrange
       const accountId = 'user-123';
+      const startDate = new Date('2026-01-01');
+      const endDate = new Date('2026-01-31');
       
       // Ledger shows 100
       mockLedgerModel.find.mockReturnValue({
@@ -355,21 +357,23 @@ describe('LedgerService - Comprehensive Tests', () => {
         ]),
       });
 
-      // But wallet shows 90 (mismatch!)
-      const walletBalance = 90;
+      // Mock wallet balance lookup
+      jest.spyOn(ledgerService, 'getBalanceSnapshot')
+        .mockResolvedValueOnce({ availableBalance: 0, escrowBalance: 0 } as any) // start
+        .mockResolvedValueOnce({ availableBalance: 90, escrowBalance: 0 } as any); // end (mismatch!)
 
       // Act
-      const report = await ledgerService.generateReconciliationReport({
+      const report = await ledgerService.generateReconciliationReport(
         accountId,
-        accountType: 'user',
-        expectedBalance: walletBalance,
-      });
+        'user',
+        { start: startDate, end: endDate }
+      );
 
       // Assert
-      expect(report.hasDiscrepancy).toBe(true);
-      expect(report.ledgerBalance).toBe(100);
-      expect(report.expectedBalance).toBe(90);
-      expect(report.difference).toBe(10);
+      expect(report.reconciled).toBe(false);
+      expect(report.calculatedBalance).toBe(100);
+      expect(report.actualBalance).toBe(90);
+      expect(report.difference).toBe(-10);
     });
 
     it('should show all transactions in range', async () => {
@@ -399,13 +403,17 @@ describe('LedgerService - Comprehensive Tests', () => {
         lean: jest.fn().mockResolvedValue(mockEntries),
       });
 
+      // Mock balance snapshots
+      jest.spyOn(ledgerService, 'getBalanceSnapshot')
+        .mockResolvedValueOnce({ availableBalance: 0, escrowBalance: 0 } as any) // start
+        .mockResolvedValueOnce({ availableBalance: 70, escrowBalance: 0 } as any); // end
+
       // Act
-      const report = await ledgerService.generateReconciliationReport({
-        accountId: 'user-123',
-        accountType: 'user',
-        startDate,
-        endDate,
-      });
+      const report = await ledgerService.generateReconciliationReport(
+        'user-123',
+        'user',
+        { start: startDate, end: endDate }
+      );
 
       // Assert
       expect(report.accountId).toBe('user-123');

@@ -6,7 +6,7 @@
  */
 
 import { WalletService } from '../wallet.service';
-import { TransactionType, TransactionReason, EscrowStatus } from '../types';
+import { TransactionType, TransactionReason } from '../types';
 import {
   InsufficientBalanceError,
 } from '../../services/types';
