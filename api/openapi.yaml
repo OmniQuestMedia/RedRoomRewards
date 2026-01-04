@@ -57,6 +57,8 @@ servers:
 tags:
   - name: health
     description: Service health and status checks
+  - name: events
+    description: Event ingestion for asynchronous processing
   - name: wallets
     description: User wallet and balance operations
   - name: escrow
@@ -91,6 +93,96 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HealthResponse'
+
+  # ===== Event Ingestion =====
+  /events:
+    post:
+      summary: Ingest event for processing
+      description: |
+        Submit an event for asynchronous processing by the ingest worker.
+        This endpoint implements idempotency to prevent duplicate event processing.
+        
+        **Use Cases**:
+        - External systems submit events for processing
+        - User actions that trigger loyalty operations
+        - Integration events from third-party systems
+        
+        **Idempotency**:
+        - All requests require an idempotency key
+        - Duplicate requests (same idempotency key) return cached response
+        - Prevents duplicate processing of events
+        
+        **Processing**:
+        - Events are queued for asynchronous processing
+        - Processing is handled by the ingest worker
+        - Queue position indicates approximate wait time
+      operationId: postEvent
+      tags:
+        - events
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventRequest'
+            examples:
+              user_signup:
+                summary: User signup event
+                value:
+                  eventType: "user.signup"
+                  payload:
+                    userId: "user-123"
+                    email: "user@example.com"
+                    signupDate: "2026-01-03T12:00:00Z"
+                  replayable: true
+              referral:
+                summary: Referral event
+                value:
+                  eventType: "user.referral"
+                  payload:
+                    referrerId: "user-123"
+                    referredId: "user-456"
+                    referralCode: "REF2026"
+                  replayable: true
+      responses:
+        '201':
+          description: Event queued successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponse'
+              examples:
+                success:
+                  summary: Event queued for processing
+                  value:
+                    eventId: "evt_a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+                    status: "queued"
+                    message: "Event queued for processing"
+                    queuePosition: 15
+                    requestId: "req-xyz789"
+        '200':
+          description: Duplicate request - event already queued or processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponse'
+              examples:
+                duplicate:
+                  summary: Duplicate idempotency key
+                  value:
+                    eventId: "evt_a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+                    status: "duplicate"
+                    message: "Event already processed or queued"
+                    requestId: "req-xyz789"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
 
   # ===== Wallet Operations =====
   /wallets/{userId}:
@@ -1092,6 +1184,58 @@ components:
         uptime:
           type: integer
           description: Uptime in seconds
+
+    # Event schemas
+    EventRequest:
+      type: object
+      required:
+        - eventType
+        - payload
+      properties:
+        eventId:
+          type: string
+          description: Optional event identifier (auto-generated if not provided)
+          maxLength: 256
+        eventType:
+          type: string
+          description: Type of event being submitted
+          maxLength: 128
+          example: user.signup
+        payload:
+          type: object
+          additionalProperties: true
+          description: Event payload data
+        replayable:
+          type: boolean
+          description: Whether this event can be replayed if needed
+          default: true
+
+    EventResponse:
+      type: object
+      required:
+        - eventId
+        - status
+        - message
+      properties:
+        eventId:
+          type: string
+          description: Unique event identifier
+          example: evt_a1b2c3d4-e5f6-7890-abcd-ef1234567890
+        status:
+          type: string
+          enum: [queued, duplicate]
+          description: Status of the event ingestion
+        message:
+          type: string
+          description: Human-readable message about the event status
+        queuePosition:
+          type: integer
+          description: Approximate position in processing queue (1-based)
+          minimum: 1
+        requestId:
+          type: string
+          description: Request ID for tracing
+          format: uuid
 
     # Wallet schemas
     Wallet:
