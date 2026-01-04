@@ -9,9 +9,11 @@
 
 ## Overview
 
-This document defines mandatory rules for GitHub Copilot when generating code, documentation, or pull requests in the RedRoomRewards repository. All AI-assisted development must follow these instructions without exception.
+This document defines mandatory rules for GitHub Copilot when generating code, documentation, or pull requests in
+the RedRoomRewards repository. All AI-assisted development must follow these instructions without exception.
 
-**Enforcement**: Copilot MUST reference this file before taking any action. All outputs must respect security, audit, and minimal-change principles defined herein.
+**Enforcement**: Copilot MUST reference this file before taking any action. All outputs must respect security,
+audit, and minimal-change principles defined herein.
 
 ---
 

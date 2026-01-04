@@ -10,7 +10,8 @@ Provide a Vegas-style slot machine for viewers during live broadcasts. All busin
 
 ## Goals, Non-Goals, Core User, Model, Admin Flows
 
-(See briefing above; copy all key user stories, admin flows, real-time requirements, data models, rate/cooldown, idempotency, audit log immutability, API endpoints, and acceptance tests as outlined in your authoritative spec.)
+(See briefing above; copy all key user stories, admin flows, real-time requirements, data models, rate/cooldown,
+idempotency, audit log immutability, API endpoints, and acceptance tests as outlined in your authoritative spec.)
 
 ## Non-Regression, Forward-Only Rules
 

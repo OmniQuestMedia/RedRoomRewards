@@ -2,7 +2,9 @@
 
 ## Summary
 
-This implementation creates a secure RRR webhook controller that is **proactively designed** to prevent the CodeQL alert "Database query built from user-controlled sources." Rather than fixing an existing vulnerability, this code demonstrates best practices for secure webhook handling from the ground up.
+This implementation creates a secure RRR webhook controller that is **proactively designed** to prevent the CodeQL
+alert "Database query built from user-controlled sources." Rather than fixing an existing vulnerability, this code
+demonstrates best practices for secure webhook handling from the ground up.
 
 ## File: api/src/modules/loyalty-points/controllers/rrr-webhook.controller.ts
 

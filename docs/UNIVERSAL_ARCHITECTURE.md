@@ -9,7 +9,8 @@
 
 ## Executive Summary
 
-This document defines the mandatory architectural principles and prohibitions for the RedRoomRewards platform. All code, documentation, and development practices must comply with these rules without exception.
+This document defines the mandatory architectural principles and prohibitions for the RedRoomRewards platform.
+All code, documentation, and development practices must comply with these rules without exception.
 
 ---
 
@@ -74,7 +75,8 @@ This document defines the mandatory architectural principles and prohibitions fo
 - Streaming or media handling
 - Game logic or RNG implementations (except as external input)
 
-**Rationale**: These concerns belong in consumer applications, not the loyalty platform. RedRoomRewards accepts **facts** (user X earned Y points for reason Z), not **logic** (determine if user X should earn points).
+**Rationale**: These concerns belong in consumer applications, not the loyalty platform. RedRoomRewards accepts
+**facts** (user X earned Y points for reason Z), not **logic** (determine if user X should earn points).
 
 ---
 

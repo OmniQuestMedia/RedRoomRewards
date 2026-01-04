@@ -9,9 +9,12 @@
 
 ## Executive Summary
 
-This document establishes the security principles, audit requirements, and no-backdoor policies for the RedRoomRewards platform. All code, configurations, and operational practices must comply with these security standards without exception.
+This document establishes the security principles, audit requirements, and no-backdoor policies for the
+RedRoomRewards platform. All code, configurations, and operational practices must comply with these security
+standards without exception.
 
-**Core Principle**: Assume all third-party and legacy code is untrusted until proven secure through audit and review.
+**Core Principle**: Assume all third-party and legacy code is untrusted until proven secure through audit
+and review.
 
 ---
 

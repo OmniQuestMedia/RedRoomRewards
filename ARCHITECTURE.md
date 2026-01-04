@@ -8,7 +8,9 @@
 
 ## Executive Summary
 
-This document defines the architectural boundaries, domain responsibilities, and service composition principles for the RedRoomRewards loyalty platform. All development must adhere to these foundational principles to maintain system integrity, security, and scalability.
+This document defines the architectural boundaries, domain responsibilities, and service composition principles
+for the RedRoomRewards loyalty platform. All development must adhere to these foundational principles to maintain
+system integrity, security, and scalability.
 
 ---
 
@@ -415,7 +417,9 @@ RedRoomRewards (Monorepo)
 
 ## Summary
 
-RedRoomRewards is a loyalty platform with **clear boundaries**, **clean interfaces**, and **composable services**. It accepts facts from external systems, maintains financial integrity through immutable ledgers, and provides reliable APIs for point management.
+RedRoomRewards is a loyalty platform with **clear boundaries**, **clean interfaces**, and **composable services**.
+It accepts facts from external systems, maintains financial integrity through immutable ledgers, and provides
+reliable APIs for point management.
 
 **Key Takeaways**:
 

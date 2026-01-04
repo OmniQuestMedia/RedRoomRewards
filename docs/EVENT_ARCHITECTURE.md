@@ -2,7 +2,9 @@
 
 ## Overview
 
-The RedRoomRewards platform implements a robust event-driven architecture for real-time wallet and ledger updates. This design ensures all balance changes are immediately propagated to interested subscribers while maintaining strict idempotency and consistency guarantees.
+The RedRoomRewards platform implements a robust event-driven architecture for real-time wallet and ledger updates.
+This design ensures all balance changes are immediately propagated to interested subscribers while maintaining
+strict idempotency and consistency guarantees.
 
 ## Architecture Components
 

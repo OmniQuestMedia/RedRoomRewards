@@ -8,7 +8,9 @@
 
 ## Overview
 
-RedRoomRewards is a standalone loyalty and rewards platform that manages user loyalty points through a robust, auditable ledger system. Built with Node.js and TypeScript, it provides secure APIs for point management, wallet operations, and comprehensive transaction tracking.
+RedRoomRewards is a standalone loyalty and rewards platform that manages user loyalty points through a robust,
+auditable ledger system. Built with Node.js and TypeScript, it provides secure APIs for point management,
+wallet operations, and comprehensive transaction tracking.
 
 ### Key Features
 

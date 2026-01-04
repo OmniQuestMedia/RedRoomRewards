@@ -9,9 +9,13 @@
 
 ## Executive Summary
 
-This document defines the slot machine feature implementation within the RedRoomRewards loyalty platform. It emphasizes the boundary between game logic (external systems) and point/balance management (RedRoomRewards), establishes the loyalty service as standalone and deterministic, and outlines the behavior rules for slot machine integration.
+This document defines the slot machine feature implementation within the RedRoomRewards loyalty platform.
+It emphasizes the boundary between game logic (external systems) and point/balance management (RedRoomRewards),
+establishes the loyalty service as standalone and deterministic, and outlines the behavior rules for
+slot machine integration.
 
-**Core Principle**: RedRoomRewards manages points and balances only. All game logic, RNG, and win determination occur in external systems.
+**Core Principle**: RedRoomRewards manages points and balances only. All game logic, RNG, and win determination
+occur in external systems.
 
 ---
 

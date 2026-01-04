@@ -2,7 +2,9 @@
 
 ## Executive Summary
 
-**PR #81 is reporting merge conflicts because the changes have already been merged to main via PR #87.** The conflict is due to divergent git histories, not actual code conflicts. The recommended resolution is to **close PR #81**.
+**PR #81 is reporting merge conflicts because the changes have already been merged to main via PR #87.**
+The conflict is due to divergent git histories, not actual code conflicts. The recommended resolution is
+to **close PR #81**.
 
 ## Background
 

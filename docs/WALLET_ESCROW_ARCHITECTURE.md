@@ -10,7 +10,9 @@
 
 ## Executive Summary
 
-This document defines the wallet and escrow architecture for RedRoomRewards, based on established patterns and requirements from XXXChatNow. This architecture ensures financial integrity, audit compliance, and proper separation of concerns between feature modules, performance queues, and wallet services.
+This document defines the wallet and escrow architecture for RedRoomRewards, based on established patterns and
+requirements from XXXChatNow. This architecture ensures financial integrity, audit compliance, and proper
+separation of concerns between feature modules, performance queues, and wallet services.
 
 ---
 
@@ -22,7 +24,8 @@ RedRoomRewards is designed to be a loyalty and rewards system that is:
 - **Not a UI feature**: Server-side authority for all financial operations
 - **Auditable first**: Compliance and correctness over raw speed
 
-**Integration Context**: While initially integrating with XXXChatNow (an adult live-streaming platform with interactive paid features), RedRoomRewards maintains clear boundaries and can support multiple platforms.
+**Integration Context**: While initially integrating with XXXChatNow (an adult live-streaming platform with
+interactive paid features), RedRoomRewards maintains clear boundaries and can support multiple platforms.
 
 ---
 
