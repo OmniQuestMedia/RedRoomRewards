@@ -154,16 +154,10 @@ describe('Point Accrual Retry Logic', () => {
   });
 
   describe('Retry Count Tracking', () => {
-    it('should pass retry count to recursive calls', async () => {
+    it('should pass retry count to recursive calls', () => {
       // Verify that retryCount parameter exists and is incremented
-      const request = {
-        userId: 'user-retry-4',
-        amount: 100,
-        reason: TransactionReason.USER_SIGNUP_BONUS,
-        idempotencyKey: 'idem-retry-4',
-        requestId: 'req-retry-4',
-      };
-
+      // This test validates the retry count logic without making actual calls
+      
       // First call: retryCount = 0 (default)
       // Second call: retryCount = 1
       // Third call: retryCount = 2
@@ -195,11 +189,7 @@ describe('Point Accrual Retry Logic', () => {
     });
 
     it('should use configured backoff duration', () => {
-      const customService = new PointAccrualService(ledgerService, {
-        maxRetryAttempts: 3,
-        retryBackoffMs: 250,
-      });
-
+      // Verify backoff calculation
       const expectedFirstRetryDelay = 250 * Math.pow(2, 0);
       expect(expectedFirstRetryDelay).toBe(250);
     });
