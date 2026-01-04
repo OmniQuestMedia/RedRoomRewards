@@ -28,7 +28,7 @@
 ### Dependency Versions Comparison
 
 | Package | Main Branch | PR #81 | Status |
-|---------|------------|--------|---------|
+| ------- | ----------- | ------ | ------ |
 | jest | 30.2.0 | 30.2.0 | ✅ Identical |
 | @types/jest | 30.0.0 | 30.0.0 | ✅ Identical |
 

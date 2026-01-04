@@ -156,7 +156,7 @@ This document defines the architectural boundaries, domain responsibilities, and
 ### 3.2 Responsibility Matrix
 
 | Function | RedRoomRewards | External System |
-|----------|----------------|-----------------|
+| -------- | -------------- | --------------- |
 | Promotion Design | ❌ | ✅ |
 | Card Generation | ❌ | ✅ |
 | Promotion Execution | ✅ | ❌ |

@@ -345,7 +345,7 @@ The implementation successfully prevented the "Database query built from user-co
 ### Attack Vectors Mitigated
 
 | Attack Type | Example Payload | Defense Mechanism |
-|------------|-----------------|-------------------|
+| ----------- | --------------- | ----------------- |
 | NoSQL Operator Injection | `event_id: { $ne: null }` | Type validation rejects non-string |
 | Special Character Injection | `event_id: "$admin.system"` | Character validation blocks $ and . |
 | Replay Attack | Duplicate event submission | Unique index enforces idempotency |

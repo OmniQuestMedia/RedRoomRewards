@@ -73,7 +73,7 @@ User Action → External System → RedRoomRewards → Queue → Settlement
 **Financial vs. Game Logic**:
 
 | Concern | RedRoomRewards | External System |
-|---------|----------------|-----------------|
+| ------- | -------------- | --------------- |
 | Point Deduction | ✅ | ❌ |
 | Escrow Management | ✅ | ❌ |
 | Settlement Authorization | ✅ (via Queue) | ❌ |

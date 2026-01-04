@@ -213,7 +213,7 @@ Expiry: 5 minutes
 **Access Control**:
 
 | Collection | Read Access | Write Access |
-|------------|-------------|--------------|
+| ---------- | ----------- | ------------ |
 | wallets | user, admin | wallet_service only |
 | transactions | user, admin | wallet_service only (append) |
 | escrow_items | user, model, admin | wallet_service, queue_service |

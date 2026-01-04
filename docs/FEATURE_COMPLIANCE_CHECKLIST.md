@@ -420,7 +420,7 @@ sendChat("You won!");  // Literal string
 ## Compliance Matrix
 
 | Feature | Escrow | Queue | Idempotency | Templates | Certified | Date |
-|---------|--------|-------|-------------|-----------|-----------|------|
+| ------- | ------ | ----- | ----------- | --------- | --------- | ---- |
 | Slot Machine | ✅ | ✅ | ✅ | ✅ | ✅ | 2025-12-15 |
 | Chip Menu | ✅ | ✅ | ✅ | ✅ | ✅ | 2025-12-15 |
 | Spin Wheel (Legacy) | ❌ | ❌ | ❌ | ❌ | ❌ | N/A |

@@ -128,7 +128,7 @@ async handleWebhook(
 ## Attack Vectors Mitigated
 
 | Attack Type | Example | Defense |
-|------------|---------|---------|
+| ----------- | ------- | ------- |
 | NoSQL Operator Injection | `event_id: { $ne: null }` | Type validation rejects non-string |
 | Special Character Injection | `event_id: "$admin.system"` | Character validation rejects $ and . |
 | Replay Attack | Submit same webhook twice | Unique index enforces idempotency |

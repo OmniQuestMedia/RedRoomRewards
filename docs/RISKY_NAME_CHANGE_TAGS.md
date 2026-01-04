@@ -35,12 +35,12 @@ Any instance of a legacy name MUST be flagged as risky if found in the following
 
 ## Risk Tag Table
 
-| File Path                           | Line No. | Excerpt                                   | Risk Area          | Action/Status         | Notes/Reviewer   |
-|--------------------------------------|----------|--------------------------------------------|--------------------|----------------------|------------------|
-| `backend/app/api/legacy_auth.py`     | 12       | `@app.route("/legacy/v1/login")`           | API endpoint       | DO NOT CHANGE        | Pending review   |
-| `config/default.json`                | 5        | `"LEGACY_API_KEY": "..."`                  | Env/config         | Do with caution      | Refactor plan required |
-| `migrations/2021_add_legacy_table.sql`| 1       | `CREATE TABLE legacy_users (...`           | DB schema         | Do not change        | Migration needed |
-| ...                                  | ...      | ...                                        | ...                | ...                  | ...              |
+| File Path | Line No. | Excerpt | Risk Area | Action/Status | Notes/Reviewer |
+| --------- | -------- | ------- | --------- | ------------- | -------------- |
+| `backend/app/api/legacy_auth.py` | 12 | `@app.route("/legacy/v1/login")` | API endpoint | DO NOT CHANGE | Pending review |
+| `config/default.json` | 5 | `"LEGACY_API_KEY": "..."` | Env/config | Do with caution | Refactor plan required |
+| `migrations/2021_add_legacy_table.sql` | 1 | `CREATE TABLE legacy_users (...` | DB schema | Do not change | Migration needed |
+| ... | ... | ... | ... | ... | ... |
 
 ---
 
