@@ -44,6 +44,7 @@ private getValidatedEventId(event_id: unknown): string {
 ```
 
 **Why this works for CodeQL:**
+
 - CodeQL performs data flow analysis to track untrusted input from sources (webhook payload) to sinks (database queries)
 - The validation helper breaks this data flow by:
   1. Taking `unknown` type (untrusted)
@@ -73,6 +74,7 @@ await this.webhookEventModel
 ```
 
 **Why this prevents NoSQL injection:**
+
 - MongoDB treats `{ field: value }` differently than `{ field: { $operator: value } }`
 - Using `{ event_id: userInput }` is unsafe if `userInput = { $ne: null }`
 - Using `{ event_id: { $eq: userInput } }` is safe because the operator is explicit
@@ -93,6 +95,7 @@ async handleWebhook(
 ```
 
 **Benefits:**
+
 - `unknown` type forces explicit type checking
 - Prevents accidental unsafe operations
 - Makes security boundary explicit
@@ -100,6 +103,7 @@ async handleWebhook(
 #### 4. Additional Security Features
 
 **Signature Verification:**
+
 ```typescript
 private verifySignature(signature: string, body: string): boolean {
   const expectedSignature = crypto
@@ -115,6 +119,7 @@ private verifySignature(signature: string, body: string): boolean {
 ```
 
 **Idempotency Protection:**
+
 - Event ID uniqueness enforced at database level (unique index)
 - Atomic `updateOne` with `upsert` prevents race conditions
 - Prevents duplicate processing (replay attacks)
@@ -134,6 +139,7 @@ event_id: {
 ```
 
 **Indexes:**
+
 ```typescript
 // Idempotency enforcement
 WebhookEventSchema.index({ event_id: 1 }, { unique: true });
@@ -149,6 +155,7 @@ WebhookEventSchema.index({ processed_at: 1 }, { expireAfterSeconds: 7776000 });
 **Critical test cases:**
 
 1. **Operator Injection Prevention:**
+
 ```typescript
 it('should reject payload with event_id as object (operator injection attempt)', async () => {
   const maliciousPayload = {
@@ -165,7 +172,8 @@ it('should reject payload with event_id as object (operator injection attempt)',
 });
 ```
 
-2. **Special Character Rejection:**
+1. **Special Character Rejection:**
+
 ```typescript
 it('should reject payload with event_id containing $ character', async () => {
   const payload = { event_id: '$malicious' };
@@ -174,7 +182,8 @@ it('should reject payload with event_id containing $ character', async () => {
 });
 ```
 
-3. **CodeQL Compliance Verification:**
+1. **CodeQL Compliance Verification:**
+
 ```typescript
 it('should use $eq operator in database queries', async () => {
   await controller.handleWebhook(signature, validPayload);
@@ -189,28 +198,34 @@ it('should use $eq operator in database queries', async () => {
 ## Attack Vectors Mitigated
 
 ### 1. NoSQL Operator Injection
+
 **Attack:** `event_id: { $ne: null }`  
 **Defense:** Type validation rejects non-string values before any DB query
 
 ### 2. Special Character Injection
+
 **Attack:** `event_id: "$admin.system"`  
 **Defense:** Character validation rejects `$` and `.` characters
 
 ### 3. Replay Attacks
+
 **Attack:** Submitting same webhook multiple times  
 **Defense:** Idempotency check via unique event_id prevents duplicate processing
 
 ### 4. Signature Bypass
+
 **Attack:** Submitting webhook without valid signature  
 **Defense:** HMAC-SHA256 verification rejects unauthorized requests
 
 ### 5. Timing Attacks
+
 **Attack:** Using signature comparison timing to guess valid signatures  
 **Defense:** `crypto.timingSafeEqual()` prevents timing-based attacks
 
 ## CodeQL Analysis Flow
 
 ### Before Validation (Unsafe)
+
 ```
 Source: @Body() payload → event_id (untrusted)
 ↓
@@ -218,6 +233,7 @@ Sink: findOne({ event_id: event_id }) ← ALERT!
 ```
 
 ### After Validation (Safe)
+
 ```
 Source: @Body() payload → event_id (untrusted)
 ↓
@@ -233,6 +249,7 @@ Sink: findOne({ event_id: { $eq: safeEventId } }) ← NO ALERT
 ```
 
 **Data flow is broken** because:
+
 1. Validation function creates a new string primitive
 2. CodeQL recognizes type guard and sanitization
 3. Output is no longer tainted by original input
@@ -241,12 +258,14 @@ Sink: findOne({ event_id: { $eq: safeEventId } }) ← NO ALERT
 ## Compliance & Best Practices
 
 ### OWASP Guidelines Met
+
 - ✅ Input validation on all untrusted data
 - ✅ Whitelist validation (strict type checking)
 - ✅ Output encoding (explicit operators)
 - ✅ Principle of least privilege (minimal query surface)
 
 ### MongoDB Security Checklist Met
+
 - ✅ Use typed schemas
 - ✅ Use explicit operators ($eq, $setOnInsert)
 - ✅ Validate input types
@@ -254,6 +273,7 @@ Sink: findOne({ event_id: { $eq: safeEventId } }) ← NO ALERT
 - ✅ Enable authentication (webhook signature)
 
 ### NestJS Best Practices Met
+
 - ✅ Type-safe decorators
 - ✅ Validation pipes (manual implementation)
 - ✅ Exception filters (BadRequestException)
@@ -265,22 +285,26 @@ Sink: findOne({ event_id: { $eq: safeEventId } }) ← NO ALERT
 Before deploying to production:
 
 1. **Set webhook secret:**
+
    ```bash
    export RRR_WEBHOOK_SECRET=<strong-random-secret>
    ```
 
 2. **Create database indexes:**
+
    ```javascript
    db.webhook_events.createIndex({ "event_id": 1 }, { unique: true });
    db.webhook_events.createIndex({ "processed_at": 1 }, { expireAfterSeconds: 7776000 });
    ```
 
 3. **Run tests:**
+
    ```bash
    npm test -- rrr-webhook.controller.spec.ts
    ```
 
 4. **Verify CodeQL passes:**
+
    ```bash
    # Check CodeQL results in GitHub Actions
    # Should show 0 alerts for database query issues
@@ -289,6 +313,7 @@ Before deploying to production:
 ## Conclusion
 
 This implementation demonstrates **defense in depth**:
+
 - Multiple validation layers
 - Type safety at compile time and runtime
 - Explicit operators prevent injection

@@ -1,11 +1,13 @@
 # CI Governance Policy (RedRoomRewards)
 
 ## Purpose
+
 This repository’s CI exists to enforce security, correctness, and predictable quality checks with minimal noise. CI must be stable, auditable, and easy to reason about.
 
 This policy applies to all changes made by humans and by Copilot.
 
 ## CI Design Principles
+
 1. Single source of truth
    - One workflow per responsibility.
    - No duplicated jobs across multiple workflows.
@@ -23,7 +25,9 @@ This policy applies to all changes made by humans and by Copilot.
    - If the repo does not contain the expected toolchain, stop and report.
 
 ## Workflow Inventory Requirements
+
 Any PR that changes CI must include:
+
 - A list of files in `.github/workflows/`
 - A statement of which workflow is the canonical one for each responsibility:
   - linting
@@ -33,6 +37,7 @@ Any PR that changes CI must include:
   - dependency automation (if applicable)
 
 ## Canonical Workflow Rules
+
 1. Naming and scope
    - Use a single canonical lint workflow file, recommended name: `.github/workflows/lint.yml`
    - If a different lint workflow already exists, either:
@@ -55,6 +60,7 @@ Any PR that changes CI must include:
      - do not trigger itself repeatedly
 
 ## Change Control
+
 1. All CI changes must be made on a feature branch and merged via PR.
 2. The PR description must include:
    - File Plan: CREATE, OVERWRITE, EDIT, DELETE, RENAME, DISABLE with exact paths
@@ -62,6 +68,7 @@ Any PR that changes CI must include:
    - Rollback Plan: how to revert quickly if CI breaks
 
 ## Security Requirements
+
 1. No secrets in code
    - Secrets may only be read from GitHub Secrets.
 2. Pin action versions
@@ -72,7 +79,9 @@ Any PR that changes CI must include:
    - Do not introduce personal access tokens unless explicitly approved.
 
 ## Copilot Execution Standard
+
 Copilot must follow the repository’s Copilot Governance Policy and must comply with:
+
 - inventory first
 - minimal explicit change set
 - full file contents for any CREATE or OVERWRITE

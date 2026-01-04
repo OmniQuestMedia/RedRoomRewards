@@ -1,6 +1,7 @@
 # Architecture Document: Reinforced Rules and Separation
 
 ## Domain Boundaries
+
 To strengthen the integrity of the Red Room Rewards system, the following domain boundary rules are reinforced:
 
 1. **Prohibited Interactions**:
@@ -15,18 +16,21 @@ To strengthen the integrity of the Red Room Rewards system, the following domain
 
 ## Financial Transaction Modules
 
-### Guidelines:
+### Guidelines
+
 1. **Immutability**: Once written, financial data must be immutable.
 2. **Idempotency**: Transactions must be structured to prevent duplication from retries or failures.
 3. **Transactional Traceability**: Ensure every transaction and related event is chronologically traceable with audit trails.
 
-### Strong Module Separation:
+### Strong Module Separation
+
 - Avoid exposing transaction modules directly to frontend/UI logic.
 - Enforce communication via business-controlled APIs and standardized adapters.
 
 ---
 
 ## Client/UI Logic and Backend Separation
+
 No client or UI module may interact with backend financial modules without going through API gateways or adapters for security, logging, and boundary enforcement.
 
 This reinforced separation **must be adhered to universally** to prevent data leaks or unauthorized financial modifications.
@@ -34,6 +38,7 @@ This reinforced separation **must be adhered to universally** to prevent data le
 ---
 
 ## Security Least-Privilege Access
+
 Every module and service **must strictly follow** the principle of least privilege in accessing services and databases:
 
 1. Modular isolation of sensitive operations (e.g., wallets and ledgers).

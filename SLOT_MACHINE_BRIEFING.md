@@ -20,6 +20,7 @@ This document defines the slot machine feature implementation within the RedRoom
 ### 1.1 Purpose
 
 Provide a Vegas-style slot machine experience for viewers during live broadcasts where:
+
 - Users spend loyalty points to play
 - External system determines win/loss outcomes
 - RedRoomRewards manages point deduction and awards
@@ -28,6 +29,7 @@ Provide a Vegas-style slot machine experience for viewers during live broadcasts
 ### 1.2 Scope
 
 **RedRoomRewards Responsibilities** (This Repository):
+
 - ✅ Point balance management
 - ✅ Escrow for pending spins
 - ✅ Settlement of wins/losses
@@ -36,6 +38,7 @@ Provide a Vegas-style slot machine experience for viewers during live broadcasts
 - ✅ Balance reconciliation
 
 **External System Responsibilities** (XXXChatNow or Game Service):
+
 - ✅ Slot machine UI/UX
 - ✅ RNG (Random Number Generator)
 - ✅ Win determination logic
@@ -52,6 +55,7 @@ User Action → External System → RedRoomRewards → Queue → Settlement
 ```
 
 **Data Flow**:
+
 1. User initiates spin in external system
 2. External system requests escrow from RedRoomRewards
 3. RedRoomRewards holds points in escrow
@@ -81,6 +85,7 @@ User Action → External System → RedRoomRewards → Queue → Settlement
 | User Display | ❌ | ✅ |
 
 **Rationale**: Clear separation ensures:
+
 - RedRoomRewards maintains financial integrity
 - External systems control user experience
 - Game logic changes don't affect financial code
@@ -89,6 +94,7 @@ User Action → External System → RedRoomRewards → Queue → Settlement
 ### 2.2 Boundary Enforcement
 
 **Prohibited in RedRoomRewards**:
+
 - ❌ RNG implementations
 - ❌ Win/loss calculation logic
 - ❌ Paytable definitions
@@ -98,6 +104,7 @@ User Action → External System → RedRoomRewards → Queue → Settlement
 - ❌ Direct settlement without queue authority
 
 **Required in RedRoomRewards**:
+
 - ✅ Idempotent escrow operations
 - ✅ Atomic balance updates
 - ✅ Immutable transaction logs
@@ -114,6 +121,7 @@ User Action → External System → RedRoomRewards → Queue → Settlement
 **Principle**: RedRoomRewards operates independently of any single consumer application.
 
 **Characteristics**:
+
 - Self-contained point management
 - No dependencies on external system availability
 - Well-defined API boundaries
@@ -121,6 +129,7 @@ User Action → External System → RedRoomRewards → Queue → Settlement
 - Queue-based asynchronous processing
 
 **Benefits**:
+
 - Multiple applications can integrate
 - External system downtime doesn't corrupt balances
 - Financial integrity maintained regardless of game state
@@ -131,6 +140,7 @@ User Action → External System → RedRoomRewards → Queue → Settlement
 **API Contract**: `/api/openapi.yaml`
 
 **Key Endpoints for Slot Machine**:
+
 ```
 POST /escrow/request
   - Request points to be held in escrow
@@ -149,6 +159,7 @@ GET /wallets/{userId}
 ```
 
 **Idempotency**:
+
 - All requests include `idempotency_key` (UUID)
 - Duplicate requests return same result
 - 24-hour idempotency window
@@ -157,6 +168,7 @@ GET /wallets/{userId}
 ### 3.3 No Circular Dependencies
 
 **Dependency Direction**:
+
 ```
 External System → RedRoomRewards API
   (requests)         (responses)
@@ -166,6 +178,7 @@ RedRoomRewards ↛ External System
 ```
 
 **Exceptions** (Optional):
+
 - Webhooks for balance updates (if external system subscribes)
 - Event notifications (one-way, fire-and-forget)
 
@@ -180,12 +193,14 @@ RedRoomRewards ↛ External System
 **Principle**: Given the same inputs, RedRoomRewards always produces the same outputs.
 
 **Guaranteed Behaviors**:
+
 - Same escrow request (idempotency key) → Same escrow_id
 - Same settlement authorization → Same final balance
 - Same refund request → Same restoration of points
 - Balance queries are always accurate and current
 
 **Non-Deterministic Elements** (Handled by External Systems):
+
 - RNG outcomes (win/loss)
 - User choices or timing
 - UI presentation order
@@ -208,6 +223,7 @@ COMPLETE ← ─ ─ ─ ─┘
 ```
 
 **State Transitions**:
+
 1. **START → REQUEST_ESCROW**: User initiates spin
 2. **REQUEST_ESCROW → ESCROW_HELD**: Points moved to escrow
 3. **ESCROW_HELD → SETTLE**: External system reports win/loss
@@ -215,6 +231,7 @@ COMPLETE ← ─ ─ ─ ─┘
 5. **SETTLE/REFUND → COMPLETE**: Transaction finalized
 
 **Transition Rules**:
+
 - Each state transition creates a ledger entry
 - State changes are atomic
 - Invalid transitions are rejected
@@ -223,6 +240,7 @@ COMPLETE ← ─ ─ ─ ─┘
 ### 4.3 Idempotency Guarantees
 
 **Escrow Request Idempotency**:
+
 ```typescript
 // First request
 POST /escrow/request
@@ -241,6 +259,7 @@ POST /escrow/request { ... same data ... }
 ```
 
 **Settlement Idempotency**:
+
 - Queue generates authorization token bound to escrow
 - Token is single-use but idempotent
 - Duplicate settlement attempts return cached result
@@ -257,6 +276,7 @@ POST /escrow/request { ... same data ... }
 1. **User Action**: User clicks "Spin" (cost: 100 points)
 2. **External System**: Validates user has sufficient balance
 3. **Escrow Request**:
+
    ```
    POST /escrow/request
    {
@@ -267,6 +287,7 @@ POST /escrow/request { ... same data ... }
      "metadata": { "spin_id": "spin_456" }
    }
    ```
+
 4. **RedRoomRewards**:
    - Validates user balance (≥100 available)
    - Creates escrow item (100 points held)
@@ -280,6 +301,7 @@ POST /escrow/request { ... same data ... }
    - Generates settlement authorization token
    - Sends to RedRoomRewards
 7. **Settlement**:
+
    ```
    POST /escrow/settle
    {
@@ -289,6 +311,7 @@ POST /escrow/request { ... same data ... }
      "award_amount": 500
    }
    ```
+
 8. **RedRoomRewards**:
    - Validates queue authorization
    - Completes escrow (forfeit 100 bet)
@@ -303,8 +326,9 @@ POST /escrow/request { ... same data ... }
 
 **Step-by-Step** (1-5 same as above):
 
-6. **Queue Service**: Determines loss outcome
-7. **Settlement**:
+1. **Queue Service**: Determines loss outcome
+2. **Settlement**:
+
    ```
    POST /escrow/settle
    {
@@ -314,19 +338,20 @@ POST /escrow/request { ... same data ... }
      "award_amount": 0
    }
    ```
-8. **RedRoomRewards**:
+3. **RedRoomRewards**:
    - Validates queue authorization
    - Completes escrow (forfeit 100 bet)
    - No award (loss)
    - Creates ledger entry (debit: -100)
    - Returns final balance
-9. **External System**: Displays loss animation
+4. **External System**: Displays loss animation
 
 **Net Result**: User balance -100 points (lost bet)
 
 ### 5.3 Failed Spin (Refund)
 
 **Failure Scenarios**:
+
 - External system crashes before determining outcome
 - Network timeout during RNG call
 - Invalid game state detected
@@ -334,8 +359,9 @@ POST /escrow/request { ... same data ... }
 
 **Step-by-Step** (1-5 same as above):
 
-6. **Queue Service**: Detects failure, initiates refund
-7. **Refund**:
+1. **Queue Service**: Detects failure, initiates refund
+2. **Refund**:
+
    ```
    POST /escrow/refund
    {
@@ -344,12 +370,12 @@ POST /escrow/request { ... same data ... }
      "reason": "system_error"
    }
    ```
-8. **RedRoomRewards**:
+3. **RedRoomRewards**:
    - Validates queue authorization
    - Refunds escrow (escrow: -100, available: +100)
    - Creates ledger entry (credit: +100, reason: "refund_system_error")
    - Returns final balance
-9. **External System**: Notifies user of refund
+4. **External System**: Notifies user of refund
 
 **Net Result**: User balance unchanged (full refund)
 
@@ -362,6 +388,7 @@ POST /escrow/request { ... same data ... }
 **Principle**: All financial decisions made server-side.
 
 **Protected Against**:
+
 - Client-side balance manipulation
 - Fake win claims
 - Unauthorized settlements
@@ -369,6 +396,7 @@ POST /escrow/request { ... same data ... }
 - Bypassing escrow
 
 **Controls**:
+
 - Queue authorization required for settlement
 - Signature validation on authorization tokens
 - Idempotency prevents duplicate settlements
@@ -378,11 +406,13 @@ POST /escrow/request { ... same data ... }
 ### 6.2 Rate Limiting
 
 **Spin Rate Limits**:
+
 - Per user: 1 spin per 5 seconds (configurable)
 - Per IP: 10 spins per minute
 - Per session: 100 spins per hour
 
 **Enforcement**:
+
 - API gateway rate limiting
 - Token bucket algorithm
 - 429 status code on limit exceeded
@@ -393,12 +423,14 @@ POST /escrow/request { ... same data ... }
 ### 6.3 Balance Validation
 
 **Pre-Escrow Checks**:
+
 - User must have sufficient available balance
 - Minimum balance threshold (e.g., ≥spin cost)
 - Maximum escrow limit per user (e.g., 10,000 points)
 - Account status check (not suspended/banned)
 
 **Concurrent Spin Prevention**:
+
 - User can only have one active slot machine escrow at a time
 - Attempting second spin returns error until first completes
 - Timeout releases escrow for new attempt
@@ -414,6 +446,7 @@ POST /escrow/request { ... same data ... }
 **Timeout Duration**: 5 minutes (configurable)
 
 **Timeout Process**:
+
 1. Escrow created at timestamp T
 2. If no settlement by T+5min, timeout triggered
 3. Automatic refund initiated by queue service
@@ -425,17 +458,20 @@ POST /escrow/request { ... same data ... }
 ### 7.2 Queue Failures
 
 **Scenarios**:
+
 - Queue service unavailable
 - Authorization token expired
 - Settlement request malformed
 
 **Handling**:
+
 - Exponential backoff retry (3 attempts)
 - Alert monitoring team on repeated failures
 - Manual intervention if needed
 - User notified of delay (external system)
 
 **Fallback**:
+
 - If queue down >5 minutes, automatic refunds triggered
 - Financial integrity maintained
 - Users not penalized for system failures
@@ -443,6 +479,7 @@ POST /escrow/request { ... same data ... }
 ### 7.3 Error Responses
 
 **Client Errors (4xx)**:
+
 - `400 Bad Request`: Invalid request format
 - `401 Unauthorized`: Missing or invalid authentication
 - `403 Forbidden`: Insufficient permissions
@@ -450,11 +487,13 @@ POST /escrow/request { ... same data ... }
 - `422 Unprocessable Entity`: Insufficient balance
 
 **Server Errors (5xx)**:
+
 - `500 Internal Server Error`: Unexpected server issue
 - `503 Service Unavailable`: Temporary unavailability (retry)
 - `504 Gateway Timeout`: Upstream service timeout
 
 **Error Response Format**:
+
 ```json
 {
   "error": {
@@ -473,6 +512,7 @@ POST /escrow/request { ... same data ... }
 ### 8.1 Escrow Item
 
 **Schema**:
+
 ```typescript
 interface EscrowItem {
   escrow_id: string;              // Unique identifier
@@ -495,6 +535,7 @@ interface EscrowItem {
 ### 8.2 Ledger Transaction
 
 **Schema**:
+
 ```typescript
 interface LedgerTransaction {
   transaction_id: string;         // Unique identifier
@@ -514,6 +555,7 @@ interface LedgerTransaction {
 ### 8.3 Wallet State
 
 **Schema**:
+
 ```typescript
 interface Wallet {
   user_id: string;                // User identifier
@@ -535,6 +577,7 @@ interface Wallet {
 ### 9.1 Queue Service Role
 
 **Responsibilities**:
+
 - Process escrow requests asynchronously
 - Determine settlement or refund (based on external system input)
 - Generate authorization tokens
@@ -542,6 +585,7 @@ interface Wallet {
 - Maintain processing order
 
 **Authority Model**:
+
 ```
 Feature Module (Slot Machine) → Request Escrow
 Queue Service → Authorize Settlement/Refund
@@ -553,6 +597,7 @@ Wallet Service → Execute Settlement/Refund
 ### 9.2 Authorization Token
 
 **Token Structure** (JWT):
+
 ```json
 {
   "iss": "queue-service",
@@ -569,6 +614,7 @@ Wallet Service → Execute Settlement/Refund
 ```
 
 **Validation**:
+
 - Signature verification (shared secret)
 - Expiry check (must be within 5 minutes)
 - Escrow ID match
@@ -578,6 +624,7 @@ Wallet Service → Execute Settlement/Refund
 ### 9.3 Queue Processing
 
 **Processing Steps**:
+
 1. Escrow request added to queue
 2. External system provides outcome (via callback or poll)
 3. Queue validates outcome
@@ -587,6 +634,7 @@ Wallet Service → Execute Settlement/Refund
 7. Queue sends webhook to external system (optional)
 
 **Ordering**:
+
 - FIFO (First In, First Out) by default
 - Priority queue support (e.g., VIP users)
 - Timeout items processed immediately
@@ -598,12 +646,14 @@ Wallet Service → Execute Settlement/Refund
 ### 10.1 Test Scenarios
 
 **Happy Path**:
+
 - User spins and wins
 - User spins and loses
 - Multiple spins in sequence
 - Concurrent users spinning
 
 **Edge Cases**:
+
 - Insufficient balance attempt
 - Duplicate spin request (idempotency)
 - Concurrent spin attempt by same user
@@ -611,6 +661,7 @@ Wallet Service → Execute Settlement/Refund
 - Maximum escrow limit reached
 
 **Failure Cases**:
+
 - Queue service down during spin
 - Database connection lost mid-transaction
 - Invalid authorization token
@@ -618,6 +669,7 @@ Wallet Service → Execute Settlement/Refund
 - Network timeout during settlement
 
 **Security Tests**:
+
 - Unauthorized settlement attempt
 - Fake authorization token
 - Balance manipulation attempt
@@ -626,12 +678,14 @@ Wallet Service → Execute Settlement/Refund
 ### 10.2 Integration Testing
 
 **Test Environment**:
+
 - Mock external system for RNG
 - Test queue service
 - Test database with isolated data
 - Synthetic users and balances
 
 **Test Suite Coverage**:
+
 - Escrow request → settlement flow
 - Escrow request → refund flow
 - Idempotency verification
@@ -642,12 +696,14 @@ Wallet Service → Execute Settlement/Refund
 ### 10.3 Performance Testing
 
 **Load Testing**:
+
 - 100 concurrent spins
 - 1,000 spins per minute
 - Database connection pool sizing
 - Queue throughput
 
 **Benchmarks**:
+
 - Escrow request: <100ms p95
 - Settlement: <200ms p95
 - Balance query: <50ms p95
@@ -659,6 +715,7 @@ Wallet Service → Execute Settlement/Refund
 ### 11.1 Metrics
 
 **Business Metrics**:
+
 - Total spins per hour
 - Win rate (external system)
 - Average bet amount
@@ -666,6 +723,7 @@ Wallet Service → Execute Settlement/Refund
 - Total points awarded
 
 **Operational Metrics**:
+
 - Escrow request rate
 - Settlement latency
 - Refund rate
@@ -673,6 +731,7 @@ Wallet Service → Execute Settlement/Refund
 - Error rate by type
 
 **Alerting Thresholds**:
+
 - Refund rate >10%: Warning
 - Timeout rate >5%: Warning
 - Error rate >1%: Critical
@@ -681,6 +740,7 @@ Wallet Service → Execute Settlement/Refund
 ### 11.2 Logging
 
 **Logged Events**:
+
 - Escrow request (user_id, amount, idempotency_key)
 - Escrow created (escrow_id, user_id, amount)
 - Settlement requested (escrow_id, outcome, amount)
@@ -689,6 +749,7 @@ Wallet Service → Execute Settlement/Refund
 - Errors (with request_id for debugging)
 
 **Log Level**:
+
 - INFO: Normal operations
 - WARN: Retries, timeouts
 - ERROR: Failures requiring attention
@@ -697,6 +758,7 @@ Wallet Service → Execute Settlement/Refund
 ### 11.3 Dashboards
 
 **Real-Time Dashboard**:
+
 - Active escrows count
 - Settlements per minute
 - Refunds per minute
@@ -704,6 +766,7 @@ Wallet Service → Execute Settlement/Refund
 - Error rate
 
 **Business Dashboard**:
+
 - Daily active users (slot machine)
 - Total wagered (daily, weekly, monthly)
 - Total awarded
@@ -716,12 +779,14 @@ Wallet Service → Execute Settlement/Refund
 ### 12.1 Audit Trail
 
 **Requirements**:
+
 - Every spin creates ledger entries
 - All state transitions logged
 - Immutable transaction records
 - 7+ year retention
 
 **Audit Information**:
+
 - User ID and spin ID
 - Escrow amount and timestamp
 - Settlement outcome and amount
@@ -731,11 +796,13 @@ Wallet Service → Execute Settlement/Refund
 ### 12.2 Reconciliation
 
 **Daily Reconciliation**:
+
 - Sum all escrow amounts = sum of escrow_balance in wallets
 - Sum all ledger debits = sum all ledger credits (over time)
 - No orphaned escrows (all settled or refunded)
 
 **Alerts**:
+
 - Reconciliation mismatch
 - Long-lived escrows (>1 hour)
 - Balance discrepancies
@@ -743,6 +810,7 @@ Wallet Service → Execute Settlement/Refund
 ### 12.3 Dispute Resolution
 
 **User Dispute Process**:
+
 1. User reports issue (e.g., "points not awarded")
 2. Support retrieves transaction history by user_id and timestamp
 3. Ledger provides complete audit trail
@@ -751,6 +819,7 @@ Wallet Service → Execute Settlement/Refund
 6. Issue resolved or escalated
 
 **Common Issues**:
+
 - Delayed settlement (check queue)
 - Display bug (external system, not RedRoomRewards)
 - Timeout refund (automatic, expected behavior)
@@ -762,16 +831,19 @@ Wallet Service → Execute Settlement/Refund
 ### 13.1 Planned Features
 
 **Progressive Jackpots**:
+
 - Shared jackpot pool across users
 - Percentage of each bet contributes
 - Requires separate jackpot escrow management
 
 **Tournament Mode**:
+
 - Leaderboard tracking
 - Buy-in and prize pool
 - Scheduled tournaments
 
 **Multi-Line Spins**:
+
 - Multiple bet amounts per spin
 - Complex payout structures
 - Requires enhanced escrow logic
@@ -779,12 +851,14 @@ Wallet Service → Execute Settlement/Refund
 ### 13.2 Scalability Considerations
 
 **Horizontal Scaling**:
+
 - Stateless API servers (scale independently)
 - Database sharding by user_id
 - Queue service clustering
 - Cache layer for balance queries
 
 **Performance Optimization**:
+
 - Read replicas for balance queries
 - Write-ahead logging for transactions
 - Batch processing for settlements
@@ -796,17 +870,20 @@ Wallet Service → Execute Settlement/Refund
 The slot machine feature in RedRoomRewards demonstrates clear architectural boundaries:
 
 **RedRoomRewards (This Repository)**:
+
 - ✅ Standalone loyalty service
 - ✅ Deterministic behavior (idempotent, consistent)
 - ✅ Escrow and settlement only
 - ✅ No game logic or RNG
 
 **External Systems**:
+
 - ✅ Game logic and RNG
 - ✅ UI/UX and animations
 - ✅ Business rules for eligibility
 
 **Key Principles**:
+
 1. **Separation of Concerns**: Financial vs. game logic
 2. **Server-Side Authority**: No client-side trust
 3. **Deterministic Behavior**: Predictable and testable
@@ -820,6 +897,7 @@ The slot machine feature in RedRoomRewards demonstrates clear architectural boun
 ## 15. References
 
 **Related Documentation**:
+
 - `/ARCHITECTURE.md` - Overall architecture
 - `/SECURITY_AUDIT_AND_NO_BACKDOOR_POLICY.md` - Security principles
 - `/docs/WALLET_ESCROW_ARCHITECTURE.md` - Escrow design
@@ -827,6 +905,7 @@ The slot machine feature in RedRoomRewards demonstrates clear architectural boun
 - `/api/openapi.yaml` - API contract
 
 **Specifications**:
+
 - `/docs/specs/SLOT_MACHINE_SPEC_v1.0.md` - Detailed spec
 - `/docs/specs/RRR_LOYALTY_ENGINE_SPEC_v1.1.md` - Loyalty engine spec
 

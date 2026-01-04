@@ -59,9 +59,11 @@ npm test -- --verbose
 ## Test Categories
 
 ### 1. Wallet Service Tests ✅
+
 **File**: `src/wallets/__tests__/wallet.service.comprehensive.spec.ts`
 
 **Coverage**:
+
 - ✅ holdInEscrow: Balance deduction, insufficient balance, idempotency
 - ✅ settleEscrow: Transfer to model, escrow not found, already settled
 - ✅ refundEscrow: Return to user, already refunded
@@ -73,9 +75,11 @@ npm test -- --verbose
 ---
 
 ### 2. Ledger Service Tests ✅
+
 **File**: `src/ledger/__tests__/ledger.service.comprehensive.spec.ts`
 
 **Coverage**:
+
 - ✅ Immutable entry creation with idempotency
 - ✅ Query filtering (account, date range, type, pagination)
 - ✅ Balance snapshots and point-in-time queries
@@ -88,9 +92,11 @@ npm test -- --verbose
 ---
 
 ### 3. Point Expiration Service Tests ✅
+
 **File**: `src/services/__tests__/point-expiration.service.comprehensive.spec.ts`
 
 **Coverage**:
+
 - ✅ Single user expiration processing
 - ✅ Batch expiration with error handling
 - ✅ Grace period respect
@@ -102,9 +108,11 @@ npm test -- --verbose
 ---
 
 ### 4. Security Tests ✅
+
 **File**: `src/__tests__/security.test.ts`
 
 **Coverage**:
+
 - ✅ Authorization validation (queue tokens, admin roles)
 - ✅ Input validation (SQL injection, XSS, amounts)
 - ✅ PII and secret protection in logs
@@ -115,6 +123,7 @@ npm test -- --verbose
 ---
 
 ### 5. Existing Unit Tests ✅
+
 - `src/services/auth.service.spec.ts` - 22 tests passing
 - `src/services/point-accrual.service.spec.ts` - Token-based tests
 - `src/services/point-redemption.service.spec.ts` - 10 tests passing
@@ -142,6 +151,7 @@ coverageThreshold: {
 ```
 
 **Current Coverage Targets**:
+
 - Wallet Service: 100% (financial logic)
 - Ledger Service: 100% (audit trail)
 - Core Services: 90%+
@@ -152,22 +162,26 @@ coverageThreshold: {
 ## Running Tests
 
 ### Prerequisites
+
 ```bash
 npm install
 ```
 
 ### Run All Tests
+
 ```bash
 npm test
 ```
 
 ### Generate Coverage Report
+
 ```bash
 npm run test:coverage
 open coverage/index.html
 ```
 
 ### Watch Mode (Development)
+
 ```bash
 npm test -- --watch
 ```
@@ -190,6 +204,7 @@ npm test -- --watch
 ## Key Test Patterns
 
 ### Mocking
+
 ```typescript
 // Mock ledger service
 const mockLedgerService = {
@@ -203,6 +218,7 @@ jest.mock('../../db/models/wallet.model');
 ```
 
 ### Idempotency Testing
+
 ```typescript
 it('should handle idempotent requests', async () => {
   mockLedgerService.checkIdempotency.mockResolvedValue(true);
@@ -214,6 +230,7 @@ it('should handle idempotent requests', async () => {
 ```
 
 ### Edge Case Testing
+
 ```typescript
 describe('Edge Cases', () => {
   it('should handle zero balance', async () => {
@@ -235,6 +252,7 @@ describe('Edge Cases', () => {
 ## Integration with CI
 
 Tests are automatically run in CI pipeline on:
+
 - Pull request creation
 - Pull request updates
 - Merge to main branch

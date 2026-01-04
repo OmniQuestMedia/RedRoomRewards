@@ -28,6 +28,7 @@ This document defines comprehensive testing requirements for the wallet and escr
 ```
 
 **Coverage Requirements**:
+
 - Unit Tests: 100% for wallet/ledger logic
 - Integration Tests: All critical flows
 - E2E Tests: Happy paths and major scenarios
@@ -534,12 +535,14 @@ describe('Feature Integration E2E', () => {
 **File**: `tests/performance/load.test.ts`
 
 **Metrics to Measure**:
+
 - Escrow hold latency (target: <100ms p95)
 - Settlement latency (target: <150ms p95)
 - Throughput (target: 1000+ operations/second)
 - Concurrent operations (target: no deadlocks)
 
 **Test Scenarios**:
+
 ```typescript
 describe('Load Testing', () => {
   it('should handle 1000 concurrent escrow holds', async () => {
@@ -570,6 +573,7 @@ describe('Load Testing', () => {
 ### 4.2 Stress Testing
 
 **Test Scenarios**:
+
 - Database connection pool exhaustion
 - High memory usage scenarios
 - Network latency simulation
@@ -620,6 +624,7 @@ describe('Authorization Security', () => {
 ### 5.2 Input Validation Tests
 
 **Test Scenarios**:
+
 - SQL injection attempts
 - NoSQL injection attempts
 - XSS in metadata fields
@@ -674,6 +679,7 @@ describe('Edge Cases', () => {
 **Purpose**: Ensure no legacy patterns re-introduced
 
 **Test Scenarios**:
+
 - Detect direct balance modifications
 - Detect settlement without queue authority
 - Detect literal chat strings

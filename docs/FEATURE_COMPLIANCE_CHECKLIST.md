@@ -28,6 +28,7 @@ This checklist ensures that all new feature modules comply with the established 
 - [ ] **Feature validates balance before requesting escrow hold**
 
 **Verification**:
+
 ```typescript
 // ✅ CORRECT
 const escrowResponse = await walletService.holdInEscrow({
@@ -56,6 +57,7 @@ const modelBalance = await walletService.creditModel(modelId, amount);
 - [ ] **Feature never calls settlement directly**
 
 **Verification**:
+
 ```typescript
 // ✅ CORRECT
 const queueItem = await queueService.enqueue({
@@ -83,6 +85,7 @@ await walletService.settleEscrow(...); // Features cannot settle
 - [ ] **Feature handles retry scenarios**
 
 **Verification**:
+
 ```typescript
 // ✅ CORRECT
 const idempotencyKey = uuidv4();
@@ -116,6 +119,7 @@ const response = await walletService.holdInEscrow({
 - [ ] **Never expose internal errors to users**
 
 **Verification**:
+
 ```typescript
 // ✅ CORRECT
 try {
@@ -144,6 +148,7 @@ const response = await walletService.holdInEscrow(request);
 - [ ] **Reason codes are documented**
 
 **Verification**:
+
 ```typescript
 // ✅ CORRECT
 reason: TransactionReason.CHIP_MENU_PURCHASE
@@ -165,6 +170,7 @@ reason: `User bought ${action}` // Never free-text
 - [ ] **Messages are decoupled from wallet logic**
 
 **Verification**:
+
 ```typescript
 // ✅ CORRECT
 await messagingService.sendFinancialNotification({
@@ -193,6 +199,7 @@ sendChat(`You spent ${amount} points!`); // Never literal strings
 - [ ] **Metadata is for audit context only**
 
 **Verification**:
+
 ```typescript
 // ✅ CORRECT
 metadata: {
@@ -222,6 +229,7 @@ metadata: {
 - [ ] **Request ID returned in responses**
 
 **Verification**:
+
 ```typescript
 // ✅ CORRECT
 const requestId = req.headers['x-request-id'] || uuidv4();
@@ -243,6 +251,7 @@ const response = await walletService.holdInEscrow({
 - [ ] **User notified after max retries**
 
 **Verification**:
+
 ```typescript
 // ✅ CORRECT
 let retries = 0;
@@ -274,6 +283,7 @@ while (retries < maxRetries) {
 - [ ] **Feature only calls hold endpoint**
 
 **Verification**:
+
 ```typescript
 // ✅ CORRECT - Feature can do this
 await walletService.holdInEscrow(request);
@@ -296,6 +306,7 @@ await walletService.refundEscrow(request, authorization); // Only queue!
 - [ ] **Amount validated server-side** (never trust client)
 
 **Verification**:
+
 ```typescript
 // ✅ CORRECT
 if (amount <= 0 || !Number.isFinite(amount)) {
@@ -320,6 +331,7 @@ amount = Math.round(amount * 100) / 100;
 - [ ] **Rollback tests** (transaction failures)
 
 **Test Coverage**:
+
 - Minimum 100% coverage for wallet integration code
 - All error paths must be tested
 - Idempotency must be tested with duplicate requests
@@ -361,6 +373,7 @@ amount = Math.round(amount * 100) / 100;
 - [ ] **Does NOT reference archived code patterns**
 
 **Prohibited Patterns** (from legacy Spin Wheel):
+
 ```typescript
 // ❌ NEVER DO THIS (legacy pattern)
 wallet.availableBalance -= amount;  // Direct deduction
@@ -373,26 +386,31 @@ sendChat("You won!");  // Literal string
 ## Certification Process
 
 ### Phase 1: Self-Assessment
+
 1. Developer completes this checklist
 2. All items marked as complete
 3. Tests pass with 100% coverage
 
 ### Phase 2: Code Review
+
 1. Peer review verifies checklist compliance
 2. Reviewer checks for prohibited patterns
 3. Reviewer validates error handling
 
 ### Phase 3: Architecture Review
+
 1. Architecture team reviews escrow flow
 2. Validates queue integration
 3. Confirms no business logic in wallet service
 
 ### Phase 4: Security Review
+
 1. Security team validates no PII in logs/metadata
 2. Confirms idempotency implementation
 3. Validates authorization boundaries
 
 ### Phase 5: Certification
+
 1. All reviews passed
 2. Feature marked as compliant
 3. Feature approved for production deployment
@@ -409,6 +427,7 @@ sendChat("You won!");  // Literal string
 | [New Feature] | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | TBD |
 
 **Legend**:
+
 - ✅ Compliant
 - ❌ Non-compliant
 - ⏳ Pending review
@@ -418,11 +437,13 @@ sendChat("You won!");  // Literal string
 ## Non-Compliance Consequences
 
 ### Development Phase
+
 - PR will be rejected
 - Must fix non-compliant code
 - Re-submit for review
 
 ### Production Phase
+
 - Feature will be feature-flagged/disabled
 - Security incident if PII exposed
 - Immediate remediation required
@@ -433,13 +454,16 @@ sendChat("You won!");  // Literal string
 ## Compliance Support
 
 ### Questions About Compliance
+
 1. Review `/docs/WALLET_ESCROW_ARCHITECTURE.md`
 2. Review existing compliant features (Slot Machine, Chip Menu)
 3. Ask in architecture channel
 4. Consult with wallet service team
 
 ### Reporting Non-Compliance
+
 If you discover non-compliant code in production:
+
 1. Create security incident ticket
 2. Notify architecture team immediately
 3. Document in incident report
@@ -454,6 +478,7 @@ If you discover non-compliant code in production:
 **Review Schedule**: Quarterly or when architecture changes
 
 **Change Process**:
+
 1. Propose updates via PR
 2. Architecture team approval required
 3. Update compliance matrix

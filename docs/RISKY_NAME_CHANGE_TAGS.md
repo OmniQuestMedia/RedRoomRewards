@@ -1,25 +1,25 @@
 # Risky Name Change Tags
 
-This document lists patterns and locations that require special scrutiny or approval before renaming in codebases during branding migrations. 
+This document lists patterns and locations that require special scrutiny or approval before renaming in codebases during branding migrations.
 
 ## Definition: Risky Name Change Locations
 
 Any instance of a legacy name MUST be flagged as risky if found in the following contexts:
 
 - **API Endpoints & Routes**  
-  * Examples: `/api/legacy/*`, `/v1/legacyAuth/login`
+  - Examples: `/api/legacy/*`, `/v1/legacyAuth/login`
 - **Environment Variables & Config Keys**  
-  * Examples: `LEGACY_API_KEY`, `LEGACY_SECRET`, `.env`, `config.js`
+  - Examples: `LEGACY_API_KEY`, `LEGACY_SECRET`, `.env`, `config.js`
 - **Database Collections/Tables & Migration Scripts**  
-  * Examples: `db.legacy_users`, `"table": "legacy_transactions"`
+  - Examples: `db.legacy_users`, `"table": "legacy_transactions"`
 - **External Vendor/Integration IDs or Keys**  
-  * API tokens, client IDs, OAuth configurations referencing external systems.
+  - API tokens, client IDs, OAuth configurations referencing external systems.
 - **Persistent Storage Keys, Event Names, or Bus Topics**  
-  * Examples: `localStorage['legacyUser']`, `topic: legacy.events.userLogin`
+  - Examples: `localStorage['legacyUser']`, `topic: legacy.events.userLogin`
 - **3rd-Party URLs or Domains (Do Not Change!)**  
-  * Examples: `https://vendor.example.com/api`
+  - Examples: `https://vendor.example.com/api`
 - **Authentication, Licensing, or Other Security-Critical Identifiers**  
-  * Examples: JWT claims like `iss: "LegacySystem"`, SSO provider IDs
+  - Examples: JWT claims like `iss: "LegacySystem"`, SSO provider IDs
 
 ---
 
@@ -28,10 +28,10 @@ Any instance of a legacy name MUST be flagged as risky if found in the following
 - **DO NOT rename** any references in these locations unless a complete migration and rollout/rollback plan exists.
 - **Review all code usages** for dependencies before changing.
 - **Document EVERY exception** with:
-    - File path
-    - Line number and excerpt
-    - Risk/impact description
-    - Approval status and reviewer, if applicable
+  - File path
+  - Line number and excerpt
+  - Risk/impact description
+  - Approval status and reviewer, if applicable
 
 ## Risk Tag Table
 

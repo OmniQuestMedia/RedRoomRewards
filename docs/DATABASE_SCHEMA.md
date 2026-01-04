@@ -13,6 +13,7 @@
 This document defines the MongoDB schema for the RedRoomRewards wallet and escrow system. All schemas support the architecture defined in `/docs/WALLET_ESCROW_ARCHITECTURE.md`.
 
 **Key Principles**:
+
 - Immutable ledger entries (transactions collection)
 - Optimistic locking for concurrent updates
 - Comprehensive indexing for performance
@@ -45,6 +46,7 @@ This document defines the MongoDB schema for the RedRoomRewards wallet and escro
 **Note**: The schemas shown use TypeScript syntax for clarity. In actual MongoDB documents, these translate to BSON types (e.g., `Decimal128` for monetary values, `ObjectId` for `_id`).
 
 **Indexes**:
+
 ```javascript
 // Primary access pattern
 { userId: 1 }  // unique
@@ -55,6 +57,7 @@ This document defines the MongoDB schema for the RedRoomRewards wallet and escro
 ```
 
 **Validation Rules**:
+
 - `userId` is required and must be unique
 - `availableBalance` >= 0 (cannot go negative)
 - `escrowBalance` >= 0
@@ -62,11 +65,13 @@ This document defines the MongoDB schema for the RedRoomRewards wallet and escro
 - `currency` defaults to "points"
 
 **Optimistic Locking**:
+
 - Increment `version` on every update
 - Check current version matches expected version before update
 - Retry on version conflict
 
 **Notes**:
+
 - Use `Decimal128` for monetary precision
 - Never modify without ledger entry
 - Always update `updatedAt` timestamp
@@ -78,6 +83,7 @@ This document defines the MongoDB schema for the RedRoomRewards wallet and escro
 **Purpose**: Store model earning balances
 
 **Schema**:
+
 ```typescript
 {
   _id: ObjectId,
@@ -92,6 +98,7 @@ This document defines the MongoDB schema for the RedRoomRewards wallet and escro
 ```
 
 **Indexes**:
+
 ```javascript
 // Primary access pattern
 { modelId: 1, type: 1 }  // compound unique
@@ -102,6 +109,7 @@ This document defines the MongoDB schema for the RedRoomRewards wallet and escro
 ```
 
 **Validation Rules**:
+
 - `modelId` is required
 - `modelId` + `type` combination must be unique
 - `earnedBalance` >= 0
@@ -109,6 +117,7 @@ This document defines the MongoDB schema for the RedRoomRewards wallet and escro
 - `version` >= 0
 
 **Notes**:
+
 - Models can have multiple wallet types
 - Most common type is "earnings"
 - "promotional" type for platform-funded rewards
@@ -120,6 +129,7 @@ This document defines the MongoDB schema for the RedRoomRewards wallet and escro
 **Purpose**: Track individual escrow holds awaiting settlement or refund
 
 **Schema**:
+
 ```typescript
 {
   _id: ObjectId,
@@ -138,6 +148,7 @@ This document defines the MongoDB schema for the RedRoomRewards wallet and escro
 ```
 
 **Indexes**:
+
 ```javascript
 // Primary access
 { escrowId: 1 }  // unique
@@ -152,6 +163,7 @@ This document defines the MongoDB schema for the RedRoomRewards wallet and escro
 ```
 
 **Validation Rules**:
+
 - `escrowId` is required and unique
 - `userId` is required
 - `amount` > 0
@@ -162,11 +174,13 @@ This document defines the MongoDB schema for the RedRoomRewards wallet and escro
 - `modelId` is required when status is "settled"
 
 **Status Transitions**:
+
 - `held` → `settled` (with modelId set)
 - `held` → `refunded`
 - No other transitions allowed
 
 **Notes**:
+
 - Once processed, status cannot change
 - Processed items kept for audit trail
 - Consider archiving old processed items
@@ -178,6 +192,7 @@ This document defines the MongoDB schema for the RedRoomRewards wallet and escro
 **Purpose**: Immutable ledger of all financial transactions
 
 **Schema**:
+
 ```typescript
 {
   _id: ObjectId,
@@ -205,6 +220,7 @@ This document defines the MongoDB schema for the RedRoomRewards wallet and escro
 ```
 
 **Indexes**:
+
 ```javascript
 // Primary access
 { entryId: 1 }  // unique
@@ -228,6 +244,7 @@ This document defines the MongoDB schema for the RedRoomRewards wallet and escro
 ```
 
 **Validation Rules**:
+
 - `entryId` is required and unique
 - `transactionId` is required
 - `accountId` is required
@@ -244,11 +261,13 @@ This document defines the MongoDB schema for the RedRoomRewards wallet and escro
 - `timestamp` defaults to now
 
 **Immutability**:
+
 - **NEVER** update or delete entries
 - Corrections are new transactions
 - Use TTL index for archival (after 7+ years)
 
 **Notes**:
+
 - This is the source of truth for all financial operations
 - Supports comprehensive audit trails
 - Enables balance reconciliation
@@ -261,6 +280,7 @@ This document defines the MongoDB schema for the RedRoomRewards wallet and escro
 **Purpose**: Track processed requests to prevent duplicates
 
 **Schema**:
+
 ```typescript
 {
   _id: ObjectId,
@@ -275,6 +295,7 @@ This document defines the MongoDB schema for the RedRoomRewards wallet and escro
 ```
 
 **Indexes**:
+
 ```javascript
 // Primary access
 { key: 1, operationType: 1 }  // unique compound
@@ -284,6 +305,7 @@ This document defines the MongoDB schema for the RedRoomRewards wallet and escro
 ```
 
 **Validation Rules**:
+
 - `key` is required
 - `operationType` is required
 - `key` + `operationType` must be unique
@@ -293,6 +315,7 @@ This document defines the MongoDB schema for the RedRoomRewards wallet and escro
 - `expiresAt` must be > createdAt
 
 **TTL Configuration**:
+
 ```javascript
 db.idempotency_records.createIndex(
   { expiresAt: 1 },
@@ -301,6 +324,7 @@ db.idempotency_records.createIndex(
 ```
 
 **Notes**:
+
 - Automatically cleaned up after expiry
 - Default TTL: 24 hours (configurable)
 - Prevents double-spend and duplicate settlements
@@ -313,6 +337,7 @@ db.idempotency_records.createIndex(
 **Purpose**: Track performance queue items linked to escrow
 
 **Schema**:
+
 ```typescript
 {
   _id: ObjectId,
@@ -333,6 +358,7 @@ db.idempotency_records.createIndex(
 ```
 
 **Indexes**:
+
 ```javascript
 // Primary access
 { queueItemId: 1 }  // unique
@@ -350,6 +376,7 @@ db.idempotency_records.createIndex(
 ```
 
 **Validation Rules**:
+
 - `queueItemId` is required and unique
 - `userId` is required
 - `modelId` is required
@@ -359,6 +386,7 @@ db.idempotency_records.createIndex(
 - `priority` >= 0
 
 **Status Flow**:
+
 ```
 queued → in_progress → finished
 queued → abandoned
@@ -367,6 +395,7 @@ in_progress → partial
 ```
 
 **Notes**:
+
 - Sole authority for settlement/refund decisions
 - Links escrow to performance lifecycle
 - Status determines if settlement or refund occurs
@@ -378,6 +407,7 @@ in_progress → partial
 **Purpose**: Extended audit information for compliance
 
 **Schema**:
+
 ```typescript
 {
   _id: ObjectId,
@@ -392,6 +422,7 @@ in_progress → partial
 ```
 
 **Indexes**:
+
 ```javascript
 // Primary access
 { auditId: 1 }  // unique
@@ -403,11 +434,13 @@ in_progress → partial
 ```
 
 **Validation Rules**:
+
 - `auditId` is required and unique
 - `ledgerEntryId` is required
 - `auditedAt` defaults to now
 
 **Privacy**:
+
 - IP addresses hashed or anonymized after 90 days
 - No PII in auditContext
 - User agent for fraud detection only
@@ -441,6 +474,7 @@ transactions (1) ←→ (1) audit_trail
 ## Data Migration
 
 ### Initial Wallet Creation
+
 ```javascript
 // Create wallet for new user
 db.wallets.insertOne({
@@ -455,6 +489,7 @@ db.wallets.insertOne({
 ```
 
 ### Initial Model Wallet Creation
+
 ```javascript
 // Create earnings wallet for model
 db.model_wallets.insertOne({
@@ -473,12 +508,14 @@ db.model_wallets.insertOne({
 ## Backup and Retention
 
 ### Backup Strategy
+
 - **Full backups**: Daily
 - **Incremental backups**: Hourly
 - **Point-in-time recovery**: Enabled
 - **Backup retention**: 90 days minimum
 
 ### Data Retention
+
 - **transactions**: Minimum 7 years (2555+ days)
 - **audit_trail**: Minimum 7 years
 - **wallets**: Indefinite (while account active)
@@ -487,6 +524,7 @@ db.model_wallets.insertOne({
 - **queue_items**: Archive after 90 days
 
 ### Archival Process
+
 ```javascript
 // Archive old processed escrow items
 db.escrow_items_archive.insertMany(
@@ -502,17 +540,20 @@ db.escrow_items_archive.insertMany(
 ## Performance Considerations
 
 ### Sharding Strategy
+
 - **wallets**: Shard by `userId` (hash-based)
 - **model_wallets**: Shard by `modelId` (hash-based)
 - **transactions**: Shard by `accountId` (hash-based)
 - **escrow_items**: Shard by `userId` (hash-based)
 
 ### Read Replicas
+
 - Balance queries can use read replicas
 - Transaction writes must use primary
 - Read preference: `primaryPreferred` for balance queries
 
 ### Caching Strategy
+
 - Cache user balances with short TTL (5-10 seconds)
 - Cache model balances with short TTL
 - No caching for transaction writes
@@ -523,6 +564,7 @@ db.escrow_items_archive.insertMany(
 ## Monitoring and Alerts
 
 ### Key Metrics
+
 - Wallet version conflicts (optimistic lock failures)
 - Transaction write latency
 - Escrow hold failures
@@ -530,6 +572,7 @@ db.escrow_items_archive.insertMany(
 - Reconciliation discrepancies
 
 ### Alerts
+
 - **Critical**: Any reconciliation failure
 - **Warning**: High optimistic lock conflict rate (>1% of operations)
 - **Warning**: Transaction write latency >100ms (p95)
@@ -540,17 +583,20 @@ db.escrow_items_archive.insertMany(
 ## Security Considerations
 
 ### Access Control
+
 - **wallets**: Read: user/admin, Write: wallet_service only
 - **transactions**: Read: user/admin, Write: wallet_service only (append-only)
 - **escrow_items**: Read: user/model/admin, Write: wallet_service/queue_service
 - **queue_items**: Read: user/model/admin, Write: queue_service only
 
 ### Encryption
+
 - Encrypt at rest: All collections
 - Encrypt in transit: TLS 1.3
 - Field-level encryption: Not required (no PII stored)
 
 ### Audit Logging
+
 - Log all write operations
 - Log all failed authorization attempts
 - Log all reconciliation runs
@@ -564,6 +610,7 @@ db.escrow_items_archive.insertMany(
 **Last Updated**: 2025-12-23
 
 ### Migration Process
+
 1. Create new schema version document
 2. Implement backward-compatible changes
 3. Run migration scripts in staging

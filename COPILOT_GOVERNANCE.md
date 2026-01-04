@@ -12,13 +12,15 @@ This document extends the organization-level policy and defines specific rules f
 
 **RedRoomRewards** is a loyalty and rewards platform designed to manage customer incentives across partner platforms.
 
-### Key Characteristics:
+### Key Characteristics
+
 - **Technology Stack:** Node.js and TypeScript APIs
 - **Core Functionality:** Ledger-based system for managing user accounts and point balances
 - **Architecture:** Clean separation from consuming platforms with defined API boundaries
 - **Purpose:** Manages loyalty points, model promo wallets, expiry rules, and comprehensive audit trails
 
-### Domain Ownership:
+### Domain Ownership
+
 - Loyalty points (only)
 - Model promo wallets
 - Expiry rules and enforcement
@@ -97,11 +99,13 @@ When working on RedRoomRewards code, GitHub Copilot and AI assistants must adher
 The following documentation files MUST be maintained and kept current in this repository:
 
 ### 3.1 COPILOT_GOVERNANCE.md (This File)
+
 - **Purpose:** Defines repository-specific rules for AI-assisted development
 - **Update Frequency:** Review quarterly or when architectural changes occur
 - **Owner:** Repository maintainers
 
 ### 3.2 COPILOT_REPO_BRIEFING.md
+
 - **Purpose:** Provides detailed context about repository structure, technology choices, and development practices
 - **Required Content:**
   - Architecture overview
@@ -112,6 +116,7 @@ The following documentation files MUST be maintained and kept current in this re
 - **Update Frequency:** Update when significant architectural changes occur
 
 ### 3.3 COPILOT_PR_CHECKLIST.md
+
 - **Purpose:** Defines required checks and validations before PR approval
 - **Required Content:**
   - Code quality checks
@@ -126,6 +131,7 @@ The following documentation files MUST be maintained and kept current in this re
 ## Compliance and Enforcement
 
 All pull requests must demonstrate compliance with:
+
 1. Organization-level Copilot governance policies
 2. Repository-specific rules defined in this document
 3. Completion of items in COPILOT_PR_CHECKLIST.md

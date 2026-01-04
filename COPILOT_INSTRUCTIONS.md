@@ -22,6 +22,7 @@ This document defines mandatory rules for GitHub Copilot when generating code, d
 **Rule**: The repository content is the single source of truth. External assumptions or patterns are prohibited.
 
 **Requirements**:
+
 - ✅ Always read and understand existing code before generating new code
 - ✅ Follow established patterns and conventions in the codebase
 - ✅ Respect existing architecture decisions (see `/DECISIONS.md`)
@@ -31,6 +32,7 @@ This document defines mandatory rules for GitHub Copilot when generating code, d
 - ❌ Do NOT override explicit architectural decisions
 
 **Validation**:
+
 - Before generating code: Read relevant files in `/src/`, `/docs/`, and `/api/`
 - Before suggesting changes: Review `/DECISIONS.md` and `/docs/UNIVERSAL_ARCHITECTURE.md`
 - If uncertain: Ask for clarification rather than assuming
@@ -42,6 +44,7 @@ This document defines mandatory rules for GitHub Copilot when generating code, d
 **Rule**: Security and integrity controls are mandatory. Bypassing them is strictly forbidden.
 
 **Prohibitions**:
+
 - ❌ No code that skips authentication or authorization checks
 - ❌ No debug endpoints in production code
 - ❌ No commented-out security validations
@@ -50,6 +53,7 @@ This document defines mandatory rules for GitHub Copilot when generating code, d
 - ❌ No hardcoded credentials, API keys, or secrets
 
 **Requirements**:
+
 - ✅ All endpoints require authentication (see `/api/openapi.yaml`)
 - ✅ All inputs must be validated server-side
 - ✅ All financial operations require idempotency keys
@@ -57,6 +61,7 @@ This document defines mandatory rules for GitHub Copilot when generating code, d
 - ✅ Use environment variables for configuration
 
 **Enforcement**:
+
 - Code reviews will reject any bypass mechanisms
 - Security scanners (CodeQL) will flag violations
 - See `/SECURITY.md` for detailed security requirements
@@ -68,6 +73,7 @@ This document defines mandatory rules for GitHub Copilot when generating code, d
 **Rule**: All point movements must go through the ledger system. Direct balance updates are prohibited.
 
 **Requirements**:
+
 - ✅ Every point award creates a ledger transaction
 - ✅ Every point redemption creates a ledger transaction
 - ✅ Ledger entries are immutable (write-once)
@@ -75,6 +81,7 @@ This document defines mandatory rules for GitHub Copilot when generating code, d
 - ✅ All transactions include full audit context
 
 **Workflow**:
+
 ```
 1. Validate request (idempotency key, user exists, amount valid)
 2. Check for duplicate (idempotency key lookup)
@@ -85,12 +92,14 @@ This document defines mandatory rules for GitHub Copilot when generating code, d
 ```
 
 **Prohibitions**:
+
 - ❌ No direct wallet balance updates without ledger entry
 - ❌ No balance modifications without transaction context
 - ❌ No ledger entry modifications after creation
 - ❌ No skipping idempotency checks for "performance"
 
 **Rationale**: Ledger-first ensures:
+
 - Complete audit trail for compliance
 - Accurate balance reconciliation
 - Prevention of double-spend
@@ -103,12 +112,14 @@ This document defines mandatory rules for GitHub Copilot when generating code, d
 **Rule**: Only implement behavior explicitly documented in specifications. Do not invent features.
 
 **Requirements**:
+
 - ✅ Read specifications in `/docs/specs/` before implementing
 - ✅ Follow API contract in `/api/openapi.yaml` exactly
 - ✅ Implement only what's documented, nothing extra
 - ✅ Ask for specification updates if gaps exist
 
 **Prohibitions**:
+
 - ❌ No "helpful" features not in the spec
 - ❌ No assumptions about business rules
 - ❌ No creative interpretations of requirements
@@ -117,6 +128,7 @@ This document defines mandatory rules for GitHub Copilot when generating code, d
 **Examples**:
 
 **Good**:
+
 ```typescript
 // Spec says: Award 100 points for signup
 await ledger.createTransaction({
@@ -129,12 +141,14 @@ await ledger.createTransaction({
 ```
 
 **Bad**:
+
 ```typescript
 // Inventing bonus multiplier not in spec
 const amount = isFirstSignup ? 200 : 100; // ❌ Where did 200 come from?
 ```
 
 **When Uncertain**:
+
 1. Check `/api/openapi.yaml` for endpoint contract
 2. Check `/docs/specs/` for feature specifications
 3. Check `/docs/UNIVERSAL_ARCHITECTURE.md` for architectural guidance
@@ -149,6 +163,7 @@ const amount = isFirstSignup ? 200 : 100; // ❌ Where did 200 come from?
 **Rule**: Make the smallest possible changes to achieve the goal. Surgical edits, not rewrites.
 
 **Requirements**:
+
 - ✅ Change only the files necessary for the task
 - ✅ Modify only the lines necessary within those files
 - ✅ Preserve existing working code
@@ -156,6 +171,7 @@ const amount = isFirstSignup ? 200 : 100; // ❌ Where did 200 come from?
 - ✅ Update tests for changed code only
 
 **Prohibitions**:
+
 - ❌ No refactoring unless explicitly requested
 - ❌ No style changes unrelated to the task
 - ❌ No "while I'm here" improvements
@@ -167,6 +183,7 @@ const amount = isFirstSignup ? 200 : 100; // ❌ Where did 200 come from?
 **Task**: Add email field to user wallet
 
 **Good** (minimal):
+
 ```typescript
 // In src/wallets/wallet.model.ts
 export interface Wallet {
@@ -179,6 +196,7 @@ export interface Wallet {
 ```
 
 **Bad** (excessive):
+
 ```typescript
 // ❌ Don't rewrite entire file with new patterns
 export class WalletModel extends BaseModel {
@@ -196,6 +214,7 @@ export class WalletModel extends BaseModel {
 **Rule**: Use TypeScript strict mode. Validate all inputs. No `any` types.
 
 **Requirements**:
+
 - ✅ TypeScript strict mode enabled (`tsconfig.json`)
 - ✅ Explicit types for all function parameters and returns
 - ✅ Validation for all API inputs (use validators)
@@ -203,6 +222,7 @@ export class WalletModel extends BaseModel {
 - ✅ Mongoose schemas with validation rules
 
 **Prohibitions**:
+
 - ❌ No `any` types (use `unknown` if necessary, then narrow)
 - ❌ No `@ts-ignore` comments (fix the type issue)
 - ❌ No trusting client data without validation
@@ -211,6 +231,7 @@ export class WalletModel extends BaseModel {
 **Example**:
 
 **Good**:
+
 ```typescript
 async function earnPoints(req: EarnRequest): Promise<TransactionResponse> {
   // Validate input
@@ -225,6 +246,7 @@ async function earnPoints(req: EarnRequest): Promise<TransactionResponse> {
 ```
 
 **Bad**:
+
 ```typescript
 async function earnPoints(req: any): Promise<any> { // ❌ No any types
   // Assuming req has the right shape without validation
@@ -242,12 +264,14 @@ async function earnPoints(req: any): Promise<any> { // ❌ No any types
 **Requirements**:
 
 **For All Code**:
+
 - ✅ Unit tests for all functions
 - ✅ Integration tests for API endpoints
 - ✅ Error case tests (what happens when it fails?)
 - ✅ Tests must pass before PR merge
 
 **For Financial Logic** (ledger, wallets, earn, redeem):
+
 - ✅ Unit tests for all code paths
 - ✅ Integration tests for transaction flows
 - ✅ Edge case tests:
@@ -260,6 +284,7 @@ async function earnPoints(req: any): Promise<any> { // ❌ No any types
 - ✅ Human review required (see `/COPILOT_GOVERNANCE.md` Section 2.1)
 
 **Test Structure**:
+
 ```typescript
 describe('EarnPoints', () => {
   describe('successful operations', () => {
@@ -291,6 +316,7 @@ describe('EarnPoints', () => {
 **Rule**: Security is not optional. All code must follow security best practices.
 
 **Requirements**:
+
 - ✅ Server-side validation for all inputs
 - ✅ Authentication on all endpoints (except `/health`)
 - ✅ Authorization checks before operations
@@ -300,6 +326,7 @@ describe('EarnPoints', () => {
 - ✅ Environment variables for secrets
 
 **Prohibitions**:
+
 - ❌ No client-side validation only
 - ❌ No trusting client-supplied data
 - ❌ No secrets in code or logs
@@ -316,6 +343,7 @@ describe('EarnPoints', () => {
 **Rule**: Code must be self-documenting. Add comments only for complex logic.
 
 **Requirements**:
+
 - ✅ Clear, descriptive function and variable names
 - ✅ JSDoc for all public functions
 - ✅ README files in all directories
@@ -323,6 +351,7 @@ describe('EarnPoints', () => {
 - ✅ Architecture changes reflected in `/docs/UNIVERSAL_ARCHITECTURE.md`
 
 **When to Comment**:
+
 - Complex algorithms or business logic
 - Rationale for non-obvious decisions
 - Security considerations
@@ -330,6 +359,7 @@ describe('EarnPoints', () => {
 - Workarounds for external system issues
 
 **When NOT to Comment**:
+
 - Obvious code (`i++; // increment i` ❌)
 - Restating function names
 - Outdated comments (update or remove)
@@ -337,6 +367,7 @@ describe('EarnPoints', () => {
 **Example**:
 
 **Good**:
+
 ```typescript
 /**
  * Awards points to a user's wallet with idempotent processing.
@@ -366,18 +397,21 @@ async function earnPoints(request: EarnRequest): Promise<TransactionResponse> {
 **ABSOLUTE PROHIBITION**: No code from `/archive/xxxchatnow-seed/` may be used.
 
 **Rules**:
+
 - ❌ No copying code from archive
 - ❌ No adapting patterns from archive
 - ❌ No referencing archived files
 - ❌ Archive is for historical reference only
 
 **Rationale**:
+
 - Archived code has security vulnerabilities
 - Archived code uses incompatible architecture
 - Archived code violates current standards
 - See `/docs/UNIVERSAL_ARCHITECTURE.md` Section 2.1
 
 **Enforcement**:
+
 - Code reviews will reject any legacy patterns
 - Automated checks may flag similar code
 
@@ -388,6 +422,7 @@ async function earnPoints(request: EarnRequest): Promise<TransactionResponse> {
 **Rule**: RedRoomRewards is a loyalty platform only. Certain code types are prohibited.
 
 **Prohibited in This Repository**:
+
 - ❌ Frontend UI components or views
 - ❌ Chat or messaging logic
 - ❌ Broadcasting or streaming code
@@ -396,6 +431,7 @@ async function earnPoints(request: EarnRequest): Promise<TransactionResponse> {
 - ❌ Media handling or transcoding
 
 **Allowed in This Repository**:
+
 - ✅ Wallet and balance management
 - ✅ Ledger and transaction recording
 - ✅ Point earning/redemption APIs
@@ -416,6 +452,7 @@ async function earnPoints(request: EarnRequest): Promise<TransactionResponse> {
 **Rule**: All PRs must have clear descriptions following the template.
 
 **Required Elements**:
+
 - ✅ Summary of changes (what and why)
 - ✅ Reference to specifications or issues
 - ✅ Testing performed (unit, integration, manual)
@@ -424,6 +461,7 @@ async function earnPoints(request: EarnRequest): Promise<TransactionResponse> {
 - ✅ Checklist from `/COPILOT_GOVERNANCE.md`
 
 **Example PR Description**:
+
 ```markdown
 ## Summary
 Implements point earning endpoint per `/api/openapi.yaml`.
@@ -460,6 +498,7 @@ Implements point earning endpoint per `/api/openapi.yaml`.
 **Format**: `<type>(<scope>): <description>`
 
 **Types**:
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation only
@@ -471,6 +510,7 @@ Implements point earning endpoint per `/api/openapi.yaml`.
 **Examples**:
 
 **Good**:
+
 ```
 feat(wallets): implement GET /wallets/{userId} endpoint
 fix(ledger): prevent race condition in balance updates
@@ -480,6 +520,7 @@ security(auth): add rate limiting to all endpoints
 ```
 
 **Bad**:
+
 ```
 updated files          ❌ Not descriptive
 fix stuff              ❌ Too vague
@@ -496,6 +537,7 @@ asdf                   ❌ Meaningless
 **Rule**: Certain code changes require human review before merge.
 
 **Human Review Required**:
+
 - ✅ Ledger logic changes
 - ✅ Balance calculation updates
 - ✅ Transaction recording modifications
@@ -514,6 +556,7 @@ asdf                   ❌ Meaningless
 **Rule**: All automated checks must pass before merge.
 
 **CI/CD Pipeline**:
+
 - ✅ CodeQL security analysis
 - ✅ Unit test suite (100% pass required)
 - ✅ Integration test suite
@@ -521,6 +564,7 @@ asdf                   ❌ Meaningless
 - ✅ Dependency security (Dependabot)
 
 **Branch Protection**:
+
 - Required: All status checks pass
 - Required: At least one approval
 - Required: Up to date with base branch
@@ -534,12 +578,14 @@ asdf                   ❌ Meaningless
 **Rule**: Violations result in PR rejection and required rework.
 
 **Enforcement**:
+
 - Code review will identify violations
 - Automated checks will flag issues
 - PR cannot merge until compliant
 - Merged non-compliant code will be reverted
 
 **Appeal Process**:
+
 - If rule seems incorrect: Propose change to this document
 - If uncertainty exists: Ask for clarification
 - If exception needed: Explicit approval required with documentation
@@ -569,6 +615,7 @@ Before generating code, verify:
 ## Resources
 
 **Required Reading**:
+
 - `/docs/UNIVERSAL_ARCHITECTURE.md` - Architectural principles and prohibitions
 - `/COPILOT_GOVERNANCE.md` - Repository-specific AI development rules
 - `/SECURITY.md` - Security policy and requirements
@@ -576,6 +623,7 @@ Before generating code, verify:
 - `/api/openapi.yaml` - API contract (source of truth)
 
 **Development References**:
+
 - `/src/README.md` - Source code organization
 - `/infra/README.md` - Infrastructure guidelines
 - `/docs/specs/` - Feature specifications

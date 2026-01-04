@@ -33,6 +33,7 @@ RedRoomRewards follows a clean, canonical structure optimized for a loyalty plat
 ```
 
 **Key Architectural Principles:**
+
 - Server-side authority for all business logic
 - Immutable audit trails with 7+ year retention
 - Clear API boundaries with external systems
@@ -49,6 +50,7 @@ For detailed architecture, see [`/docs/UNIVERSAL_ARCHITECTURE.md`](/docs/UNIVERS
 All core modules are **implemented and tested** with comprehensive functionality.
 
 ### What's Ready
+
 - ✅ Canonical directory structure
 - ✅ OpenAPI contract specification (`/api/openapi.yaml`)
 - ✅ Architecture documentation
@@ -64,7 +66,9 @@ All core modules are **implemented and tested** with comprehensive functionality
 ### Core Modules
 
 #### Ledger Module
+
 Immutable, append-only event store for all point/balance changes:
+
 - All mutations are new entries; no destructive edits
 - Atomic, idempotent operations with full audit trails
 - 7-year retention compliance
@@ -72,7 +76,9 @@ Immutable, append-only event store for all point/balance changes:
 - Reconciliation reporting
 
 #### Wallet Module
+
 Per-user and model wallets with optimistic locking:
+
 - Three-state balance tracking (available/escrow/earned)
 - Version-based concurrency control
 - Queue-authorized settlement/refund
@@ -80,13 +86,16 @@ Per-user and model wallets with optimistic locking:
 - Safeguards around balance updates
 
 #### Business Logic Services
+
 Domain services strictly separated from client/UI/auth logic:
+
 - **PointAccrualService**: Signup bonuses, referrals, promotions, admin credits
 - **PointRedemptionService**: Escrow holds for chip menu, slot machine, performances
 - **PointExpirationService**: Scheduled expiration with batch processing
 - **AdminOpsService**: Manual adjustments, refunds, balance corrections
 
 ### What's Next
+
 - 🔄 API endpoint implementation (controllers and routes)
 - 🔄 Queue service for settlement authority
 - 🔄 Integration tests for end-to-end flows
@@ -192,6 +201,7 @@ Full implementation pending. See OpenAPI spec for complete contract.
 ## Contributing
 
 We welcome contributions! Please see [`CONTRIBUTING.md`](/CONTRIBUTING.md) for:
+
 - Code of conduct
 - Development workflow
 - PR submission guidelines
@@ -202,6 +212,7 @@ We welcome contributions! Please see [`CONTRIBUTING.md`](/CONTRIBUTING.md) for:
 ## Security
 
 Security is a top priority. Please see [`SECURITY.md`](/SECURITY.md) for:
+
 - Vulnerability reporting procedures
 - Security update policy
 - Compliance requirements
@@ -227,6 +238,7 @@ This project is licensed under the MIT License - see [`LICENSE`](/LICENSE) for d
 ## Changelog
 
 ### 2025-12-15 - v0.1.0 (Foundation)
+
 - Repository cleanup and restructure per work order
 - Established canonical directory structure
 - Created OpenAPI contract specification

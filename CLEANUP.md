@@ -9,11 +9,13 @@ This document tracks all features, files, modules, and logic inherited from the 
 ## Mandatory Feature/Module Removal
 
 ### 1. Media & Broadcasting
+
 - [ ] All video broadcasting modules, streaming services, upload handlers.
 - [ ] All image/picture/media uploading/download/display capabilities.
 - [ ] All media/asset storage and related endpoints.
 
 ### 2. Social/Interactive Features
+
 - [ ] “Goal” systems (collective progress, reward milestones, shared “goals”).
 - [ ] Liking functionality (user likes, upvotes, hearts, etc.).
 - [ ] Spinning wheel / chance-based game logic.
@@ -21,12 +23,14 @@ This document tracks all features, files, modules, and logic inherited from the 
 - [ ] Any direct messaging, notification, or “shout” systems.
 
 ### 3. Market/Commerce Logic
+
 - [ ] Product listing/posting UIs, APIs, DB models (including “offers,” “items,” or similar concepts).
 - [ ] Purchase, checkout, payment, or “sales” features as implemented for xxxchatnow.
 - [ ] Cart/wishlist, purchasing, or marketplace endpoints.
 - [ ] Any product-discovery, store, or model-monetization logic.
 
 ### 4. Discovery/Social Browsing
+
 - [ ] User directory, search, or “profile browsing” features.
 - [ ] Any access to other user or “model” profiles (profile view endpoints, “people you may like,” etc.).
 - [ ] Friends, following, or connection endpoints or UIs.

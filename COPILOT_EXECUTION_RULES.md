@@ -10,13 +10,13 @@ Do not change spelling, casing, pluralization, enum values, string literals, end
 
 Do not “improve” naming (e.g., do not change menu to menus, TipGrid to Tip Grid, tip-menu to tip-grid, etc.) unless the work order explicitly instructs it.
 
-2) Do not invent or substitute file paths
+1) Do not invent or substitute file paths
 
 Only create/edit the exact files and paths specified in the work order.
 
 If a referenced file/path does not exist, stop and ask a clarification question. Do not create a “closest match” path.
 
-3) Do not guess missing details
+1) Do not guess missing details
 
 If any required dependency, enum, constant, schema field, DTO, import, or module wiring is missing or unclear, you must:
 
@@ -26,7 +26,7 @@ If still unclear, stop and ask a clarification question with exact file/line con
 
 Never fabricate types, fields, or modules “that probably exist.”
 
-4) No silent scope expansion
+1) No silent scope expansion
 
 Do not refactor unrelated code.
 
@@ -34,7 +34,7 @@ Do not add “nice-to-have” features.
 
 Do not change existing behavior outside the explicit scope (except where the work order explicitly instructs a refactor).
 
-5) Evidence-first reporting
+1) Evidence-first reporting
 
 After completing each part of a work order, report:
 
@@ -44,7 +44,7 @@ Key code blocks added/modified (short excerpts)
 
 Any deviations required (should be none). If any deviation is necessary, explain why and ask for approval before proceeding.
 
-6) If blocked, ask questions early and precisely
+1) If blocked, ask questions early and precisely
 
 If you hit a blocker, return a short list of questions including:
 
@@ -58,12 +58,12 @@ The smallest decision needed to proceed
 
 Do not proceed until clarified.
 
-7) No “interpretation mode”
+1) No “interpretation mode”
 
 Treat every work order as an implementation checklist, not a design prompt.
 Execute steps in order.
 
-8) Conflict rule
+1) Conflict rule
 
 If these rules conflict with a work order, follow the work order.
 

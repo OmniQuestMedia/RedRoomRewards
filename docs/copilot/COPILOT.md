@@ -1,4 +1,5 @@
 # Engineering Briefing (Authoritative Spec)
+
 Repo: RedRoomRewards
 Feature: Slot Machine, Chip Menu, Token Systems
 Version: v1.0
@@ -6,6 +7,7 @@ Date: 2025-12-15
 Status: Approved
 
 ## Non-Regression Rules (Mandatory)
+
 1. This document is the single source of truth for these features.
 2. Do **not** remove, rename, or “simplify away” existing behavior unless this spec explicitly says so.
 3. If code conflicts with this spec, code must be updated to match the spec. If the spec is wrong, propose a spec change FIRST (w/version bump).
@@ -13,6 +15,7 @@ Status: Approved
 5. Performance: optimize DB lookups (O(1)/O(log n)), avoid chatty sockets, minimize DB round-trips, and measure performance-critical path changes.
 
 ## Definition of Done (Mandatory)
+
 - All checklists in this doc pass (backend + frontend).
 - Tests added/updated, and existing tests still pass.
 - No lint/type errors.
@@ -22,6 +25,7 @@ Status: Approved
 ## PR Checklist
 
 ### Backend (e.g., NestJS/Mongo)
+
 - [ ] Module wiring: feature modules imported in AppModule, controllers/providers registered/exports as needed.
 - [ ] Models registered (menu, purchase, user/favorites, spin, etc.)
 - [ ] DTOs validate all limits (label length, price bounds, bets, menu sizes, etc.)
@@ -37,23 +41,27 @@ Status: Approved
 - [ ] No double-spend, no double-charge on retry.
 
 ### Frontend (e.g. Next.js/React)
+
 - [ ] Feature flag gating.
 - [ ] Mobile and accessibility patterns present.
 - [ ] Correct error handling.
 - [ ] Performance: no excessive renders; lazy load heavy assets.
 
 ### Documentation
+
 - [ ] Spec version referenced in code and docs.
 - [ ] API endpoints documented.
 - [ ] Migration notes included if schema changes.
 
 ### Non-Regression
+
 - [ ] Diff reviewed: no unrelated files touched.
 - [ ] Prior behaviors preserved unless spec explicitly changes them.
 
 ---
 
 ## Audit Procedure
+
 1. Review `docs/specs/SLOT_MACHINE_SPEC_v1.0.md` and this file (COPILOT.md).
 2. Scan all relevant code/branches (backend+frontend).
 3. List all spec mismatches.
@@ -65,4 +73,5 @@ Status: Approved
 ---
 
 ## Version History
+
 - 2025-12-15: Initial authoring, slot machine spec included.

@@ -16,6 +16,7 @@
 Milestone 1 (M1) successfully implemented production hardening for new surfaces in the RedRoomRewards loyalty platform. The implementation adds **comprehensive monitoring and alerting hooks** for ingest/DLQ/replay operations, reservations/holds, and provides foundation for future activity feed and partner admin operations.
 
 **Key Achievements:**
+
 - **Monitoring Framework:** Lightweight metrics/alerting system integrated across critical services
 - **Operational Safety:** Double-processing prevention and idempotency checks for DLQ replay
 - **Index Documentation:** Complete index verification and scaling guidance for production deployment
@@ -27,20 +28,24 @@ Milestone 1 (M1) successfully implemented production hardening for new surfaces 
 #### 1. Metrics & Monitoring Framework (4 Files)
 
 **`src/metrics/types.ts`** (85 lines)
+
 - Defined metric event types for all M1 surfaces
 - Alert severity levels (INFO, WARNING, ERROR, CRITICAL)
 - Type-safe metric and alert data structures
 
 **`src/metrics/logger.ts`** (76 lines)
+
 - Lightweight console-based metrics logger
 - Follows existing logging patterns (console.log/warn/error)
 - Helper methods: incrementCounter, recordDuration
 - Designed for easy integration with external monitoring systems
 
 **`src/metrics/index.ts`** (10 lines)
+
 - Module exports for metrics framework
 
 **`src/metrics/logger.spec.ts`** (145 lines)
+
 - 8 comprehensive test cases
 - ✅ All tests passing
 - Coverage: metric logging, alert routing, counter/duration helpers
@@ -48,6 +53,7 @@ Milestone 1 (M1) successfully implemented production hardening for new surfaces 
 #### 2. Ingest Worker Monitoring (2 Files Modified)
 
 **`src/ingest-worker/worker.ts`** (Modified)
+
 - Added metrics for processed events (INGEST_EVENT_PROCESSED)
 - Added metrics for failed events with retry tracking (INGEST_EVENT_FAILED)
 - Added metrics for DLQ movement (INGEST_EVENT_DLQ, DLQ_EVENT_MOVED)
@@ -55,6 +61,7 @@ Milestone 1 (M1) successfully implemented production hardening for new surfaces 
 - Added WARNING alerts for DLQ events (potential systemic issues)
 
 **Metrics Added:**
+
 - `INGEST_EVENT_PROCESSED` - Successful event processing
 - `INGEST_EVENT_FAILED` - Failed events with retry status
 - `INGEST_EVENT_DLQ` - Events moved to DLQ
@@ -63,6 +70,7 @@ Milestone 1 (M1) successfully implemented production hardening for new surfaces 
 #### 3. DLQ/Replay Safety Checks (1 File Modified)
 
 **`src/ingest-worker/replay.ts`** (Modified)
+
 - Added replay operation metrics (DLQ_REPLAY_STARTED, SUCCESS, FAILED, SKIPPED)
 - Added double-processing prevention with explicit checks
 - Added duration tracking for replay operations
@@ -70,12 +78,14 @@ Milestone 1 (M1) successfully implemented production hardening for new surfaces 
 - Added safety validations before replay
 
 **Safety Features:**
+
 - Idempotency check before replaying events
 - Alert on double-processing attempts
 - Duration metrics for replay performance monitoring
 - Success/failure/skip counters for operational visibility
 
 **Metrics Added:**
+
 - `DLQ_REPLAY_STARTED` - Replay operation initiated (includes duration)
 - `DLQ_REPLAY_SUCCESS` - Successfully replayed events
 - `DLQ_REPLAY_FAILED` - Failed replay attempts
@@ -85,17 +95,21 @@ Milestone 1 (M1) successfully implemented production hardening for new surfaces 
 #### 4. Reservation/Hold Monitoring (3 Files Created)
 
 **`src/reservations/service.ts`** (162 lines)
+
 - Reservation lifecycle management with monitoring
 - Metrics for create, commit, release, expire operations
 - Statistics endpoint for operational dashboards
 
 **`src/reservations/types.ts`** (25 lines)
+
 - Type definitions for reservation operations
 
 **`src/reservations/index.ts`** (4 lines)
+
 - Module exports
 
 **Metrics Added:**
+
 - `RESERVATION_CREATED` - New reservation created
 - `RESERVATION_COMMITTED` - Reservation committed (transaction complete)
 - `RESERVATION_RELEASED` - Reservation released (transaction cancelled)
@@ -104,20 +118,25 @@ Milestone 1 (M1) successfully implemented production hardening for new surfaces 
 #### 5. Activity Feed & Partner Admin Placeholders (4 Files Created)
 
 **`src/activity-feed/service.ts`** (21 lines)
+
 - Placeholder service with monitoring guidance
 - Documentation for future M2+ implementation
 
 **`src/activity-feed/index.ts`** (3 lines)
+
 - Module exports
 
 **`src/admin-ops/service.ts`** (37 lines)
+
 - Placeholder service with security considerations
 - Monitoring hooks prepared for disputes and fraud detection
 
 **`src/admin-ops/index.ts`** (3 lines)
+
 - Module exports
 
 **Metrics Prepared (Future Use):**
+
 - `ACTIVITY_FEED_EVENT` - Feed event generation
 - `ADMIN_DISPUTE_OPENED` - Dispute creation
 - `ADMIN_DISPUTE_RESOLVED` - Dispute resolution
@@ -126,18 +145,21 @@ Milestone 1 (M1) successfully implemented production hardening for new surfaces 
 #### 6. Index Verification & Scaling Guidance (1 File Modified)
 
 **`infra/migrations/README.md`** (Modified)
+
 - Added M1-specific index requirements for ingest, DLQ, reservations
 - Added index verification script for MongoDB
 - Added scaling guidance with load estimates and alert thresholds
 - Documented operational considerations for each surface
 
 **Index Documentation:**
+
 - Ingest events: eventId (unique), status+nextAttemptAt (compound)
 - DLQ events: eventId (unique), movedToDLQAt, eventType
 - Idempotency: pointsIdempotencyKey+eventScope (compound unique)
 - Reservations: reservationId (unique), userId+createdAt, status+expiresAt, TTL
 
 **Scaling Guidance:**
+
 - Ingest: 100-1000 events/sec, queue depth alerts at 10K events
 - DLQ: <1% of ingest, alert at 1000 events (systemic issues)
 - Reservations: 10-100/sec, alert at 100K active reservations
@@ -145,11 +167,13 @@ Milestone 1 (M1) successfully implemented production hardening for new surfaces 
 ### Testing & Quality
 
 **Test Results:**
+
 - ✅ 8 tests passing (metrics framework)
 - ✅ TypeScript compilation successful
 - ✅ No breaking changes to existing code
 
 **Code Quality:**
+
 - Follows existing patterns (console-based logging)
 - Minimal modifications to existing services
 - Type-safe interfaces throughout
@@ -158,18 +182,21 @@ Milestone 1 (M1) successfully implemented production hardening for new surfaces 
 ### Operational Impact
 
 **Monitoring Visibility:**
+
 - Real-time metrics for all critical operations
 - Alert routing by severity (info/warning/error/critical)
 - Metadata-rich logs for troubleshooting
 - JSON-structured output for easy parsing
 
 **Safety Improvements:**
+
 - Double-processing prevention in replay
 - Idempotency tracking across all surfaces
 - DLQ movement alerts for systemic issues
 - Reservation lifecycle visibility
 
 **Production Readiness:**
+
 - Index verification script for deployment
 - Scaling guidance with specific thresholds
 - Performance considerations documented
@@ -178,12 +205,14 @@ Milestone 1 (M1) successfully implemented production hardening for new surfaces 
 ### Migration Path
 
 **No Migration Required:**
+
 - All changes are additive
 - No database schema changes
 - No breaking API changes
 - Existing services continue to work unchanged
 
 **Recommended Actions:**
+
 1. Deploy changes to staging
 2. Run index verification script
 3. Configure external monitoring to consume JSON logs
@@ -193,12 +222,14 @@ Milestone 1 (M1) successfully implemented production hardening for new surfaces 
 ### Future Work (M2+)
 
 **Activity Feed Implementation:**
+
 - User transaction timelines
 - Model earnings feed
 - Performance history tracking
 - Metrics hooks already in place
 
 **Partner Admin Operations:**
+
 - Dispute management system
 - Fraud detection and flagging
 - Admin action audit trail
@@ -220,6 +251,7 @@ Milestone 1 (M1) successfully implemented production hardening for new surfaces 
 The last task successfully implemented a **security-first RRR webhook controller** for the RedRoomRewards loyalty platform. The implementation achieved **zero CodeQL security alerts** while creating a production-ready webhook handler with comprehensive security measures, full test coverage, and complete documentation.
 
 **Key Metrics:**
+
 - **Total Lines Created:** 1,113 lines (code + tests + docs)
 - **Files Implemented:** 6 core files
 - **Test Cases:** 15+ comprehensive tests
@@ -234,6 +266,7 @@ The last task successfully implemented a **security-first RRR webhook controller
 ### 1. Core Implementation (6 Files)
 
 #### **Webhook Controller** (`rrr-webhook.controller.ts` - 200 lines)
+
 - Multi-layer input validation system
 - HMAC-SHA256 signature verification with timing-safe comparison
 - Idempotency protection via unique event IDs
@@ -241,6 +274,7 @@ The last task successfully implemented a **security-first RRR webhook controller
 - Full NestJS integration with type safety
 
 #### **Comprehensive Test Suite** (`rrr-webhook.controller.spec.ts` - 385 lines)
+
 - 15+ test cases covering all security scenarios
 - Operator injection attack prevention tests
 - Special character rejection validation
@@ -249,17 +283,20 @@ The last task successfully implemented a **security-first RRR webhook controller
 - Edge case handling
 
 #### **Database Model** (`webhook-event.model.ts` - 70 lines)
+
 - Mongoose schema with strict typing
 - Unique index for idempotency enforcement
 - TTL index for automatic cleanup (90 days)
 - Schema hardening with String type (not Mixed)
 
 #### **Module Configuration** (`loyalty-points.module.ts` - 24 lines)
+
 - NestJS module setup
 - Controller and model integration
 - Dependency injection configuration
 
 #### **Module Documentation** (`README.md` - 135 lines)
+
 - Usage instructions
 - Security measures explanation
 - Testing guidelines
@@ -267,6 +304,7 @@ The last task successfully implemented a **security-first RRR webhook controller
 - Database index setup
 
 #### **Security Documentation** (`SECURITY_IMPLEMENTATION.md` - 299 lines)
+
 - Detailed security analysis
 - Attack vector explanations
 - CodeQL compliance breakdown
@@ -280,6 +318,7 @@ The last task successfully implemented a **security-first RRR webhook controller
 ### Zero CodeQL Alerts ✅
 
 **Analysis Result:**
+
 ```
 Analysis Result for 'javascript'. Found 0 alerts:
 - javascript: No alerts found.
@@ -318,12 +357,14 @@ The implementation successfully prevented the "Database query built from user-co
 ## Code Quality Metrics
 
 ### Test Coverage
+
 - **Security Tests:** 11 test cases focused on attack prevention
 - **Edge Cases:** 4 tests for boundary conditions
 - **Validation Logic:** 100% coverage
 - **Integration:** Full NestJS controller testing
 
 ### Test Results (All Passing ✅)
+
 1. ✅ Operator injection prevention
 2. ✅ Special character rejection (`$` and `.`)
 3. ✅ Empty/whitespace rejection
@@ -338,12 +379,14 @@ The implementation successfully prevented the "Database query built from user-co
 ### Standards Compliance
 
 #### OWASP Security Principles
+
 - ✅ Input validation on all untrusted data
 - ✅ Whitelist validation approach
 - ✅ Output encoding (explicit operators)
 - ✅ Principle of least privilege
 
 #### MongoDB Security Checklist
+
 - ✅ Typed schemas (String, not Mixed)
 - ✅ Explicit operators in all queries
 - ✅ Input type validation
@@ -351,6 +394,7 @@ The implementation successfully prevented the "Database query built from user-co
 - ✅ Authentication via webhook signature
 
 #### NestJS Best Practices
+
 - ✅ Type-safe decorators
 - ✅ Exception filters
 - ✅ Dependency injection
@@ -420,6 +464,7 @@ await this.webhookEventModel.updateOne(
 ## Integration & Deployment
 
 ### API Endpoint
+
 ```
 POST /webhooks/rrr
 Headers:
@@ -434,6 +479,7 @@ Body:
 ```
 
 ### Required Configuration
+
 ```bash
 # Environment variable
 RRR_WEBHOOK_SECRET=your-secret-key-here
@@ -444,6 +490,7 @@ db.webhook_events.createIndex({ "processed_at": 1 }, { expireAfterSeconds: 77760
 ```
 
 ### Module Integration
+
 ```typescript
 // app.module.ts
 import { LoyaltyPointsModule } from './modules/loyalty-points/loyalty-points.module';
@@ -475,6 +522,7 @@ The implementation follows RedRoomRewards core principles:
 ## CI/CD Status
 
 ### Workflows Configured
+
 1. **CodeQL Analysis** (`.github/workflows/codeql-analysis.yml`)
    - Automated security scanning
    - JavaScript/TypeScript analysis
@@ -495,16 +543,19 @@ The implementation follows RedRoomRewards core principles:
 To run linters locally before pushing, use these commands:
 
 **Markdown linting:**
+
 ```bash
 npx markdownlint-cli2 "**/*.md" "#node_modules" "#archive"
 ```
 
 **YAML linting:**
+
 ```bash
 npx yamllint-cli "**/*.{yml,yaml}" --ignore "node_modules/**" --ignore "archive/**"
 ```
 
 **All linters (via Super-Linter Docker):**
+
 ```bash
 docker run --rm \
   -e RUN_LOCAL=true \
@@ -517,6 +568,7 @@ docker run --rm \
 ```
 
 **Configuration locations:**
+
 - Markdownlint: `.github/linters/.markdownlint.yml`
 - Yamllint: `.github/linters/.yaml-lint.yml`
 
@@ -525,6 +577,7 @@ docker run --rm \
 ## Production Readiness
 
 ### Deployment Checklist
+
 - ✅ Implementation complete
 - ✅ Tests passing (15+ test cases)
 - ✅ CodeQL security scan passed (0 alerts)
@@ -535,6 +588,7 @@ docker run --rm \
 - ⏳ **Pending:** Monitoring and alerting setup
 
 ### Recommended Monitoring
+
 - 400 error rates (potential attack attempts)
 - Repeated signature failures (unauthorized access attempts)
 - Duplicate event submissions (retry patterns)
@@ -585,6 +639,7 @@ docker run --rm \
 ## Lessons Learned & Best Practices
 
 ### What Worked Well
+
 - **Security-first approach** prevented vulnerabilities from day one
 - **Multi-layer validation** provides defense in depth
 - **Explicit operators** give clarity and prevent injection
@@ -592,7 +647,9 @@ docker run --rm \
 - **Thorough documentation** enables confident deployment
 
 ### Template for Future Work
+
 This webhook controller provides a **reusable pattern** for:
+
 - External system integrations
 - Webhook handlers
 - Input validation strategies

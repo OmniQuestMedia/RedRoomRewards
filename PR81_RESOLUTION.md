@@ -15,6 +15,7 @@
 ## Current Status
 
 ### PR #81 Merge Status
+
 ```json
 {
   "state": "open",
@@ -63,30 +64,34 @@ PR #81 should be closed because:
 
 Since I cannot directly close PRs, please:
 
-1. Go to https://github.com/OmniQuestMedia/RedRoomRewards/pull/81
+1. Go to <https://github.com/OmniQuestMedia/RedRoomRewards/pull/81>
 2. Add a comment explaining the situation:
+
    ```
    This PR is being closed because the same dependency updates (jest 30.2.0 and @types/jest 30.0.0) 
    were already merged to main via PR #87. The merge conflicts reported are due to divergent git 
    histories, not actual code conflicts. The main branch already contains these updates.
    ```
+
 3. Click "Close pull request"
 
 ### Why Other Approaches Won't Work
 
 **Rebasing the PR** (`@dependabot rebase`):
+
 - Would typically result in an empty PR since main already has the changes
 - Dependabot will typically close it automatically if no changes remain after rebasing
 
 **Manual merge**:
+
 - Fails with: `refusing to merge unrelated histories`
 - Not worth the complexity when the changes are already in main
 
 ## Related Documentation
 
 - `JEST_UPDATE_RESOLUTION.md`: Detailed analysis of the jest update situation
-- PR #81: https://github.com/OmniQuestMedia/RedRoomRewards/pull/81
-- PR #87: https://github.com/OmniQuestMedia/RedRoomRewards/pull/87
+- PR #81: <https://github.com/OmniQuestMedia/RedRoomRewards/pull/81>
+- PR #87: <https://github.com/OmniQuestMedia/RedRoomRewards/pull/87>
 
 ## Conclusion
 

@@ -54,6 +54,7 @@ Instances of unacceptable behavior may be reported to the project maintainers. A
 ### Setting Up Development Environment
 
 1. **Fork the Repository**
+
    ```bash
    # Fork via GitHub UI, then clone your fork
    git clone https://github.com/YOUR_USERNAME/RedRoomRewards.git
@@ -61,22 +62,26 @@ Instances of unacceptable behavior may be reported to the project maintainers. A
    ```
 
 2. **Add Upstream Remote**
+
    ```bash
    git remote add upstream https://github.com/OmniQuestMedia/RedRoomRewards.git
    ```
 
 3. **Install Dependencies** (when package.json exists)
+
    ```bash
    npm install
    ```
 
 4. **Configure Environment**
+
    ```bash
    cp .env.example .env
    # Edit .env with your local configuration
    ```
 
 5. **Verify Setup** (when implemented)
+
    ```bash
    npm run build
    npm test
@@ -116,6 +121,7 @@ git checkout -b fix/your-bug-fix
 ```
 
 **Branch Naming Convention**:
+
 - `feature/` - New features
 - `fix/` - Bug fixes
 - `docs/` - Documentation updates
@@ -128,18 +134,21 @@ git checkout -b fix/your-bug-fix
 Follow these principles:
 
 **Minimal Changes**:
+
 - Change only what's necessary for your task
 - Don't refactor unrelated code
 - Preserve existing working code
 - Keep PRs focused on a single concern
 
 **Code Quality**:
+
 - Use TypeScript strict mode
 - No `any` types without justification
 - Follow existing patterns in the codebase
 - Write self-documenting code
 
 **Security**:
+
 - Validate all inputs server-side
 - Use environment variables for secrets
 - Never commit credentials
@@ -148,12 +157,14 @@ Follow these principles:
 ### 4. Test Your Changes
 
 **Required Tests**:
+
 - Unit tests for all new functions
 - Integration tests for API endpoints
 - Edge case tests for financial logic
 - All existing tests must still pass
 
 **Run Tests**:
+
 ```bash
 npm test                    # Run all tests
 npm run test:unit          # Unit tests only
@@ -164,6 +175,7 @@ npm run test:coverage      # With coverage report
 **Financial Logic Testing**:
 
 If your changes affect ledger, wallets, earn, or redeem:
+
 - ✅ Test all code paths
 - ✅ Test edge cases (zero, negative, boundaries)
 - ✅ Test idempotency (duplicate requests)
@@ -190,6 +202,7 @@ git commit -m "feat(wallets): implement GET /wallets/{userId} endpoint"
 **Commit Message Format**: `<type>(<scope>): <description>`
 
 **Types**:
+
 - `feat` - New feature
 - `fix` - Bug fix
 - `docs` - Documentation
@@ -198,6 +211,7 @@ git commit -m "feat(wallets): implement GET /wallets/{userId} endpoint"
 - `security` - Security fix
 
 **Good Examples**:
+
 ```
 feat(earn): add POST /earn endpoint with idempotency
 fix(ledger): prevent race condition in transaction creation
@@ -219,6 +233,7 @@ git push origin feature/your-feature-name
 ### TypeScript Guidelines
 
 **Type Safety**:
+
 ```typescript
 // ✅ Good: Explicit types
 function earnPoints(request: EarnRequest): Promise<TransactionResponse> {
@@ -232,6 +247,7 @@ function earnPoints(request: any): Promise<any> {
 ```
 
 **Validation**:
+
 ```typescript
 // ✅ Good: Validate inputs
 if (!request.userId || typeof request.userId !== 'string') {
@@ -243,6 +259,7 @@ const wallet = await getWallet(request.userId); // Not validated
 ```
 
 **Error Handling**:
+
 ```typescript
 // ✅ Good: Proper error handling
 try {
@@ -264,6 +281,7 @@ try {
 ### Architectural Patterns
 
 **Ledger-First**:
+
 ```typescript
 // ✅ Good: Create transaction, then update balance
 const transaction = await ledger.createTransaction({
@@ -281,6 +299,7 @@ await wallet.save();
 ```
 
 **Idempotency**:
+
 ```typescript
 // ✅ Good: Check for duplicate requests
 const existing = await findByIdempotencyKey(idempotencyKey);
@@ -382,6 +401,7 @@ npm test -- --coverage                 # With coverage
 ### Before Submitting
 
 **Checklist**:
+
 - [ ] Code follows style guidelines (linter passes)
 - [ ] Self-review completed
 - [ ] Comments added for complex logic
@@ -394,6 +414,7 @@ npm test -- --coverage                 # With coverage
 ### Creating the PR
 
 1. **Push to your fork**:
+
    ```bash
    git push origin feature/your-feature-name
    ```
@@ -465,7 +486,8 @@ None / [Description of breaking changes and migration path]
 **Do NOT** open public issues for security vulnerabilities.
 
 **Instead**:
-- Email: security@omniquestmedia.com (or appropriate contact)
+
+- Email: <security@omniquestmedia.com> (or appropriate contact)
 - Include: Detailed description, steps to reproduce, impact assessment
 - See: [SECURITY.md](SECURITY.md) for full process
 
@@ -493,7 +515,7 @@ None / [Description of breaking changes and migration path]
 
 - **General Questions**: [GitHub Discussions](https://github.com/OmniQuestMedia/RedRoomRewards/discussions)
 - **Bug Reports**: [GitHub Issues](https://github.com/OmniQuestMedia/RedRoomRewards/issues)
-- **Security Issues**: security@omniquestmedia.com
+- **Security Issues**: <security@omniquestmedia.com>
 
 ### Documentation
 
@@ -515,6 +537,7 @@ By contributing, you agree that your contributions will be licensed under the MI
 Thank you for contributing to RedRoomRewards! Your efforts help build a secure, reliable loyalty platform.
 
 **Key Resources**:
+
 - [COPILOT_INSTRUCTIONS.md](COPILOT_INSTRUCTIONS.md) - Mandatory reading
 - [docs/UNIVERSAL_ARCHITECTURE.md](docs/UNIVERSAL_ARCHITECTURE.md) - Architecture guide
 - [SECURITY.md](SECURITY.md) - Security policy
