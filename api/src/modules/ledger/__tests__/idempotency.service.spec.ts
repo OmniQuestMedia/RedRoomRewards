@@ -10,7 +10,7 @@
  */
 
 import { IdempotencyService } from '../services/idempotency.service';
-import { IdempotencyRecordModel } from '../../../../../src/db/models/idempotency.model';
+import { IdempotencyRecordModel } from '../../../../../../src/db/models/idempotency.model';
 import { v4 as uuidv4 } from 'uuid';
 
 // Mock the database model

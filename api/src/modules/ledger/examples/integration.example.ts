@@ -5,6 +5,6 @@
  */
 
 import { createIdempotencyService } from '../services/idempotency.service';
-import { createLedgerService } from '../../../../src/ledger/ledger.service';
+import { createLedgerService } from '../../../../../src/ledger/ledger.service';
 
 // Example usage shown in README.md

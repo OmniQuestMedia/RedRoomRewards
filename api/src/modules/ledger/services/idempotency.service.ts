@@ -15,7 +15,7 @@ import {
   UuidValidationResult,
   IdempotencyConfig,
 } from '../types/idempotency.types';
-import { IdempotencyRecordModel } from '../../../../src/db/models/idempotency.model';
+import { IdempotencyRecordModel } from '../../../../../src/db/models/idempotency.model';
 
 /**
  * Default configuration for idempotency service
@@ -69,11 +69,22 @@ export class IdempotencyService implements IIdempotencyService {
       };
     }
 
+    // Parse stored status code from resultHash if available
+    let statusCode = 200; // Default
+    try {
+      const hashData = JSON.parse(existing.resultHash);
+      if (hashData.statusCode) {
+        statusCode = hashData.statusCode;
+      }
+    } catch {
+      // If parsing fails, use default
+    }
+
     // Return stored result for duplicate request
     return {
       isDuplicate: true,
       storedResult: existing.storedResult,
-      statusCode: 200, // Default success status
+      statusCode,
       originalTimestamp: existing.createdAt,
     };
   }
@@ -100,7 +111,8 @@ export class IdempotencyService implements IIdempotencyService {
 
     // Calculate expiration times
     const expiresAt = new Date(Date.now() + ttlSeconds * 1000);
-    const retentionUntil = new Date(Date.now() + ttlSeconds * 1000);
+    // retentionUntil set to longer period for compliance (7 years minimum per COPILOT_GOVERNANCE.md)
+    const retentionUntil = new Date(Date.now() + (2555 * 24 * 60 * 60 * 1000)); // 7 years
 
     // Prepare result for storage
     let storedResult = result;
