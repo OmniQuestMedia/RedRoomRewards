@@ -1,0 +1,310 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://redroomrewards.com/schemas/xxx-events.schema.json",
+  "title": "RedRoomRewards Event Ingestion Schema",
+  "description": "Canonical schema for event ingestion from merchant clients like XXXChatNow",
+  "type": "object",
+  "required": [
+    "transaction_id",
+    "event_type",
+    "occurred_at",
+    "source_system",
+    "merchant_id",
+    "loyalty_member_id"
+  ],
+  "properties": {
+    "transaction_id": {
+      "type": "string",
+      "description": "Immutable unique identifier for the transaction. Once set, this value must never change.",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[a-zA-Z0-9_-]+$",
+      "examples": ["txn_2024_abc123", "purchase-uuid-12345"]
+    },
+    "event_type": {
+      "type": "string",
+      "description": "Type of event being reported",
+      "enum": [
+        "token_purchase",
+        "membership_purchase",
+        "adjustment",
+        "reversal"
+      ]
+    },
+    "occurred_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when the event occurred in the source system",
+      "examples": ["2024-01-15T14:30:00Z", "2024-01-15T14:30:00.123Z"]
+    },
+    "source_system": {
+      "type": "string",
+      "description": "Identifier of the originating system",
+      "minLength": 1,
+      "maxLength": 128,
+      "examples": ["xxxchatnow", "merchant-portal"]
+    },
+    "merchant_id": {
+      "type": "string",
+      "description": "Identifier of the merchant/client",
+      "minLength": 1,
+      "maxLength": 128,
+      "examples": ["xxxchatnow-prod", "merchant-001"]
+    },
+    "loyalty_member_id": {
+      "type": "string",
+      "description": "Identifier of the loyalty program member (user)",
+      "minLength": 1,
+      "maxLength": 256,
+      "examples": ["user-123", "member-abc-456"]
+    },
+    "gross_amount": {
+      "type": "number",
+      "description": "Total transaction amount before any deductions (in base currency units)",
+      "minimum": 0,
+      "examples": [99.99, 50.00, 19.95]
+    },
+    "net_amount": {
+      "type": "number",
+      "description": "Net transaction amount after deductions (in base currency units)",
+      "minimum": 0,
+      "examples": [89.99, 45.00, 17.96]
+    },
+    "currency": {
+      "type": "string",
+      "description": "ISO 4217 currency code",
+      "pattern": "^[A-Z]{3}$",
+      "default": "USD",
+      "examples": ["USD", "EUR", "GBP"]
+    },
+    "tokens_purchased": {
+      "type": "integer",
+      "description": "Number of tokens/points purchased or awarded",
+      "minimum": 0,
+      "examples": [1000, 5000, 100]
+    },
+    "promo_id": {
+      "type": "string",
+      "description": "Promotional campaign identifier if applicable",
+      "maxLength": 128,
+      "examples": ["WELCOME2024", "PROMO-SPRING", null]
+    },
+    "promo_bonus_tokens": {
+      "type": "integer",
+      "description": "Additional bonus tokens from promotion",
+      "minimum": 0,
+      "examples": [500, 1000, 0]
+    },
+    "membership_tier": {
+      "type": "string",
+      "description": "Membership tier for membership purchases",
+      "enum": ["basic", "premium", "vip", "elite"],
+      "examples": ["premium", "vip"]
+    },
+    "membership_duration_days": {
+      "type": "integer",
+      "description": "Duration of membership in days",
+      "minimum": 1,
+      "examples": [30, 90, 365]
+    },
+    "adjustment_reason": {
+      "type": "string",
+      "description": "Reason code for adjustments",
+      "enum": [
+        "customer_service_award",
+        "compensation",
+        "correction",
+        "bonus",
+        "technical_issue",
+        "chargeback",
+        "fraud"
+      ],
+      "examples": ["customer_service_award", "compensation"]
+    },
+    "adjustment_amount": {
+      "type": "integer",
+      "description": "Token amount for adjustment (positive for credit, negative for debit)",
+      "examples": [1000, -500, 250]
+    },
+    "reversal_reason": {
+      "type": "string",
+      "description": "Reason code for reversals",
+      "enum": [
+        "chargeback",
+        "fraud",
+        "duplicate",
+        "user_request",
+        "system_error"
+      ],
+      "examples": ["chargeback", "duplicate"]
+    },
+    "original_transaction_id": {
+      "type": "string",
+      "description": "Reference to original transaction being reversed",
+      "minLength": 1,
+      "maxLength": 256,
+      "examples": ["txn_2024_abc123", "original-txn-id"]
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional context data (no PII)",
+      "additionalProperties": true,
+      "examples": [
+        {"campaign": "spring2024", "referrer": "email"},
+        {"support_ticket": "TICKET-12345"}
+      ]
+    },
+    "idempotency_key": {
+      "type": "string",
+      "description": "Client-provided idempotency key for duplicate detection",
+      "minLength": 1,
+      "maxLength": 256,
+      "examples": ["idem_abc123_20240115", "unique-key-12345"]
+    },
+    "checksum": {
+      "type": "string",
+      "description": "SHA-256 hash of transaction data for replay detection",
+      "pattern": "^[a-fA-F0-9]{64}$",
+      "examples": ["a3b2c1d4e5f6..."]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "event_type": {"const": "token_purchase"}
+        }
+      },
+      "then": {
+        "required": ["gross_amount", "tokens_purchased"],
+        "properties": {
+          "tokens_purchased": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "gross_amount": {
+            "type": "number",
+            "minimum": 0.01
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {"const": "membership_purchase"}
+        }
+      },
+      "then": {
+        "required": ["gross_amount", "membership_tier", "membership_duration_days"],
+        "properties": {
+          "membership_tier": {
+            "type": "string"
+          },
+          "membership_duration_days": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "gross_amount": {
+            "type": "number",
+            "minimum": 0.01
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {"const": "adjustment"}
+        }
+      },
+      "then": {
+        "required": ["adjustment_reason", "adjustment_amount"],
+        "properties": {
+          "adjustment_reason": {
+            "type": "string"
+          },
+          "adjustment_amount": {
+            "type": "integer",
+            "not": {"const": 0}
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {"const": "reversal"}
+        }
+      },
+      "then": {
+        "required": ["reversal_reason", "original_transaction_id"],
+        "properties": {
+          "reversal_reason": {
+            "type": "string"
+          },
+          "original_transaction_id": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false,
+  "examples": [
+    {
+      "transaction_id": "txn_2024_purchase_001",
+      "event_type": "token_purchase",
+      "occurred_at": "2024-01-15T14:30:00Z",
+      "source_system": "xxxchatnow",
+      "merchant_id": "xxxchatnow-prod",
+      "loyalty_member_id": "user-123",
+      "gross_amount": 99.99,
+      "net_amount": 89.99,
+      "currency": "USD",
+      "tokens_purchased": 10000,
+      "promo_id": "WELCOME2024",
+      "promo_bonus_tokens": 2000,
+      "idempotency_key": "idem_user123_20240115_143000"
+    },
+    {
+      "transaction_id": "txn_2024_membership_001",
+      "event_type": "membership_purchase",
+      "occurred_at": "2024-01-15T15:00:00Z",
+      "source_system": "xxxchatnow",
+      "merchant_id": "xxxchatnow-prod",
+      "loyalty_member_id": "user-456",
+      "gross_amount": 49.99,
+      "currency": "USD",
+      "membership_tier": "premium",
+      "membership_duration_days": 30,
+      "idempotency_key": "idem_user456_20240115_150000"
+    },
+    {
+      "transaction_id": "txn_2024_adjustment_001",
+      "event_type": "adjustment",
+      "occurred_at": "2024-01-15T16:00:00Z",
+      "source_system": "xxxchatnow",
+      "merchant_id": "xxxchatnow-prod",
+      "loyalty_member_id": "user-789",
+      "adjustment_reason": "customer_service_award",
+      "adjustment_amount": 5000,
+      "metadata": {
+        "support_ticket": "TICKET-12345",
+        "agent": "support-agent-01"
+      },
+      "idempotency_key": "idem_user789_20240115_160000"
+    },
+    {
+      "transaction_id": "txn_2024_reversal_001",
+      "event_type": "reversal",
+      "occurred_at": "2024-01-15T17:00:00Z",
+      "source_system": "xxxchatnow",
+      "merchant_id": "xxxchatnow-prod",
+      "loyalty_member_id": "user-123",
+      "reversal_reason": "chargeback",
+      "original_transaction_id": "txn_2024_purchase_001",
+      "idempotency_key": "idem_reversal_20240115_170000"
+    }
+  ]
+}

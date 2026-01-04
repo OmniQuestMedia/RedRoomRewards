@@ -1,0 +1,22 @@
+{
+  "transaction_id": "txn_2024_membership_def456",
+  "event_type": "membership_purchase",
+  "occurred_at": "2024-01-15T15:00:00.000Z",
+  "source_system": "xxxchatnow",
+  "merchant_id": "xxxchatnow-prod",
+  "loyalty_member_id": "user-67890",
+  "gross_amount": 49.99,
+  "net_amount": 44.99,
+  "currency": "USD",
+  "membership_tier": "premium",
+  "membership_duration_days": 30,
+  "tokens_purchased": 5000,
+  "metadata": {
+    "payment_method": "credit_card",
+    "payment_processor": "stripe",
+    "previous_tier": "basic",
+    "upgrade": true
+  },
+  "idempotency_key": "idem_user67890_20240115_150000_membership",
+  "checksum": "b2c3d4e5f67890a1bcdef1234567890abcdef1234567890abcdef1234567890a"
+}

@@ -1,0 +1,21 @@
+{
+  "transaction_id": "txn_2024_purchase_abc123",
+  "event_type": "token_purchase",
+  "occurred_at": "2024-01-15T14:30:00.000Z",
+  "source_system": "xxxchatnow",
+  "merchant_id": "xxxchatnow-prod",
+  "loyalty_member_id": "user-12345",
+  "gross_amount": 99.99,
+  "net_amount": 89.99,
+  "currency": "USD",
+  "tokens_purchased": 10000,
+  "promo_id": "WELCOME2024",
+  "promo_bonus_tokens": 2000,
+  "metadata": {
+    "payment_method": "credit_card",
+    "payment_processor": "stripe",
+    "campaign": "winter_special"
+  },
+  "idempotency_key": "idem_user12345_20240115_143000_purchase",
+  "checksum": "a1b2c3d4e5f67890abcdef1234567890abcdef1234567890abcdef1234567890"
+}

@@ -1,0 +1,19 @@
+{
+  "transaction_id": "txn_2024_adjustment_ghi789",
+  "event_type": "adjustment",
+  "occurred_at": "2024-01-15T16:30:00.000Z",
+  "source_system": "xxxchatnow",
+  "merchant_id": "xxxchatnow-prod",
+  "loyalty_member_id": "user-11223",
+  "adjustment_reason": "customer_service_award",
+  "adjustment_amount": 5000,
+  "currency": "USD",
+  "metadata": {
+    "support_ticket": "TICKET-12345",
+    "agent": "support-agent-sarah",
+    "reason_description": "Compensation for service disruption during live performance",
+    "approved_by": "manager-john"
+  },
+  "idempotency_key": "idem_user11223_20240115_163000_adjustment",
+  "checksum": "c3d4e5f67890a1b2cdef1234567890abcdef1234567890abcdef1234567890ab"
+}

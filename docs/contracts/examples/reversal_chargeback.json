@@ -1,0 +1,18 @@
+{
+  "transaction_id": "txn_2024_reversal_jkl012",
+  "event_type": "reversal",
+  "occurred_at": "2024-01-16T10:15:00.000Z",
+  "source_system": "xxxchatnow",
+  "merchant_id": "xxxchatnow-prod",
+  "loyalty_member_id": "user-12345",
+  "reversal_reason": "chargeback",
+  "original_transaction_id": "txn_2024_purchase_abc123",
+  "metadata": {
+    "chargeback_id": "CB-2024-001",
+    "chargeback_date": "2024-01-16",
+    "payment_processor": "stripe",
+    "reason_description": "Customer disputed charge with bank"
+  },
+  "idempotency_key": "idem_user12345_20240116_101500_reversal",
+  "checksum": "d4e5f67890a1b2c3def1234567890abcdef1234567890abcdef1234567890abc"
+}
