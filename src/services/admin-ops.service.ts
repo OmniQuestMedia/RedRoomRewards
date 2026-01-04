@@ -18,6 +18,7 @@ import { ILedgerService } from '../ledger/types';
 import { IWalletService } from './types';
 import { WalletModel } from '../db/models/wallet.model';
 import { TransactionType, TransactionReason } from '../wallets/types';
+import { AuditLogService, AuditActor } from '../security/audit-log.service';
 
 /**
  * Admin context for operations (audit trail)
@@ -197,14 +198,17 @@ const DEFAULT_CONFIG: AdminOpsConfig = {
 export class AdminOpsService {
   private config: AdminOpsConfig;
   private ledgerService: ILedgerService;
+  private auditLogService?: AuditLogService;
 
   constructor(
     ledgerService: ILedgerService,
     _walletService: IWalletService,
-    config: Partial<AdminOpsConfig> = {}
+    config: Partial<AdminOpsConfig> = {},
+    auditLogService?: AuditLogService
   ) {
     this.config = { ...DEFAULT_CONFIG, ...config };
     this.ledgerService = ledgerService;
+    this.auditLogService = auditLogService;
   }
 
   /**
@@ -252,6 +256,19 @@ export class AdminOpsService {
     
     // Prevent negative balance unless it's a correction
     if (newBalance < 0 && !request.metadata?.allowNegative) {
+      // Log failed attempt
+      if (this.auditLogService) {
+        const auditActor = this.convertToAuditActor(request.admin);
+        await this.auditLogService.logAdminPointAdjustment(
+          auditActor,
+          request.userId,
+          request.amount,
+          request.reason,
+          request.requestId,
+          'failure',
+          'Adjustment would result in negative balance'
+        );
+      }
       throw new Error('Adjustment would result in negative balance');
     }
     
@@ -313,6 +330,19 @@ export class AdminOpsService {
         operationType: 'manual_adjustment',
       },
     });
+    
+    // Log successful adjustment
+    if (this.auditLogService) {
+      const auditActor = this.convertToAuditActor(request.admin);
+      await this.auditLogService.logAdminPointAdjustment(
+        auditActor,
+        request.userId,
+        request.amount,
+        request.reason,
+        request.requestId,
+        'success'
+      );
+    }
     
     return {
       transactionId,
@@ -458,6 +488,20 @@ export class AdminOpsService {
       throw new Error('Insufficient permissions for admin operation');
     }
   }
+  
+  /**
+   * Convert AdminContext to AuditActor
+   */
+  private convertToAuditActor(admin: AdminContext): AuditActor {
+    return {
+      id: admin.adminId,
+      type: 'admin',
+      username: admin.adminUsername,
+      roles: admin.roles,
+      ipAddress: admin.ipAddress,
+      userAgent: admin.userAgent,
+    };
+  }
 }
 
 /**
@@ -466,7 +510,8 @@ export class AdminOpsService {
 export function createAdminOpsService(
   ledgerService: ILedgerService,
   walletService: IWalletService,
-  config?: Partial<AdminOpsConfig>
+  config?: Partial<AdminOpsConfig>,
+  auditLogService?: AuditLogService
 ): AdminOpsService {
-  return new AdminOpsService(ledgerService, walletService, config);
+  return new AdminOpsService(ledgerService, walletService, config, auditLogService);
 }
