@@ -67,11 +67,32 @@ This document defines the architectural boundaries, domain responsibilities, and
 ✅ REQUIRED: External systems send decisions as facts
 ```
 
+**Detailed Separation Examples**:
+
+| Concern | Where It Belongs | Rationale |
+|---------|------------------|-----------|
+| User authentication | API Gateway / External System | Security boundary before financial ops |
+| Point earning eligibility | External System | Business rules change frequently |
+| Point balance tracking | RedRoomRewards | Financial integrity requires centralization |
+| Promotion design | External System | Marketing flexibility |
+| Multiplier application | RedRoomRewards | Consistent financial rules |
+| UI rendering | External System | User experience control |
+| Transaction immutability | RedRoomRewards | Compliance and audit |
+| Game RNG | External System | Entertainment logic |
+| Win/loss recording | RedRoomRewards | Financial record keeping |
+
 **Security Boundaries**:
 - Authentication/authorization: Handled at API gateway before RedRoomRewards
 - Financial operations: Server-side validation and execution only
 - PII handling: Minimal (user IDs only, no names/emails in financial records)
 - Secrets management: Environment variables, never in code
+
+**Enforcement Mechanisms**:
+- TypeScript interfaces enforce compile-time boundaries
+- API contracts documented in OpenAPI specification
+- Code reviews verify separation compliance
+- Automated tests validate boundary integrity
+- No direct database access from external systems
 
 ---
 
@@ -258,6 +279,42 @@ RedRoomRewards (Monorepo)
 - Shared data layer with access control
 - Inter-service communication via well-defined interfaces
 - Fault isolation and graceful degradation
+
+### 5.1.1 Composable vs. Monolithic Architecture
+
+**Current State: Modular Monolith**
+- All services deployed together in single process
+- Shared database with logical separation
+- Clear module boundaries enforced via TypeScript interfaces
+- Easier to develop, test, and deploy initially
+- Lower operational complexity in early stages
+
+**Benefits of Modular Monolith**:
+- ✅ Atomic transactions across modules
+- ✅ Simplified deployment and versioning
+- ✅ Lower latency for inter-module calls
+- ✅ Easier debugging and tracing
+- ✅ Single database transaction model
+
+**Future State: Composable Microservices**
+- Services independently deployable
+- Database per service pattern
+- Event-driven communication
+- Independent scaling of components
+- Higher operational complexity but better scalability
+
+**Migration Path**:
+1. **Phase 1 (Current)**: Modular monolith with strict boundaries
+2. **Phase 2**: Extract high-volume services (Wallet, Ledger)
+3. **Phase 3**: Event-driven async processing (Queue, Webhooks)
+4. **Phase 4**: Full microservices architecture
+
+**Guiding Principles for Composition**:
+- Keep modules loosely coupled
+- Design interfaces for remote calls (even if local now)
+- Avoid shared state between modules
+- Use message passing over direct calls where possible
+- Plan for eventual consistency
 
 ### 5.2 Composition Patterns
 

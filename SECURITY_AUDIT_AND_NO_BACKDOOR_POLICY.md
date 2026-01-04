@@ -37,6 +37,39 @@ This document establishes the security principles, audit requirements, and no-ba
 - Request signing for sensitive operations
 - Continuous security monitoring and alerting
 
+**Zero Trust in Practice**:
+
+1. **Request-Level Verification**:
+   - Every API call validates authentication token
+   - Token expiry checked on every request
+   - Authorization verified against user roles/permissions
+   - No cached permissions without revalidation
+
+2. **Data-Level Verification**:
+   - User ID in request matches token claims
+   - Amount validation against business rules
+   - Balance checks before any deduction
+   - Idempotency key uniqueness verified
+
+3. **Operation-Level Verification**:
+   - Queue authorization required for settlements
+   - Admin operations require elevated permissions
+   - Refunds require approval workflow
+   - Adjustments logged with full justification
+
+4. **System-Level Verification**:
+   - Database queries use parameterized statements
+   - No dynamic SQL construction from user input
+   - Optimistic locking prevents race conditions
+   - Transaction rollback on any validation failure
+
+**Zero Trust Violations** (Prohibited):
+- ❌ Trusting client-supplied balances
+- ❌ Skipping validation "because it came from internal system"
+- ❌ Bypassing authorization for "admin users"
+- ❌ Accepting unsigned settlement requests
+- ❌ Disabling checks in production "temporarily"
+
 ### 1.2 Defense in Depth
 
 **Principle**: Multiple layers of security controls.
@@ -401,6 +434,111 @@ This document establishes the security principles, audit requirements, and no-ba
 - Idempotency key cache (24+ hours)
 - Balance reconciliation checks
 - Anomaly detection algorithms
+
+**Implementation Details**:
+
+1. **Idempotency Keys**:
+   - UUID format required (RFC 4122)
+   - Unique across all operations
+   - 24-hour minimum retention
+   - Collision detection and rejection
+   - Cached results for duplicate requests
+
+2. **Optimistic Locking**:
+   - Version number on wallet records
+   - Compare-and-swap updates
+   - Automatic retry on version mismatch
+   - Maximum 3 retry attempts
+   - Exponential backoff between retries
+
+3. **Transaction Isolation**:
+   - Database READ_COMMITTED minimum
+   - SERIALIZABLE for critical operations
+   - Atomic balance + ledger updates
+   - Rollback on any failure
+
+4. **Balance Validation**:
+   - Check available balance ≥ amount
+   - Account for in-flight escrows
+   - Prevent negative balances
+   - Alert on suspicious patterns
+
+5. **State Machine Enforcement**:
+   - Escrow: pending → held → settled/refunded
+   - No skipping states allowed
+   - State transitions logged
+   - Invalid transitions rejected
+
+**Monitoring**:
+- Real-time alerts on:
+  - Duplicate idempotency keys with different amounts
+  - Optimistic lock failures (>3 retries)
+  - Negative balance attempts
+  - Rapid-fire requests from same user
+  - Settlement without escrow
+
+### 6.4 Financial Traceability
+
+**Principle**: Every point movement must be fully traceable from origin to destination.
+
+**Traceability Requirements**:
+
+1. **Transaction Lineage**:
+   - Every transaction has unique ID
+   - Related transactions share correlation ID
+   - Parent-child relationship tracking
+   - Full transaction graph reconstruction
+
+2. **Audit Context**:
+   - Who: User ID, admin ID (if applicable)
+   - What: Action type, amount, reason code
+   - When: Timestamp with millisecond precision
+   - Where: Source system, feature type
+   - Why: Reason code, metadata context
+   - How: Request ID, idempotency key
+
+3. **Point Lifecycle Tracking**:
+   ```
+   Earned → Available → (Escrow) → Redeemed/Expired
+   ```
+   - Trace points from award to final disposition
+   - Calculate dwell time in each state
+   - Identify conversion patterns
+   - Detect stuck transactions
+
+4. **Financial Reporting**:
+   - Daily liability calculation
+   - Point issuance vs. redemption rates
+   - Outstanding escrow balances
+   - Expiration forecasting
+   - Discrepancy detection and alerting
+
+5. **Dispute Resolution Support**:
+   - Query by user ID and time range
+   - Retrieve complete transaction history
+   - Show balance at specific point in time
+   - Export audit trail for review
+   - Verify settlement authorization
+
+6. **Compliance Reporting**:
+   - 7-year transaction retention
+   - Immutable audit logs
+   - Point-in-time balance reconstruction
+   - Reconciliation reports
+   - Regulatory export formats
+
+**Prohibited**:
+- ❌ Transactions without idempotency keys
+- ❌ Balance changes without ledger entries
+- ❌ Missing correlation IDs for multi-step operations
+- ❌ Deleted or modified historical records
+- ❌ Gaps in transaction sequences
+
+**Enforcement**:
+- Database constraints prevent invalid states
+- Application layer validates all fields
+- Automated reconciliation detects discrepancies
+- Regular audit reviews verify completeness
 
 ---
 

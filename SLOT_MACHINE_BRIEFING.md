@@ -191,6 +191,44 @@ RedRoomRewards ↛ External System
 - UI presentation order
 - Animation durations
 
+**Determinism Implementation**:
+
+1. **Idempotent Operations**:
+   - All state-changing operations accept idempotency keys
+   - Duplicate requests return cached results
+   - No side effects on retry
+   - Consistent error responses
+
+2. **Deterministic Balance Calculations**:
+   - Balance = sum of all ledger credits - sum of all debits
+   - No rounding errors or approximations
+   - Atomic updates (balance + ledger)
+   - Immutable transaction history
+
+3. **Deterministic State Transitions**:
+   - State machine with well-defined rules
+   - No random timeouts or race conditions
+   - Predictable error handling
+   - Consistent validation logic
+
+4. **Deterministic Timestamps**:
+   - UTC timezone only
+   - ISO 8601 format
+   - Millisecond precision
+   - Database-generated for consistency
+
+5. **Deterministic Settlement**:
+   - Queue authorization is the single source of truth
+   - Amount validated against authorization
+   - No client influence on final outcome
+   - Reproducible from audit logs
+
+**Testing Determinism**:
+- Unit tests with fixed inputs verify fixed outputs
+- Integration tests replay scenarios with same results
+- Chaos testing validates consistency under load
+- Audit log replay produces same final states
+
 ### 4.2 State Machine
 
 **Slot Machine Transaction States**:
@@ -245,6 +283,89 @@ POST /escrow/request { ... same data ... }
 - Token is single-use but idempotent
 - Duplicate settlement attempts return cached result
 - No double-award or double-refund possible
+
+**Idempotency Implementation Details**:
+
+1. **Key Generation**:
+   - Client generates UUID v4
+   - Unique per operation attempt
+   - Persisted with request context
+   - 24-hour minimum retention
+
+2. **Cache Strategy**:
+   - Redis/in-memory cache for fast lookup
+   - Database backup for durability
+   - TTL-based expiration (24-48 hours)
+   - Automatic cleanup of expired keys
+
+3. **Response Caching**:
+   - Full response stored with idempotency key
+   - Includes success and error responses
+   - Return cached response on duplicate
+   - Prevents repeated side effects
+
+4. **Validation**:
+   - Same key with different parameters → 409 Conflict
+   - Same key with same parameters → return cached result
+   - Expired key → allow new operation
+   - Missing key → reject request
+
+### 4.4 Encapsulation Principles
+
+**Principle**: Internal implementation details are hidden; only well-defined interfaces are exposed.
+
+**Encapsulation in RedRoomRewards**:
+
+1. **Data Encapsulation**:
+   - Wallets are accessed only through WalletService
+   - Direct database access prohibited
+   - Balance calculation logic internal
+   - Version numbers abstracted from clients
+
+2. **Behavior Encapsulation**:
+   - Escrow state machine hidden from external systems
+   - Settlement authorization logic internal to Queue
+   - Retry and backoff strategies transparent to clients
+   - Concurrency control handled internally
+
+3. **API Encapsulation**:
+   ```
+   External System knows:
+   - POST /escrow/request → returns escrow_id
+   - POST /escrow/settle → returns new balance
+   
+   External System doesn't know:
+   - How balances are stored (optimistic locking)
+   - How idempotency is implemented (cache + DB)
+   - How settlements are authorized (JWT validation)
+   - How retries are handled (exponential backoff)
+   ```
+
+4. **Domain Logic Encapsulation**:
+   - Multiplier calculation internal to RedRoomRewards
+   - Expiration rules applied server-side
+   - Balance reconciliation automatic
+   - Audit logging transparent to clients
+
+5. **Security Encapsulation**:
+   - Token validation details hidden
+   - Secrets management internal
+   - Authorization logic not exposed
+   - Rate limiting transparent
+
+**Benefits**:
+- External systems can evolve independently
+- Internal optimizations don't break clients
+- Security improvements transparent
+- Testing and mocking simplified
+- Clear contract boundaries
+
+**Anti-Patterns (Prohibited)**:
+- ❌ Exposing database models in API responses
+- ❌ Requiring clients to know state machine details
+- ❌ Leaking implementation errors to clients
+- ❌ Exposing internal retry logic
+- ❌ Requiring clients to handle optimistic lock failures
 
 ---
 
