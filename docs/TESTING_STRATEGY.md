@@ -17,7 +17,7 @@ This document defines comprehensive testing requirements for the wallet and escr
 
 ## Testing Pyramid
 
-```
+```text
          /\
         /  \  E2E Tests (10%)
        /----\

@@ -30,7 +30,7 @@ This security assessment covers the wallet and escrow architecture implementatio
 **Alerts Found**: 0  
 **Languages Scanned**: JavaScript/TypeScript
 
-```
+```text
 Analysis Result for 'javascript'. Found 0 alerts:
 - javascript: No alerts found.
 ```
@@ -55,7 +55,7 @@ Analysis Result for 'javascript'. Found 0 alerts:
 
 **JWT Token Format**:
 
-```
+```text
 Pattern: ^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]*$
 Format: jwt
 Algorithm: HS256

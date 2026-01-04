@@ -164,7 +164,7 @@
 
 ## Current Test Results
 
-```
+```text
 Test Suites: 7 failed, 6 passed, 13 total
 Tests:       9 failed, 88 passed, 97 total
 ```

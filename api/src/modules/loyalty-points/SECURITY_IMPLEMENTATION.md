@@ -226,7 +226,7 @@ it('should use $eq operator in database queries', async () => {
 
 ### Before Validation (Unsafe)
 
-```
+```text
 Source: @Body() payload → event_id (untrusted)
 ↓
 Sink: findOne({ event_id: event_id }) ← ALERT!
@@ -234,7 +234,7 @@ Sink: findOne({ event_id: event_id }) ← ALERT!
 
 ### After Validation (Safe)
 
-```
+```text
 Source: @Body() payload → event_id (untrusted)
 ↓
 Validation: getValidatedEventId(event_id)

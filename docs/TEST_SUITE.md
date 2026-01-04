@@ -20,7 +20,7 @@ This document describes the comprehensive test suite for RedRoomRewards loyalty 
 
 ## Test Structure
 
-```
+```text
 src/
 ├── __tests__/                          # Integration & security tests
 │   └── security.test.ts                # Authorization & input validation

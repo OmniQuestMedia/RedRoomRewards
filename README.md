@@ -24,7 +24,7 @@ RedRoomRewards is a standalone loyalty and rewards platform that manages user lo
 
 RedRoomRewards follows a clean, canonical structure optimized for a loyalty platform:
 
-```
+```text
 /api/          # OpenAPI specifications
 /src/          # Application source (ledger, wallets, services, webhooks)
 /infra/        # Infrastructure (migrations, db, config)

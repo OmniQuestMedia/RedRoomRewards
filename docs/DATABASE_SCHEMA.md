@@ -387,7 +387,7 @@ db.idempotency_records.createIndex(
 
 **Status Flow**:
 
-```
+```text
 queued → in_progress → finished
 queued → abandoned
 in_progress → abandoned
@@ -449,7 +449,7 @@ in_progress → partial
 
 ## Relationships
 
-```
+```text
 wallets (1) ←→ (many) transactions
   via accountId where accountType="user" and balanceState="available"
 

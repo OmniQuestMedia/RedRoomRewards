@@ -61,7 +61,7 @@ This document defines the architectural boundaries, domain responsibilities, and
 
 **Financial vs. Feature Logic**:
 
-```
+```text
 ❌ PROHIBITED: Feature modules deciding to settle/refund directly
 ✅ REQUIRED: Feature modules request escrow, Queue authorizes settlement
 
@@ -131,7 +131,7 @@ This document defines the architectural boundaries, domain responsibilities, and
 
 **RedRoomRewards Scope**:
 
-```
+```text
 ┌─────────────────────────────────────────┐
 │         RedRoomRewards Domain           │
 │                                         │
@@ -264,7 +264,7 @@ This document defines the architectural boundaries, domain responsibilities, and
 
 **Microservices Approach**:
 
-```
+```text
 RedRoomRewards (Monorepo)
 ├── Ledger Service       # Transaction recording
 ├── Wallet Service       # Balance management
@@ -286,7 +286,7 @@ RedRoomRewards (Monorepo)
 
 **Request Flow Example - Point Earning**:
 
-```
+```text
 1. External System → POST /earn endpoint
 2. API Gateway → Authentication/authorization
 3. Wallet Service → Idempotency check
@@ -298,7 +298,7 @@ RedRoomRewards (Monorepo)
 
 **Escrow and Settlement**:
 
-```
+```text
 1. Feature Module → Request escrow via Wallet Service
 2. Wallet Service → Move points to escrow state
 3. Queue Service → Authorize settlement/refund

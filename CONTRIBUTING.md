@@ -212,7 +212,7 @@ git commit -m "feat(wallets): implement GET /wallets/{userId} endpoint"
 
 **Good Examples**:
 
-```
+```text
 feat(earn): add POST /earn endpoint with idempotency
 fix(ledger): prevent race condition in transaction creation
 docs(api): update OpenAPI spec with webhook endpoints
@@ -313,7 +313,7 @@ const transaction = await createTransaction(data); // Duplicate risk
 
 ### File Organization
 
-```
+```text
 src/
 ├── ledger/
 │   ├── ledger.service.ts      # Business logic

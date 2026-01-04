@@ -93,7 +93,7 @@ All funds in the system exist in one of four distinct states. These states are *
 
 **Hold (Deduct to Escrow)**:
 
-```
+```text
 User Available Balance: -X points
 Escrow Balance: +X points
 Result: User cannot re-spend, model hasn't received yet
@@ -101,7 +101,7 @@ Result: User cannot re-spend, model hasn't received yet
 
 **Settle (Escrow to Earned)**:
 
-```
+```text
 Escrow Balance: -X points
 Model Earned Balance: +X points
 Result: Model has earned the points, irreversible
@@ -109,7 +109,7 @@ Result: Model has earned the points, irreversible
 
 **Refund (Escrow to Available)**:
 
-```
+```text
 Escrow Balance: -X points
 User Available Balance: +X points
 Result: User gets points back, model never receives
@@ -117,7 +117,7 @@ Result: User gets points back, model never receives
 
 **Partial Refund**:
 
-```
+```text
 Escrow Balance: -X points
 User Available Balance: +Y points
 Model Earned Balance: +(X-Y) points

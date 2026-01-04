@@ -82,7 +82,7 @@ This document defines the mandatory architectural principles and prohibitions fo
 
 RedRoomRewards follows this **mandatory** structure:
 
-```
+```text
 /
 ├── archive/              # Legacy code (view-only, no reuse)
 │   └── xxxchatnow-seed/

@@ -139,7 +139,7 @@ async handleWebhook(
 
 ### Analysis Result
 
-```
+```text
 Analysis Result for 'javascript'. Found 0 alerts:
 - javascript: No alerts found.
 ```
@@ -150,7 +150,7 @@ Analysis Result for 'javascript'. Found 0 alerts:
 
 **Before (Vulnerable Pattern):**
 
-```
+```text
 Source: @Body() payload → event_id (untrusted)
 ↓
 Sink: findOne({ event_id: event_id }) ← ALERT!
@@ -158,7 +158,7 @@ Sink: findOne({ event_id: event_id }) ← ALERT!
 
 **After (Secure Pattern):**
 
-```
+```text
 Source: @Body() payload → event_id (untrusted)
 ↓
 Validation: getValidatedEventId(event_id)
@@ -261,7 +261,7 @@ export class AppModule {}
 
 Webhook endpoint will be available at:
 
-```
+```text
 POST /webhooks/rrr
 Headers:
   X-RRR-Signature: <hmac-sha256>

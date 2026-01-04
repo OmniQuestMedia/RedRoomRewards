@@ -165,7 +165,7 @@ This document summarizes the implementation of core modules for RedRoomRewards l
 
 **Three-layer architecture**:
 
-```
+```text
 Business Logic (Services)
   ↓
 Wallet Operations (WalletService)

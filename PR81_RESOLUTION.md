@@ -67,7 +67,7 @@ Since I cannot directly close PRs, please:
 1. Go to <https://github.com/OmniQuestMedia/RedRoomRewards/pull/81>
 2. Add a comment explaining the situation:
 
-   ```
+   ```text
    This PR is being closed because the same dependency updates (jest 30.2.0 and @types/jest 30.0.0) 
    were already merged to main via PR #87. The merge conflicts reported are due to divergent git 
    histories, not actual code conflicts. The main branch already contains these updates.

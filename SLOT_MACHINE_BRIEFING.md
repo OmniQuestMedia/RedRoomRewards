@@ -48,7 +48,7 @@ Provide a Vegas-style slot machine experience for viewers during live broadcasts
 
 ### 1.3 Integration Model
 
-```
+```text
 User Action → External System → RedRoomRewards → Queue → Settlement
                     ↓                   ↓            ↓         ↓
               [UI/Game Logic]    [Escrow Points]  [Authorize] [Award/Refund]
@@ -141,7 +141,7 @@ User Action → External System → RedRoomRewards → Queue → Settlement
 
 **Key Endpoints for Slot Machine**:
 
-```
+```text
 POST /escrow/request
   - Request points to be held in escrow
   - Returns escrow_id and authorization token
@@ -169,7 +169,7 @@ GET /wallets/{userId}
 
 **Dependency Direction**:
 
-```
+```text
 External System → RedRoomRewards API
   (requests)         (responses)
 
@@ -210,7 +210,7 @@ RedRoomRewards ↛ External System
 
 **Slot Machine Transaction States**:
 
-```
+```text
 START
   ↓
 REQUEST_ESCROW
@@ -277,7 +277,7 @@ POST /escrow/request { ... same data ... }
 2. **External System**: Validates user has sufficient balance
 3. **Escrow Request**:
 
-   ```
+   ```json
    POST /escrow/request
    {
      "idempotency_key": "uuid-1",
@@ -302,7 +302,7 @@ POST /escrow/request { ... same data ... }
    - Sends to RedRoomRewards
 7. **Settlement**:
 
-   ```
+   ```json
    POST /escrow/settle
    {
      "escrow_id": "esc_abc123",
@@ -329,7 +329,7 @@ POST /escrow/request { ... same data ... }
 1. **Queue Service**: Determines loss outcome
 2. **Settlement**:
 
-   ```
+   ```json
    POST /escrow/settle
    {
      "escrow_id": "esc_abc123",
@@ -362,7 +362,7 @@ POST /escrow/request { ... same data ... }
 1. **Queue Service**: Detects failure, initiates refund
 2. **Refund**:
 
-   ```
+   ```json
    POST /escrow/refund
    {
      "escrow_id": "esc_abc123",
@@ -586,7 +586,7 @@ interface Wallet {
 
 **Authority Model**:
 
-```
+```text
 Feature Module (Slot Machine) → Request Escrow
 Queue Service → Authorize Settlement/Refund
 Wallet Service → Execute Settlement/Refund

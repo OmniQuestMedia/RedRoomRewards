@@ -319,7 +319,7 @@ The last task successfully implemented a **security-first RRR webhook controller
 
 **Analysis Result:**
 
-```
+```text
 Analysis Result for 'javascript'. Found 0 alerts:
 - javascript: No alerts found.
 ```
@@ -465,7 +465,7 @@ await this.webhookEventModel.updateOne(
 
 ### API Endpoint
 
-```
+```text
 POST /webhooks/rrr
 Headers:
   X-RRR-Signature: <hmac-sha256-signature>

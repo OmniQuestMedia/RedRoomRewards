@@ -33,7 +33,7 @@ A merge conflict was identified in `package-lock.json` between two branches:
 
 ## Installation Verification
 
-```
+```bash
 npm list @types/node
 ```
 

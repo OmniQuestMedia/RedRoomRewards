@@ -82,7 +82,7 @@ This document defines mandatory rules for GitHub Copilot when generating code, d
 
 **Workflow**:
 
-```
+```text
 1. Validate request (idempotency key, user exists, amount valid)
 2. Check for duplicate (idempotency key lookup)
 3. Create ledger transaction record
@@ -511,7 +511,7 @@ Implements point earning endpoint per `/api/openapi.yaml`.
 
 **Good**:
 
-```
+```text
 feat(wallets): implement GET /wallets/{userId} endpoint
 fix(ledger): prevent race condition in balance updates
 docs(api): update OpenAPI spec with redeem endpoint
@@ -521,7 +521,7 @@ security(auth): add rate limiting to all endpoints
 
 **Bad**:
 
-```
+```text
 updated files          ❌ Not descriptive
 fix stuff              ❌ Too vague
 WIP                    ❌ Should not be committed
