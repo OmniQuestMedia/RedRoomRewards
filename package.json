@@ -12,7 +12,8 @@
     "test:ci": "jest --ci --coverage --maxWorkers=2",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
-    "dev": "ts-node src/index.ts"
+    "dev": "ts-node src/index.ts",
+    "validate:schema": "node validate-schema.js"
   },
   "keywords": [
     "loyalty",

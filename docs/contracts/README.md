@@ -34,6 +34,9 @@ This directory contains canonical data contracts for integrations between RedRoo
 npm install
 
 # Run validation script
+npm run validate:schema
+
+# Or run directly
 node validate-schema.js
 ```
 
@@ -191,7 +194,7 @@ Optional but recommended:
 All example payloads are automatically validated against the schema:
 
 ```bash
-node validate-schema.js
+npm run validate:schema
 ```
 
 Expected output:
