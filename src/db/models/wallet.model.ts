@@ -26,7 +26,6 @@ const WalletSchema = new Schema<IWallet>(
       unique: true,
       trim: true,
       maxlength: 128,
-      index: true,
     },
     availableBalance: {
       type: Number,

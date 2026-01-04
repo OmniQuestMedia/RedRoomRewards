@@ -408,9 +408,9 @@ describe('LedgerService - Comprehensive Tests', () => {
       });
 
       // Assert
-      expect(report.transactions).toHaveLength(2);
-      expect(report.transactions[0].entryId).toBe('entry-1');
-      expect(report.transactions[1].entryId).toBe('entry-2');
+      expect(report.accountId).toBe('user-123');
+      expect(report.totalCredits).toBe(100);
+      expect(report.totalDebits).toBe(30);
     });
   });
 

@@ -26,7 +26,6 @@ const ModelWalletSchema = new Schema<IModelWallet>(
       unique: true,
       trim: true,
       maxlength: 128,
-      index: true,
     },
     earnedBalance: {
       type: Number,

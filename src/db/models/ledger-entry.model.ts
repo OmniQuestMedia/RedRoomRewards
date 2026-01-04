@@ -39,21 +39,18 @@ const LedgerEntrySchema = new Schema<ILedgerEntry>(
       unique: true,
       trim: true,
       maxlength: 128,
-      index: true,
     },
     transactionId: {
       type: String,
       required: true,
       trim: true,
       maxlength: 128,
-      index: true,
     },
     accountId: {
       type: String,
       required: true,
       trim: true,
       maxlength: 128,
-      index: true,
     },
     accountType: {
       type: String,
@@ -91,14 +88,12 @@ const LedgerEntrySchema = new Schema<ILedgerEntry>(
       required: true,
       trim: true,
       maxlength: 256,
-      index: true,
     },
     requestId: {
       type: String,
       required: true,
       trim: true,
       maxlength: 128,
-      index: true,
     },
     balanceBefore: {
       type: Number,
@@ -112,7 +107,6 @@ const LedgerEntrySchema = new Schema<ILedgerEntry>(
       type: Date,
       required: true,
       default: Date.now,
-      index: true,
     },
     currency: {
       type: String,
@@ -130,14 +124,12 @@ const LedgerEntrySchema = new Schema<ILedgerEntry>(
       required: false,
       trim: true,
       maxlength: 128,
-      index: true,
     },
     queueItemId: {
       type: String,
       required: false,
       trim: true,
       maxlength: 128,
-      index: true,
     },
     featureType: {
       type: String,
@@ -150,7 +142,6 @@ const LedgerEntrySchema = new Schema<ILedgerEntry>(
       required: false,
       trim: true,
       maxlength: 128,
-      index: true,
     },
   },
   {

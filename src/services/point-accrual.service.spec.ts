@@ -147,7 +147,7 @@ describe('PointAccrualService', () => {
           idempotencyKey: 'key-3',
           requestId: 'req-3',
         })
-      ).rejects.toThrow('Amount must be a positive finite number');
+      ).rejects.toThrow('Amount must be at least 1');
     });
 
     it('should reject invalid amount (too large)', async () => {

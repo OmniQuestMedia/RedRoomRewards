@@ -30,14 +30,12 @@ const EscrowItemSchema = new Schema<IEscrowItem>(
       unique: true,
       trim: true,
       maxlength: 128,
-      index: true,
     },
     userId: {
       type: String,
       required: true,
       trim: true,
       maxlength: 128,
-      index: true,
     },
     amount: {
       type: Number,
@@ -49,14 +47,12 @@ const EscrowItemSchema = new Schema<IEscrowItem>(
       required: true,
       enum: ['held', 'settled', 'refunded'],
       default: 'held',
-      index: true,
     },
     queueItemId: {
       type: String,
       required: true,
       trim: true,
       maxlength: 128,
-      index: true,
     },
     featureType: {
       type: String,
@@ -78,7 +74,6 @@ const EscrowItemSchema = new Schema<IEscrowItem>(
       type: Date,
       required: true,
       default: Date.now,
-      index: true,
     },
     processedAt: {
       type: Date,
@@ -89,7 +84,6 @@ const EscrowItemSchema = new Schema<IEscrowItem>(
       required: false,
       trim: true,
       maxlength: 128,
-      index: true,
     },
   },
   {
