@@ -1,0 +1,16 @@
+# Exclude application code directories from markdown linting
+src/
+api/
+infra/
+archive/
+
+# Exclude build artifacts and dependencies
+node_modules/
+dist/
+build/
+coverage/
+.venv/
+vendor/
+
+# Exclude Super-Linter output
+super-linter-output/

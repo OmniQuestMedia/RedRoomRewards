@@ -41,6 +41,11 @@ jobs:
           VALIDATE_ALL_CODEBASE: false
           IGNORE_GITIGNORED_FILES: true
 
+          # Restrict linting to root files, .github, and docs/ only
+          # Matches: .github/**, docs/**, and root-level *.md, *.yml, *.yaml, *.json files
+          # Excludes: src/, api/, infra/, archive/, and all their subdirectories
+          FILTER_REGEX_INCLUDE: ^(\.github/|docs/|[^/]+\.(md|yml|yaml|json)$)
+
           # Config directory for super-linter template discovery
           LINTER_RULES_PATH: .github/linters
 
