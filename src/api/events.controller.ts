@@ -144,7 +144,7 @@ export class EventsController {
         correlationId,
         merchantId,
         idempotencyKey: request.idempotencyKey,
-        accepted: true,
+        accepted: undefined, // Will be set after processing
         replayed: false,
         postedTransactions: 0,
       });
@@ -221,8 +221,8 @@ export class EventsController {
   ): Promise<EventReceiptResponse | null> {
     // Query for the event by merchantId and idempotencyKey
     const event = await IngestEventModel.findOne({
-      merchantId: { $eq: merchantId },
-      idempotencyKey: { $eq: idempotencyKey },
+      merchantId,
+      idempotencyKey,
     });
 
     if (!event) {

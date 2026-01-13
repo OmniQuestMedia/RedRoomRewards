@@ -567,7 +567,7 @@ describe('EventsController', () => {
         idempotencyKey: 'idem-abc',
         processedAt: new Date('2026-01-13T10:00:00Z'),
         status: IngestEventStatus.PROCESSED,
-        accepted: true,
+        accepted: true, // Set after processing
         replayed: false,
         postedTransactions: 3,
         lastErrorCode: undefined,
@@ -591,8 +591,8 @@ describe('EventsController', () => {
       });
 
       expect(IngestEventModel.findOne).toHaveBeenCalledWith({
-        merchantId: { $eq: 'merchant-789' },
-        idempotencyKey: { $eq: 'idem-abc' },
+        merchantId: 'merchant-789',
+        idempotencyKey: 'idem-abc',
       });
     });
 

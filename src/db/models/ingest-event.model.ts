@@ -129,7 +129,7 @@ IngestEventSchema.index({ status: 1, receivedAt: 1 });
 IngestEventSchema.index({ receivedAt: 1 });
 IngestEventSchema.index({ eventType: 1, receivedAt: 1 });
 IngestEventSchema.index({ status: 1, nextAttemptAt: 1 });
-IngestEventSchema.index({ merchantId: 1, idempotencyKey: 1 });
-IngestEventSchema.index({ correlationId: 1 });
+IngestEventSchema.index({ merchantId: 1, idempotencyKey: 1 }, { sparse: true });
+IngestEventSchema.index({ correlationId: 1 }, { sparse: true });
 
 export const IngestEventModel = mongoose.model<IIngestEvent>('IngestEvent', IngestEventSchema);
