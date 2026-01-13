@@ -15,6 +15,17 @@ export enum MetricEventType {
   INGEST_EVENT_DLQ = 'ingest.event.dlq',
   INGEST_IDEMPOTENCY_HIT = 'ingest.idempotency.hit',
   
+  // Ingest route observability metrics (WO-RRR-0108)
+  INGEST_REQUESTS_TOTAL = 'ingest.requests.total',
+  INGEST_ACCEPTED_TOTAL = 'ingest.accepted.total',
+  INGEST_REPLAYED_TOTAL = 'ingest.replayed.total',
+  INGEST_REJECTED_TOTAL = 'ingest.rejected.total',
+  INGEST_CONFLICT_TOTAL = 'ingest.conflict.total',
+  INGEST_AUTH_FAIL_TOTAL = 'ingest.auth_fail.total',
+  INGEST_VALIDATION_FAIL_TOTAL = 'ingest.validation_fail.total',
+  INGEST_RATE_LIMITED_TOTAL = 'ingest.rate_limited.total',
+  INGEST_SERVER_ERROR_TOTAL = 'ingest.server_error.total',
+  
   // DLQ and replay metrics
   DLQ_EVENT_MOVED = 'dlq.event.moved',
   DLQ_REPLAY_STARTED = 'dlq.replay.started',

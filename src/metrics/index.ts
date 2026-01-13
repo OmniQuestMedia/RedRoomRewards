@@ -2,7 +2,7 @@
  * Metrics Module Exports
  */
 
-export { MetricsLogger } from './logger';
+export { MetricsLogger, RedactedIngestLog } from './logger';
 export { 
   MetricEventType, 
   AlertSeverity,

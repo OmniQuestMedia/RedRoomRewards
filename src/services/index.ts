@@ -10,3 +10,4 @@ export * from './point-accrual.service';
 export * from './point-redemption.service';
 export * from './point-expiration.service';
 export * from './admin-ops.service';
+export * from './support.service';

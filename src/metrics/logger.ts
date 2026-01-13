@@ -9,6 +9,21 @@
 import { MetricData, AlertData, MetricEventType, AlertSeverity } from './types';
 
 /**
+ * Redacted log entry for ingest operations (WO-RRR-0108)
+ * Contains ONLY safe fields - no PII, secrets, signatures, or raw request bodies
+ */
+export interface RedactedIngestLog {
+  correlationId: string;
+  merchantId?: string;
+  eventType?: string;
+  eventId?: string;
+  idempotencyKey: string;
+  outcome: 'accepted' | 'duplicate' | 'rejected' | 'error';
+  httpStatus: number;
+  errorCode?: string;
+}
+
+/**
  * Simple metrics logger using console output
  * Designed for easy integration with external monitoring systems
  */
@@ -77,5 +92,27 @@ export class MetricsLogger {
       timestamp: new Date(),
       metadata,
     });
+  }
+
+  /**
+   * Log redacted ingest attempt (WO-RRR-0108)
+   * Logs ONLY safe fields - no PII, secrets, signatures, or raw request bodies
+   */
+  static logRedactedIngest(logData: RedactedIngestLog): void {
+    const logEntry = {
+      level: 'INFO',
+      event: 'ingest_attempt',
+      correlationId: logData.correlationId,
+      merchantId: logData.merchantId,
+      eventType: logData.eventType,
+      eventId: logData.eventId,
+      idempotencyKey: logData.idempotencyKey,
+      outcome: logData.outcome,
+      httpStatus: logData.httpStatus,
+      errorCode: logData.errorCode,
+      timestamp: new Date().toISOString(),
+    };
+    
+    console.log(JSON.stringify(logEntry));
   }
 }

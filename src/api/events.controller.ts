@@ -21,6 +21,8 @@ export interface PostEventRequest {
   idempotencyKey: string;
   requestId?: string;
   replayable?: boolean;
+  merchantId?: string;
+  correlationId?: string;
 }
 
 /**
@@ -32,6 +34,7 @@ export interface EventResponse {
   message: string;
   queuePosition?: number;
   requestId?: string;
+  correlationId: string;
 }
 
 /**
@@ -60,8 +63,38 @@ export class EventsController {
    * @throws Error if validation fails
    */
   async postEvent(request: PostEventRequest): Promise<EventResponse> {
-    // Validate required fields
-    this.validateRequest(request);
+    // Generate or accept correlationId from upstream (WO-RRR-0108)
+    const correlationId = request.correlationId || this.generateCorrelationId();
+    
+    // Increment total requests counter (WO-RRR-0108)
+    MetricsLogger.incrementCounter(MetricEventType.INGEST_REQUESTS_TOTAL, {
+      eventType: request.eventType,
+      correlationId,
+    });
+
+    try {
+      // Validate required fields
+      this.validateRequest(request);
+    } catch (error) {
+      // Log validation failure (WO-RRR-0108)
+      MetricsLogger.incrementCounter(MetricEventType.INGEST_VALIDATION_FAIL_TOTAL, {
+        eventType: request.eventType,
+        correlationId,
+      });
+      
+      MetricsLogger.logRedactedIngest({
+        correlationId,
+        merchantId: request.merchantId,
+        eventType: request.eventType,
+        eventId: request.eventId,
+        idempotencyKey: request.idempotencyKey,
+        outcome: 'rejected',
+        httpStatus: 400,
+        errorCode: 'VALIDATION_FAILED',
+      });
+      
+      throw error;
+    }
 
     // Generate or use provided event ID
     const eventId = request.eventId || this.generateEventId();
@@ -75,6 +108,23 @@ export class EventsController {
       MetricsLogger.incrementCounter(MetricEventType.INGEST_IDEMPOTENCY_HIT, {
         idempotencyKey: request.idempotencyKey,
         eventType: request.eventType,
+        correlationId,
+      });
+      
+      // Log as replayed (WO-RRR-0108)
+      MetricsLogger.incrementCounter(MetricEventType.INGEST_REPLAYED_TOTAL, {
+        eventType: request.eventType,
+        correlationId,
+      });
+      
+      MetricsLogger.logRedactedIngest({
+        correlationId,
+        merchantId: request.merchantId,
+        eventType: request.eventType,
+        eventId,
+        idempotencyKey: request.idempotencyKey,
+        outcome: 'duplicate',
+        httpStatus: 200,
       });
 
       return {
@@ -82,36 +132,75 @@ export class EventsController {
         status: 'duplicate',
         message: 'Event already processed or queued',
         requestId,
+        correlationId,
       };
     }
 
-    // Store idempotency record
-    await this.storeIdempotency(request.idempotencyKey, eventId);
+    try {
+      // Store idempotency record with correlationId
+      await this.storeIdempotency(request.idempotencyKey, eventId, correlationId);
 
-    // Create ingest event record
-    const ingestEvent = await IngestEventModel.create({
-      eventId,
-      eventType: request.eventType,
-      receivedAt: new Date(),
-      status: IngestEventStatus.QUEUED,
-      attempts: 0,
-      payloadSnapshot: request.payload,
-      replayable: request.replayable !== false, // Default to true
-    });
+      // Create ingest event record
+      const ingestEvent = await IngestEventModel.create({
+        eventId,
+        eventType: request.eventType,
+        receivedAt: new Date(),
+        status: IngestEventStatus.QUEUED,
+        attempts: 0,
+        payloadSnapshot: request.payload,
+        replayable: request.replayable !== false, // Default to true
+      });
 
-    // Get approximate queue position (count of queued events before this one)
-    const queuePosition = await IngestEventModel.countDocuments({
-      status: IngestEventStatus.QUEUED,
-      receivedAt: { $lt: ingestEvent.receivedAt },
-    });
+      // Get approximate queue position (count of queued events before this one)
+      const queuePosition = await IngestEventModel.countDocuments({
+        status: IngestEventStatus.QUEUED,
+        receivedAt: { $lt: ingestEvent.receivedAt },
+      });
+      
+      // Log successful acceptance (WO-RRR-0108)
+      MetricsLogger.incrementCounter(MetricEventType.INGEST_ACCEPTED_TOTAL, {
+        eventType: request.eventType,
+        correlationId,
+      });
+      
+      MetricsLogger.logRedactedIngest({
+        correlationId,
+        merchantId: request.merchantId,
+        eventType: request.eventType,
+        eventId,
+        idempotencyKey: request.idempotencyKey,
+        outcome: 'accepted',
+        httpStatus: 201,
+      });
 
-    return {
-      eventId,
-      status: 'queued',
-      message: 'Event queued for processing',
-      queuePosition: queuePosition + 1,
-      requestId,
-    };
+      return {
+        eventId,
+        status: 'queued',
+        message: 'Event queued for processing',
+        queuePosition: queuePosition + 1,
+        requestId,
+        correlationId,
+      };
+    } catch (error) {
+      // Log server error (WO-RRR-0108)
+      MetricsLogger.incrementCounter(MetricEventType.INGEST_SERVER_ERROR_TOTAL, {
+        eventType: request.eventType,
+        correlationId,
+      });
+      
+      MetricsLogger.logRedactedIngest({
+        correlationId,
+        merchantId: request.merchantId,
+        eventType: request.eventType,
+        eventId,
+        idempotencyKey: request.idempotencyKey,
+        outcome: 'error',
+        httpStatus: 500,
+        errorCode: 'INTERNAL_SERVER_ERROR',
+      });
+      
+      throw error;
+    }
   }
 
   /**
@@ -228,7 +317,7 @@ export class EventsController {
    * Store idempotency record
    * @private
    */
-  private async storeIdempotency(idempotencyKey: string, eventId: string): Promise<void> {
+  private async storeIdempotency(idempotencyKey: string, eventId: string, correlationId: string): Promise<void> {
     try {
       await IdempotencyRecordModel.create({
         pointsIdempotencyKey: idempotencyKey,
@@ -238,6 +327,7 @@ export class EventsController {
           eventId,
           queued: true,
           timestamp: new Date(),
+          correlationId,
         },
       });
     } catch (error) {
@@ -262,6 +352,14 @@ export class EventsController {
    */
   private generateRequestId(): string {
     return `req_${uuidv4()}`;
+  }
+
+  /**
+   * Generate correlation ID (WO-RRR-0108)
+   * @private
+   */
+  private generateCorrelationId(): string {
+    return `corr_${uuidv4()}`;
   }
 }
 

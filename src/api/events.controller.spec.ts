@@ -333,4 +333,241 @@ describe('EventsController', () => {
       );
     });
   });
+
+  describe('correlationId (WO-RRR-0108)', () => {
+    const validRequest: PostEventRequest = {
+      eventType: 'user.signup',
+      payload: { userId: 'user-123' },
+      idempotencyKey: 'idem-123',
+    };
+
+    beforeEach(() => {
+      (IdempotencyRecordModel.findOne as jest.Mock).mockResolvedValue(null);
+      (IdempotencyRecordModel.create as jest.Mock).mockResolvedValue({});
+      (IngestEventModel.create as jest.Mock).mockResolvedValue({
+        eventId: 'evt-123',
+        receivedAt: new Date(),
+      });
+      (IngestEventModel.countDocuments as jest.Mock).mockResolvedValue(0);
+    });
+
+    it('should generate correlationId when not provided', async () => {
+      const response = await controller.postEvent(validRequest);
+
+      expect(response.correlationId).toBeDefined();
+      expect(response.correlationId).toMatch(/^corr_/);
+    });
+
+    it('should use provided correlationId from upstream', async () => {
+      const requestWithCorrelation = {
+        ...validRequest,
+        correlationId: 'corr_upstream-123',
+      };
+
+      const response = await controller.postEvent(requestWithCorrelation);
+
+      expect(response.correlationId).toBe('corr_upstream-123');
+    });
+
+    it('should include correlationId in idempotency record', async () => {
+      await controller.postEvent(validRequest);
+
+      expect(IdempotencyRecordModel.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          storedResult: expect.objectContaining({
+            correlationId: expect.stringMatching(/^corr_/),
+          }),
+        })
+      );
+    });
+
+    it('should include correlationId in duplicate response', async () => {
+      const existingRecord = {
+        pointsIdempotencyKey: validRequest.idempotencyKey,
+        eventScope: 'event_ingestion',
+        resultHash: 'existing-event-id',
+        storedResult: {
+          correlationId: 'corr_original-123',
+        },
+      };
+      (IdempotencyRecordModel.findOne as jest.Mock).mockResolvedValue(existingRecord);
+
+      const response = await controller.postEvent(validRequest);
+
+      expect(response.correlationId).toBeDefined();
+    });
+  });
+
+  describe('structured logging (WO-RRR-0108)', () => {
+    const validRequest: PostEventRequest = {
+      eventType: 'user.signup',
+      payload: { userId: 'user-123' },
+      idempotencyKey: 'idem-123',
+      merchantId: 'merchant-456',
+    };
+
+    beforeEach(() => {
+      (IdempotencyRecordModel.findOne as jest.Mock).mockResolvedValue(null);
+      (IdempotencyRecordModel.create as jest.Mock).mockResolvedValue({});
+      (IngestEventModel.create as jest.Mock).mockResolvedValue({
+        eventId: 'evt-123',
+        receivedAt: new Date(),
+      });
+      (IngestEventModel.countDocuments as jest.Mock).mockResolvedValue(0);
+    });
+
+    it('should log accepted events with redacted fields', async () => {
+      await controller.postEvent(validRequest);
+
+      expect(MetricsLogger.logRedactedIngest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          correlationId: expect.any(String),
+          merchantId: 'merchant-456',
+          eventType: 'user.signup',
+          idempotencyKey: 'idem-123',
+          outcome: 'accepted',
+          httpStatus: 201,
+        })
+      );
+    });
+
+    it('should log validation failures with error code', async () => {
+      const invalidRequest = {
+        payload: { userId: 'user-123' },
+      } as unknown as PostEventRequest;
+
+      try {
+        await controller.postEvent(invalidRequest);
+      } catch (error) {
+        // Expected validation error
+      }
+
+      expect(MetricsLogger.logRedactedIngest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          outcome: 'rejected',
+          httpStatus: 400,
+          errorCode: 'VALIDATION_FAILED',
+        })
+      );
+    });
+
+    it('should log duplicate requests', async () => {
+      (IdempotencyRecordModel.findOne as jest.Mock).mockResolvedValue({
+        pointsIdempotencyKey: validRequest.idempotencyKey,
+      });
+
+      await controller.postEvent(validRequest);
+
+      expect(MetricsLogger.logRedactedIngest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          outcome: 'duplicate',
+          httpStatus: 200,
+        })
+      );
+    });
+
+    it('should NOT log sensitive data (signatures, secrets, PII)', async () => {
+      const requestWithSensitiveData = {
+        ...validRequest,
+        payload: {
+          userId: 'user-123',
+          email: 'pii@example.com',
+          ssn: '123-45-6789',
+          signature: 'secret-signature',
+        },
+      };
+
+      await controller.postEvent(requestWithSensitiveData);
+
+      // Verify that logRedactedIngest was called but doesn't include payload
+      expect(MetricsLogger.logRedactedIngest).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          payload: expect.anything(),
+          signature: expect.anything(),
+          ssn: expect.anything(),
+        })
+      );
+    });
+  });
+
+  describe('metrics counters (WO-RRR-0108)', () => {
+    const validRequest: PostEventRequest = {
+      eventType: 'user.signup',
+      payload: { userId: 'user-123' },
+      idempotencyKey: 'idem-123',
+    };
+
+    beforeEach(() => {
+      (IdempotencyRecordModel.findOne as jest.Mock).mockResolvedValue(null);
+      (IdempotencyRecordModel.create as jest.Mock).mockResolvedValue({});
+      (IngestEventModel.create as jest.Mock).mockResolvedValue({
+        eventId: 'evt-123',
+        receivedAt: new Date(),
+      });
+      (IngestEventModel.countDocuments as jest.Mock).mockResolvedValue(0);
+    });
+
+    it('should increment INGEST_REQUESTS_TOTAL on every request', async () => {
+      await controller.postEvent(validRequest);
+
+      expect(MetricsLogger.incrementCounter).toHaveBeenCalledWith(
+        expect.stringContaining('ingest.requests.total'),
+        expect.any(Object)
+      );
+    });
+
+    it('should increment INGEST_ACCEPTED_TOTAL on success', async () => {
+      await controller.postEvent(validRequest);
+
+      expect(MetricsLogger.incrementCounter).toHaveBeenCalledWith(
+        expect.stringContaining('ingest.accepted.total'),
+        expect.any(Object)
+      );
+    });
+
+    it('should increment INGEST_REPLAYED_TOTAL on duplicate', async () => {
+      (IdempotencyRecordModel.findOne as jest.Mock).mockResolvedValue({
+        pointsIdempotencyKey: validRequest.idempotencyKey,
+      });
+
+      await controller.postEvent(validRequest);
+
+      expect(MetricsLogger.incrementCounter).toHaveBeenCalledWith(
+        expect.stringContaining('ingest.replayed.total'),
+        expect.any(Object)
+      );
+    });
+
+    it('should increment INGEST_VALIDATION_FAIL_TOTAL on validation error', async () => {
+      const invalidRequest = {
+        payload: { userId: 'user-123' },
+      } as unknown as PostEventRequest;
+
+      try {
+        await controller.postEvent(invalidRequest);
+      } catch (error) {
+        // Expected
+      }
+
+      expect(MetricsLogger.incrementCounter).toHaveBeenCalledWith(
+        expect.stringContaining('ingest.validation_fail.total'),
+        expect.any(Object)
+      );
+    });
+
+    it('should increment INGEST_SERVER_ERROR_TOTAL on server error', async () => {
+      (IngestEventModel.create as jest.Mock).mockRejectedValue(new Error('Database error'));
+
+      try {
+        await controller.postEvent(validRequest);
+      } catch (error) {
+        // Expected
+      }
+
+      expect(MetricsLogger.incrementCounter).toHaveBeenCalledWith(
+        expect.stringContaining('ingest.server_error.total'),
+        expect.any(Object)
+      );
+    });
+  });
 });
