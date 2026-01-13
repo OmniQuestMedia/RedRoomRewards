@@ -5,25 +5,30 @@
 ### Completed Work
 
 #### 1. CorrelationId Propagation ✅
+
 - **Implementation**: `src/api/events.controller.ts`
 - Accepts `correlationId` from upstream header per repo convention
 - Generates correlationId at entry using `generateCorrelationId()` if missing
 - Includes correlationId in all responses (success & error)
 - Stores correlationId in persisted idempotency receipt records
 - **Tests**: 5 tests in `events.controller.spec.ts` (lines 266-301)
-- **Pattern**: Follows existing correlationId usage in ledger/types.ts and events/types.ts
+- **Pattern**: Follows existing correlationId usage in ledger/types.ts and
+  events/types.ts
 
 #### 2. Structured Logging (Redacted) ✅
+
 - **Implementation**: `src/metrics/logger.ts`
 - Added `RedactedIngestLog` interface with ONLY safe fields
 - Implemented `logRedactedIngest()` method
-- Logs contain ONLY: correlationId, merchantId, eventType, eventId, idempotencyKey, outcome, httpStatus, errorCode
+- Logs contain ONLY: correlationId, merchantId, eventType, eventId,
+  idempotencyKey, outcome, httpStatus, errorCode
 - Logs NEVER contain: signatures, secrets, tokens, PII, or raw request bodies
 - Logging at all key decision points throughout request flow
 - **Tests**: 5 tests verifying redaction (lines 303-374)
 - **Pattern**: Follows existing MetricsLogger console-based JSON output
 
 #### 3. Minimal Metrics Counters ✅
+
 - **Implementation**: `src/metrics/types.ts`
 - Added 9 new MetricEventType enums following existing patterns:
   - `INGEST_REQUESTS_TOTAL`: Every request
@@ -40,15 +45,20 @@
 - **Pattern**: Uses existing MetricsLogger.incrementCounter()
 
 #### 4. Read-Only Receipt Lookup ✅
+
 - **Implementation**: `src/services/support.service.ts`
 - Service provides `lookupReceipt(query: ReceiptLookupQuery)`
-- Returns ONLY safe fields: correlationId, merchantId, eventId, idempotencyKey, processedAt, status, accepted, replayed, postedTransactions, errorCode
+- Returns ONLY safe fields: correlationId, merchantId, eventId,
+  idempotencyKey, processedAt, status, accepted, replayed,
+  postedTransactions, errorCode
 - Response NEVER returns: request body, signatures, secrets, or PII
-- Auth guard via `validateSupportAccess(userRole)` - ADMIN and SYSTEM roles only
+- Auth guard via `validateSupportAccess(userRole)` - ADMIN and SYSTEM
+  roles only
 - **Tests**: 11 tests covering lookup logic and auth (support.service.spec.ts)
 - **Pattern**: Follows existing auth patterns in services/auth.service.ts
 
 #### 5. Comprehensive Testing ✅
+
 - **Total Tests**: 42 unit tests (100% pass rate)
 - **EventsController Tests**: 31 tests
   - CorrelationId: 5 tests
@@ -61,6 +71,7 @@
 - **Security**: All tests verify no PII/secrets/signatures in logs or responses
 
 #### 6. Code Quality ✅
+
 - Build succeeds (TypeScript compilation)
 - All unit tests pass (42/42)
 - Code review feedback addressed
@@ -70,6 +81,7 @@
 ### Remaining Work
 
 #### HTTP Endpoint for Receipt Lookup (Not Implemented)
+
 The following is needed to expose the receipt lookup service via HTTP:
 
 1. Create API controller or add to existing controller
@@ -82,11 +94,13 @@ The following is needed to expose the receipt lookup service via HTTP:
    - Test without auth (should return 401/403)
    - Test returned data is redacted
 
-**Note**: The service layer is fully implemented and tested. Only HTTP wiring is needed.
+**Note**: The service layer is fully implemented and tested. Only HTTP
+wiring is needed.
 
 ### Files Changed
 
 #### Modified (6 files)
+
 1. `src/metrics/types.ts` - Added 9 metric enums
 2. `src/metrics/logger.ts` - Added RedactedIngestLog and logRedactedIngest()
 3. `src/metrics/index.ts` - Export RedactedIngestLog
@@ -95,33 +109,38 @@ The following is needed to expose the receipt lookup service via HTTP:
 6. `src/services/index.ts` - Export SupportService
 
 #### Created (2 files)
-7. `src/services/support.service.ts` - Receipt lookup service
-8. `src/services/support.service.spec.ts` - 11 unit tests
+
+1. `src/services/support.service.ts` - Receipt lookup service
+2. `src/services/support.service.spec.ts` - 11 unit tests
 
 #### Documentation (2 files)
-9. `WO-RRR-0108-EVIDENCE.md` - Implementation evidence
-10. `WO-RRR-0108-SUMMARY.md` - This file
+
+1. `WO-RRR-0108-EVIDENCE.md` - Implementation evidence
+2. `WO-RRR-0108-SUMMARY.md` - This file
 
 ### Security Verification
 
 #### Redaction Compliance ✅
+
 - ✅ Logs contain ONLY allowed fields
 - ✅ Logs NEVER contain payload, signatures, secrets, tokens, PII
 - ✅ Receipt lookup returns ONLY allowed fields
 - ✅ Receipt lookup NEVER returns requestBody, signatures, secrets, PII
 
 #### Auth Compliance ✅
+
 - ✅ Support endpoints require ADMIN or SYSTEM role
 - ✅ validateSupportAccess enforces RBAC
 - ✅ Follows existing auth patterns (UserRole enum)
 
 #### Security Scan ✅
+
 - ✅ CodeQL: 0 vulnerabilities
 - ✅ No new security issues introduced
 
 ### Test Results
 
-```
+```text
 EventsController Tests: 31/31 PASSED
 SupportService Tests:   11/11 PASSED
 Total:                  42/42 PASSED (100%)
@@ -150,7 +169,8 @@ All implementations follow existing repository patterns:
 
 ### Conclusion
 
-Core observability features for the `/v1/events/ingest` route are **fully implemented and tested** per WO-RRR-0108 requirements:
+Core observability features for the `/v1/events/ingest` route are **fully
+implemented and tested** per WO-RRR-0108 requirements:
 
 - ✅ CorrelationId propagation (1.1-1.4)
 - ✅ Structured logging with redaction (2.1-2.3)
@@ -158,6 +178,8 @@ Core observability features for the `/v1/events/ingest` route are **fully implem
 - ✅ Read-only receipt lookup service (4.1-4.4)
 - ✅ Comprehensive unit tests (5.1)
 
-The only remaining item is wiring the receipt lookup service to an HTTP endpoint (7.1-7.3), which is straightforward since the service is fully implemented and tested.
+The only remaining item is wiring the receipt lookup service to an HTTP
+endpoint (7.1-7.3), which is straightforward since the service is fully
+implemented and tested.
 
 **Status**: Ready for integration testing once HTTP endpoint is added.
