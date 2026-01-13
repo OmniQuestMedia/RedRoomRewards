@@ -7,10 +7,12 @@
 import { EventsController, PostEventRequest } from './events.controller';
 import { IngestEventModel, IngestEventStatus, IdempotencyRecordModel } from '../db/models';
 import { MetricsLogger } from '../metrics';
+import { logIngestEvent } from '../metrics/ingest-logger';
 
 // Mock dependencies
 jest.mock('../db/models');
 jest.mock('../metrics');
+jest.mock('../metrics/ingest-logger');
 
 describe('EventsController', () => {
   let controller: EventsController;
@@ -331,6 +333,313 @@ describe('EventsController', () => {
           eventType: validRequest.eventType,
         })
       );
+    });
+  });
+
+  describe('correlationId propagation', () => {
+    const validRequest: PostEventRequest = {
+      eventType: 'user.signup',
+      payload: { userId: 'user-123', merchantId: 'merchant-456' },
+      idempotencyKey: 'idem-123',
+    };
+
+    beforeEach(() => {
+      (IdempotencyRecordModel.findOne as jest.Mock).mockResolvedValue(null);
+      (IdempotencyRecordModel.create as jest.Mock).mockResolvedValue({});
+      (IngestEventModel.create as jest.Mock).mockResolvedValue({
+        eventId: 'evt-123',
+        receivedAt: new Date(),
+      });
+      (IngestEventModel.countDocuments as jest.Mock).mockResolvedValue(0);
+    });
+
+    it('should accept correlationId from upstream', async () => {
+      const requestWithCorrelation = {
+        ...validRequest,
+        correlationId: 'upstream-correlation-id',
+      };
+
+      const response = await controller.postEvent(requestWithCorrelation);
+
+      expect(response.correlationId).toBe('upstream-correlation-id');
+      expect(IngestEventModel.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          correlationId: 'upstream-correlation-id',
+        })
+      );
+    });
+
+    it('should use requestId as correlationId if no correlationId provided', async () => {
+      const requestWithRequestId = {
+        ...validRequest,
+        requestId: 'request-id-789',
+      };
+
+      const response = await controller.postEvent(requestWithRequestId);
+
+      expect(response.correlationId).toBe('request-id-789');
+      expect(IngestEventModel.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          correlationId: 'request-id-789',
+        })
+      );
+    });
+
+    it('should generate correlationId if neither provided', async () => {
+      const response = await controller.postEvent(validRequest);
+
+      expect(response.correlationId).toBeDefined();
+      expect(typeof response.correlationId).toBe('string');
+      expect(IngestEventModel.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          correlationId: expect.any(String),
+        })
+      );
+    });
+
+    it('should propagate correlationId to response for duplicates', async () => {
+      (IdempotencyRecordModel.findOne as jest.Mock).mockResolvedValue({
+        pointsIdempotencyKey: validRequest.idempotencyKey,
+      });
+
+      const requestWithCorrelation = {
+        ...validRequest,
+        correlationId: 'correlation-duplicate',
+      };
+
+      const response = await controller.postEvent(requestWithCorrelation);
+
+      expect(response.correlationId).toBe('correlation-duplicate');
+      expect(response.status).toBe('duplicate');
+    });
+
+    it('should extract and store merchantId from payload', async () => {
+      await controller.postEvent(validRequest);
+
+      expect(IngestEventModel.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          merchantId: 'merchant-456',
+        })
+      );
+    });
+  });
+
+  describe('structured logging with redaction', () => {
+    const validRequest: PostEventRequest = {
+      eventType: 'user.signup',
+      payload: {
+        userId: 'user-123',
+        merchantId: 'merchant-456',
+        secretToken: 'should-be-redacted',
+        email: 'user@example.com',
+      },
+      idempotencyKey: 'idem-123',
+      correlationId: 'corr-123',
+    };
+
+    beforeEach(() => {
+      (IdempotencyRecordModel.findOne as jest.Mock).mockResolvedValue(null);
+      (IdempotencyRecordModel.create as jest.Mock).mockResolvedValue({});
+      (IngestEventModel.create as jest.Mock).mockResolvedValue({
+        eventId: 'evt-123',
+        receivedAt: new Date(),
+      });
+      (IngestEventModel.countDocuments as jest.Mock).mockResolvedValue(0);
+    });
+
+    it('should log only approved fields for accepted events', async () => {
+      await controller.postEvent(validRequest);
+
+      expect(logIngestEvent).toHaveBeenCalledWith({
+        correlationId: 'corr-123',
+        merchantId: 'merchant-456',
+        eventType: 'user.signup',
+        eventId: expect.any(String),
+        idempotencyKey: 'idem-123',
+        outcome: 'accepted',
+        httpStatus: 201,
+      });
+    });
+
+    it('should log only approved fields for duplicate events', async () => {
+      (IdempotencyRecordModel.findOne as jest.Mock).mockResolvedValue({
+        pointsIdempotencyKey: validRequest.idempotencyKey,
+      });
+
+      await controller.postEvent(validRequest);
+
+      expect(logIngestEvent).toHaveBeenCalledWith({
+        correlationId: 'corr-123',
+        merchantId: 'merchant-456',
+        eventType: 'user.signup',
+        eventId: expect.any(String),
+        idempotencyKey: 'idem-123',
+        outcome: 'duplicate',
+        httpStatus: 200,
+      });
+    });
+
+    it('should not log secrets or PII in structured logs', async () => {
+      await controller.postEvent(validRequest);
+
+      const logCall = (logIngestEvent as jest.Mock).mock.calls[0][0];
+      
+      // Verify no secret fields are logged
+      expect(logCall).not.toHaveProperty('payload');
+      expect(logCall).not.toHaveProperty('secretToken');
+      expect(logCall).not.toHaveProperty('email');
+      
+      // Verify only approved fields are present
+      expect(Object.keys(logCall).sort()).toEqual([
+        'correlationId',
+        'eventId',
+        'eventType',
+        'httpStatus',
+        'idempotencyKey',
+        'merchantId',
+        'outcome',
+      ].sort());
+    });
+  });
+
+  describe('metrics increments', () => {
+    const validRequest: PostEventRequest = {
+      eventType: 'user.signup',
+      payload: { userId: 'user-123' },
+      idempotencyKey: 'idem-123',
+    };
+
+    beforeEach(() => {
+      (IdempotencyRecordModel.findOne as jest.Mock).mockResolvedValue(null);
+      (IdempotencyRecordModel.create as jest.Mock).mockResolvedValue({});
+      (IngestEventModel.create as jest.Mock).mockResolvedValue({
+        eventId: 'evt-123',
+        receivedAt: new Date(),
+      });
+      (IngestEventModel.countDocuments as jest.Mock).mockResolvedValue(0);
+    });
+
+    it('should increment INGEST_RECEIVED metric', async () => {
+      await controller.postEvent(validRequest);
+
+      expect(MetricsLogger.incrementCounter).toHaveBeenCalledWith(
+        expect.stringContaining('ingest.received'),
+        expect.objectContaining({
+          eventType: 'user.signup',
+        })
+      );
+    });
+
+    it('should increment INGEST_ACCEPTED metric on success', async () => {
+      await controller.postEvent(validRequest);
+
+      expect(MetricsLogger.incrementCounter).toHaveBeenCalledWith(
+        expect.stringContaining('ingest.accepted'),
+        expect.objectContaining({
+          eventType: 'user.signup',
+        })
+      );
+    });
+
+    it('should increment INGEST_REJECTED metric on error', async () => {
+      (IngestEventModel.create as jest.Mock).mockRejectedValue(
+        new Error('Database error')
+      );
+
+      await expect(controller.postEvent(validRequest)).rejects.toThrow();
+
+      expect(MetricsLogger.incrementCounter).toHaveBeenCalledWith(
+        expect.stringContaining('ingest.rejected'),
+        expect.objectContaining({
+          eventType: 'user.signup',
+          errorCode: 'Error',
+        })
+      );
+    });
+  });
+
+  describe('getEventReceipt', () => {
+    it('should return receipt for valid merchantId and idempotencyKey', async () => {
+      const mockEvent = {
+        eventId: 'evt-123',
+        correlationId: 'corr-456',
+        merchantId: 'merchant-789',
+        idempotencyKey: 'idem-abc',
+        processedAt: new Date('2026-01-13T10:00:00Z'),
+        status: IngestEventStatus.PROCESSED,
+        accepted: true,
+        replayed: false,
+        postedTransactions: 3,
+        lastErrorCode: undefined,
+      };
+
+      (IngestEventModel.findOne as jest.Mock).mockResolvedValue(mockEvent);
+
+      const receipt = await controller.getEventReceipt('merchant-789', 'idem-abc');
+
+      expect(receipt).toEqual({
+        correlationId: 'corr-456',
+        merchantId: 'merchant-789',
+        eventId: 'evt-123',
+        idempotencyKey: 'idem-abc',
+        processedAt: new Date('2026-01-13T10:00:00Z'),
+        status: IngestEventStatus.PROCESSED,
+        accepted: true,
+        replayed: false,
+        postedTransactions: 3,
+        errorCode: undefined,
+      });
+
+      expect(IngestEventModel.findOne).toHaveBeenCalledWith({
+        merchantId: { $eq: 'merchant-789' },
+        idempotencyKey: { $eq: 'idem-abc' },
+      });
+    });
+
+    it('should return null if receipt not found', async () => {
+      (IngestEventModel.findOne as jest.Mock).mockResolvedValue(null);
+
+      const receipt = await controller.getEventReceipt('merchant-999', 'idem-xyz');
+
+      expect(receipt).toBeNull();
+    });
+
+    it('should only return approved fields (no sensitive data)', async () => {
+      const mockEvent = {
+        eventId: 'evt-123',
+        correlationId: 'corr-456',
+        merchantId: 'merchant-789',
+        idempotencyKey: 'idem-abc',
+        processedAt: new Date(),
+        status: IngestEventStatus.PROCESSED,
+        accepted: true,
+        replayed: false,
+        postedTransactions: 1,
+        lastErrorCode: 'ERR_CODE',
+        // Sensitive fields that should NOT be in receipt
+        payloadSnapshot: { secretData: 'should-not-appear' },
+        internalMetadata: { internalStuff: 'hidden' },
+      };
+
+      (IngestEventModel.findOne as jest.Mock).mockResolvedValue(mockEvent);
+
+      const receipt = await controller.getEventReceipt('merchant-789', 'idem-abc');
+
+      // Verify only approved fields are present
+      expect(receipt).toHaveProperty('correlationId');
+      expect(receipt).toHaveProperty('merchantId');
+      expect(receipt).toHaveProperty('eventId');
+      expect(receipt).toHaveProperty('idempotencyKey');
+      expect(receipt).toHaveProperty('processedAt');
+      expect(receipt).toHaveProperty('status');
+      expect(receipt).toHaveProperty('accepted');
+      expect(receipt).toHaveProperty('replayed');
+      expect(receipt).toHaveProperty('postedTransactions');
+      expect(receipt).toHaveProperty('errorCode');
+
+      // Verify sensitive fields are NOT present
+      expect(receipt).not.toHaveProperty('payloadSnapshot');
+      expect(receipt).not.toHaveProperty('internalMetadata');
     });
   });
 });
