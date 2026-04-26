@@ -184,6 +184,7 @@ Confirmed not referenced in `scripts/`, `infra/`, `.github/workflows/` either.
 | 3 | `TenantScopeMiddleware` — exported but not wired | `src/middleware/tenant-scope.middleware.ts` | Same — wire or delete |
 | 4 | `AwardingWalletController` — NestJS controller not in any module | `src/controllers/awarding-wallet.controller.ts` | Register in a module or delete |
 | 5 | `CreatorGiftingController` — NestJS controller not in any module | `src/controllers/creator-gifting.controller.ts` | Register in a module or delete |
+| 6 | `archive/README.md` cites `governance/CLAUDE_2026-04-21.md` but actual file is `archive/governance/RRR-GOV-002_2026-04-21.md` | `archive/README.md` | Requires charter amendment to fix — `archive/**` is read-only. Open follow-up issue (queued for manual creation — see Follow-up Issues below) |
 
 ---
 
@@ -192,7 +193,7 @@ Confirmed not referenced in `scripts/`, `infra/`, `.github/workflows/` either.
 - **CodeQL:** Issue already opened per problem statement — not duplicated here.
 - **Risk register items 1–5:** Recommend a single follow-up issue "wire or delete orphaned middleware + controllers".
 - **.env.example orphan keys:** Recommend a follow-up ticket for cleanup after confirming with infra team.
-- **archive/README.md CLAUDE_2026-04-21.md discrepancy:** Recommend charter amendment to rename the file citation (requires OQMI authorization per archive README policy).
+- **archive/README.md citation discrepancy (Risk register item 6):** Issue queued for manual creation — title: `archive/README.md cites governance/CLAUDE_2026-04-21.md but actual file is archive/governance/RRR-GOV-002_2026-04-21.md`. Fixing requires a charter amendment per archive read-only invariant. Issue creation via automated tooling was blocked by environment restrictions in this session; maintainer should open manually and add the number to the risk register row below.
 
 ---
 
@@ -204,4 +205,4 @@ Confirmed not referenced in `scripts/`, `infra/`, `.github/workflows/` either.
 | Tests | **452 passed, 452 total** |
 | Build errors | **0** |
 | Lint errors | **0** |
-| Lint warnings | **24** (pre-existing, all `@typescript-eslint/no-explicit-any` in spec files) |
+| Lint warnings | **24** (pre-existing, accepted — all `@typescript-eslint/no-explicit-any` in spec files; pragmatic test pattern, not a defect) |
