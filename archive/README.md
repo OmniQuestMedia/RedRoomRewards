@@ -21,6 +21,6 @@ record, not maintained as living documents.
 
 ## Current contents
 
-- `governance/CLAUDE_2026-04-21.md` — the former `CLAUDE.md` root instruction
-  file, archived on 2026-04-21 as part of `RRR-GOV-002-A001`. Superseded by the
-  RRR-GOV-002 charter.
+- `governance/RRR-GOV-002_2026-04-21.md` — the former `CLAUDE.md` root
+  instruction file, archived on 2026-04-21 as part of `RRR-GOV-002-A001`.
+  Superseded by the RRR-GOV-002 charter.
