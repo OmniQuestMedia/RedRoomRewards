@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MemberModule } from './member/member.module';
 import { MerchantModule } from './merchant/merchant.module';
@@ -12,6 +12,10 @@ import { WebhookModule } from './webhooks/webhook.module';
 import { HealthController } from './health/health.controller';
 import productionConfig from './config/production.config';
 import appConfig from './config/app.config';
+import { RateLimitMiddleware } from './middleware/rate-limit.middleware';
+import { AuthMiddleware } from './middleware/auth.middleware';
+import { TenantScopeMiddleware } from './middleware/tenant-scope.middleware';
+import { PUBLIC_ROUTES, AUTH_ONLY_ROUTES, TENANT_SCOPED_ROUTES } from './config/route-policy';
 
 @Module({
   imports: [
@@ -28,4 +32,23 @@ import appConfig from './config/app.config';
   ],
   controllers: [HealthController],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    // Step 1 — Rate limiting on all authenticated surfaces (public routes excluded).
+    // Health probe is excluded to avoid probe traffic counting against limits.
+    consumer
+      .apply(RateLimitMiddleware)
+      .exclude({ path: 'health', method: RequestMethod.GET })
+      .forRoutes(
+        ...AUTH_ONLY_ROUTES,
+        ...TENANT_SCOPED_ROUTES,
+        ...PUBLIC_ROUTES.filter((r) => r.path !== 'health'),
+      );
+
+    // Step 2 — Auth on AUTH-ONLY and AUTH-AND-TENANT routes.
+    consumer.apply(AuthMiddleware).forRoutes(...AUTH_ONLY_ROUTES, ...TENANT_SCOPED_ROUTES);
+
+    // Step 3 — Tenant scope on AUTH-AND-TENANT routes only.
+    consumer.apply(TenantScopeMiddleware).forRoutes(...TENANT_SCOPED_ROUTES);
+  }
+}
