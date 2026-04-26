@@ -6,13 +6,13 @@ import { LiabilityReport } from '../interfaces/redroom-rewards';
  *
  * Produces AirMiles-level liability statements for the RRR program.
  *
- * PoC: Returns computed stub values matching the ASSUMPTIONS.md F-012 contract.
+ * PoC: Returns computed stub values matching the docs/ASSUMPTIONS.md F-012 contract.
  * Production replacement: Wire `LedgerService.queryEntries()` with
  * `{ reason: 'REDROOM_REWARDS', type: 'CREDIT' }` for issued, and
  * `{ reason: { $regex: '^BURN_' }, type: 'DEBIT' }` for burned totals.
  * Use MongoDB `aggregate` with `$sum` of `delta` fields for O(1) retrieval.
  *
- * All burns route through RedRoomLedgerService per ASSUMPTIONS.md F-012.
+ * All burns route through RedRoomLedgerService per docs/ASSUMPTIONS.md F-012.
  */
 @Injectable()
 export class ReportingService {

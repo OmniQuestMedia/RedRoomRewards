@@ -14,7 +14,7 @@ import {
  * will replace this with a hybrid rule + ML model trained on behavioural signals.
  *
  * Thresholds are configurable via environment at runtime; defaults match the
- * spec ASSUMPTIONS.md F-009 (1000-point trigger).
+ * spec docs/ASSUMPTIONS.md F-009 (1000-point trigger).
  *
  * Rule table:
  *

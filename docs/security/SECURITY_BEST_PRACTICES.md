@@ -497,7 +497,7 @@ res.json({ message: 'Success', data: sanitizedData });
 
 ## 13. References
 
-- [SECURITY_AUDIT_AND_NO_BACKDOOR_POLICY.md](../SECURITY_AUDIT_AND_NO_BACKDOOR_POLICY.md) -
+- [SECURITY_AUDIT_AND_NO_BACKDOOR_POLICY.md](./SECURITY_AUDIT_AND_NO_BACKDOOR_POLICY.md) -
   Complete security policy
 - [OWASP Top 10](https://owasp.org/Top10/) - Common vulnerabilities
 - [Node.js Security Best Practices](https://nodejs.org/en/docs/guides/security/)
