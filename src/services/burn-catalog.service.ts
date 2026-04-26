@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { RedRoomLedgerService } from './redroom-ledger.service';
-import { BurnRedemption } from '../interfaces/redroom-rewards';
+import { BurnRedemption, GiftRedemptionRequest } from '../interfaces/redroom-rewards';
 
 /**
  * BurnCatalogService — WO-012 final polish.
@@ -32,6 +32,17 @@ export class BurnCatalogService {
       redemption.memberId,
       -redemption.pointsSpent,
       `BURN_${redemption.itemId}_${redemption.reason}`,
+    );
+  }
+
+  async redeemGift(request: GiftRedemptionRequest): Promise<boolean> {
+    const platformCommission = Math.round(request.tokenValue * 0.25);
+    const pointsToBurn = request.tokenValue + platformCommission; // creator gets full token value
+
+    return this.ledger.awardPointsWithCompliance(
+      request.memberId,
+      -pointsToBurn,
+      `GIFT_${request.giftId}${request.anonymous ? '_ANON' : ''}`,
     );
   }
 }

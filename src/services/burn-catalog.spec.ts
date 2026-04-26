@@ -69,4 +69,33 @@ describe('BurnCatalogService', () => {
       service.redeemPoints({ memberId: 'm', pointsSpent: 100, itemId: '', reason: 'R' }),
     ).rejects.toThrow('itemId is required');
   });
+
+  it('redeemGift adds 25% platform commission and burns total via ledger', async () => {
+    const result = await service.redeemGift({
+      giftId: 'rose-200',
+      tokenValue: 200,
+      memberId: 'member-7',
+      anonymous: false,
+    });
+    expect(result).toBe(true);
+    expect(ledgerService.awardPointsWithCompliance).toHaveBeenCalledWith(
+      'member-7',
+      -250,
+      'GIFT_rose-200',
+    );
+  });
+
+  it('redeemGift tags reason with _ANON when anonymous is true', async () => {
+    await service.redeemGift({
+      giftId: 'champagne-1000',
+      tokenValue: 1000,
+      memberId: 'member-9',
+      anonymous: true,
+    });
+    expect(ledgerService.awardPointsWithCompliance).toHaveBeenCalledWith(
+      'member-9',
+      -1250,
+      'GIFT_champagne-1000_ANON',
+    );
+  });
 });

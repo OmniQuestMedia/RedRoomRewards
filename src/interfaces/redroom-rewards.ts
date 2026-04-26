@@ -101,3 +101,18 @@ export interface CreatorGiftingPanelState {
     redeemedCount: number;
   }>;
 }
+
+export interface TierMultiplierConfig {
+  tier: RedRoomTier;
+  earningMultiplier: number; // e.g. 1.2 for RedPassion
+  doublePointsDaysPerYear: number;
+  birthdayBonusDays: number; // extra redemption window
+}
+
+export interface GiftRedemptionRequest {
+  giftId: string;
+  tokenValue: number; // platform-set token equivalent
+  memberId: string;
+  anonymous: boolean;
+  note?: string;
+}
