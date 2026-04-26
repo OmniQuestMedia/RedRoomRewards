@@ -26,11 +26,12 @@
  * should be reviewed before production hardening).
  *
  * ── SIGNUP RATE LIMIT ────────────────────────────────────────────────────────
- * /api/v1/members/signup is in PUBLIC_ROUTES and subject to the global
- * RATE_LIMIT_PER_MINUTE (default 60/min). Account-creation endpoints are the
- * #1 bot-signup and credential-stuffing vector. A tighter per-IP limit
- * (≈5/min) is recommended as a follow-up. Tracked: risk register item
- * RISK-002 — Signup endpoint rate limit too permissive.
+ * /api/v1/members/signup is in PUBLIC_ROUTES. It is governed by
+ * SignupRateLimitMiddleware (default 5/min, configurable via
+ * SIGNUP_RATE_LIMIT_PER_MINUTE) — stricter than the global RateLimitMiddleware
+ * because account-creation is the #1 bot-flood and credential-stuffing vector.
+ * AppModule.configure() excludes signup from RateLimitMiddleware so requests
+ * are not double-counted. Closes RISK-002.
  *
  * @module config/route-policy
  */
