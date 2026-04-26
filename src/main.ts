@@ -12,14 +12,16 @@ async function bootstrap() {
   app.enableCors({ origin: true }); // tighten in prod
   app.enableShutdownHooks();
 
-  // OpenAPI / Swagger
+  // OpenAPI / Swagger (no-op when NODE_ENV=production)
   setupSwagger(app);
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
 
   logger.info(`🚀 RedRoom Rewards™ engine v1.0 running on http://localhost:${port}`);
-  logger.info(`📄 OpenAPI docs: http://localhost:${port}/api/docs`);
+  if (process.env.NODE_ENV !== 'production') {
+    logger.info(`📄 OpenAPI docs: http://localhost:${port}/api/docs`);
+  }
   logger.info('✅ Mandatory 18+ GateGuard AV • Promotional Bonus • Immutable ledger');
 }
 bootstrap();

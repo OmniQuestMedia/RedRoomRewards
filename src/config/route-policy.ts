@@ -18,12 +18,12 @@
  *   GET /api/docs          — Swagger UI
  *   GET /api-json          — OpenAPI JSON spec
  * These bypass the global api/v1 prefix and are registered as bare Express
- * routes BEFORE global middleware, so they are effectively public. They are
- * not listed here because NestJS middleware cannot intercept them at this
- * layer. If the docs surface must be gated, configure SwaggerModule with a
- * custom auth guard or disable it in production (NODE_ENV=production check
- * in setupSwagger). Current posture: docs are public (acceptable for dev;
- * should be reviewed before production hardening).
+ * routes BEFORE global middleware, so they cannot be intercepted by NestJS
+ * middleware. They are gated at module load time by setupSwagger():
+ *   - NODE_ENV=production    → docs are NOT mounted (no public schema exposure)
+ *   - any other NODE_ENV     → docs are mounted (dev/staging/test debug surface)
+ * To expose the docs in production with auth, replace the gate with a custom
+ * Express handler — never remove the gate without an auth replacement.
  *
  * ── SIGNUP RATE LIMIT ────────────────────────────────────────────────────────
  * /api/v1/members/signup is in PUBLIC_ROUTES. It is governed by
