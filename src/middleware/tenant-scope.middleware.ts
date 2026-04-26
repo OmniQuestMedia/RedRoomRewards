@@ -8,21 +8,23 @@ import { Request, Response, NextFunction } from 'express';
  * bag on the request so that downstream service calls can attach the
  * correct `tenant_id` filter without re-reading the JWT on every query.
  *
- * The `tenantId` field is expected to be populated earlier in the
- * middleware chain (e.g. by the JWT auth guard).  When absent the
- * middleware is a no-op — enforcement of the presence of `tenantId`
- * is the responsibility of the auth layer, not this middleware.
+ * FAIL-CLOSED: Missing tenantId is rejected with 403 Forbidden.
+ * The `tenantId` field must be populated earlier in the middleware chain
+ * (e.g. by AuthMiddleware).
  */
 @Injectable()
 export class TenantScopeMiddleware implements NestMiddleware {
   use(
     req: Request & { tenantId?: string; queryOptions?: Record<string, unknown> },
-    _res: Response,
+    res: Response,
     next: NextFunction,
   ): void {
-    if (req.tenantId) {
-      req.queryOptions = { ...req.queryOptions, tenant_id: req.tenantId };
+    if (!req.tenantId) {
+      res.status(403).json({ error: 'tenant scope required' });
+      return;
     }
+
+    req.queryOptions = { ...req.queryOptions, tenant_id: req.tenantId };
     next();
   }
 }
