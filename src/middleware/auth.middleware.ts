@@ -28,14 +28,14 @@ interface RrrJwtPayload {
 
 @Injectable()
 export class AuthMiddleware implements NestMiddleware, OnModuleInit {
-  private readonly jwtSecret: string;
+  private jwtSecret!: string;
 
   onModuleInit(): void {
     const secret = process.env.JWT_SECRET;
     if (!secret) {
       throw new Error('JWT_SECRET is required for AuthMiddleware');
     }
-    (this as { jwtSecret: string }).jwtSecret = secret;
+    this.jwtSecret = secret;
   }
 
   use(
