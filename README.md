@@ -1,24 +1,33 @@
-# RedRoom Rewards™ Backend — FULLY COMPLETE (Payloads 1–10)
+# RedRoomRewards
 
-**Engine is now production-ready for MVP**
+Loyalty-points backend for OmniQuest Media Inc. — Node.js / TypeScript, NestJS, MongoDB.
 
-All external user components are live and tested:
+## What this is
 
-- Mandatory 18+ GateGuard AV on every account action
-- AwardingWallet CSV upload + creator gifting panel
-- Full tier engine (RedDesire → RedReign)
-- Burn catalog (RedRoomPleasures first partner)
-- Reporting & liability statements
-- White-label SAAS (hosted + self-hosted)
-- OpenAPI docs at `/api/docs`
-- Health check at `/health`
-- Proper module wiring + config
+A loyalty platform: wallet management, point earn/redeem, ledger, tier engine,
+webhooks, and fraud signals. Not a chat app, not a streaming platform, not a UI.
 
-## Next Steps
+## Status
 
-- `npm run build`
-- `npm test`
-- Deploy to staging
-- Update PRODUCTION_SCHEDULE.md with final merge SHA
+Wave D in progress — observability, rate-limiting, and API hardening.
+452 tests passing across 47 suites. Build clean (`npm run build`).
+See [production schedule](.github/PRODUCTION_SCHEDULE.md) for task-level detail.
 
-The loyalty engine for OmniQuest Media Inc. is now complete.
+## Key docs
+
+| Doc | Purpose |
+|-----|---------|
+| [Architecture](docs/UNIVERSAL_ARCHITECTURE.md) | System design |
+| [API spec](api/openapi.yaml) | Endpoint contracts |
+| [Domain glossary](docs/DOMAIN_GLOSSARY.md) | Naming authority |
+| [CEO decisions](docs/RRR_CEO_DECISIONS_FINAL_2026-04-17.md) | Binding rulings |
+| [Coding doctrine](.github/copilot-instructions.md) | AI + human dev rules |
+
+## Quick start
+
+```bash
+cp .env.example .env   # fill in secrets
+npm install
+npm run build
+npm test
+```
