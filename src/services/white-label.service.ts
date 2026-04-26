@@ -5,7 +5,7 @@ import { WhiteLabelConfig } from '../interfaces/redroom-rewards';
  * WhiteLabelService — WO-013 final polish.
  *
  * Manages white-label configuration per merchant.
- * Service-bureau mode is the default (spec ASSUMPTIONS.md F-013).
+ * Service-bureau mode is the default (spec docs/ASSUMPTIONS.md F-013).
  *
  * Required fields: merchantId, brandName, primaryColor.
  * Optional: logoUrl.
