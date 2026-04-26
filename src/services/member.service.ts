@@ -12,7 +12,7 @@ import { MemberSignupRequest, MemberProfile } from '../interfaces/redroom-reward
  * and issues the 1,000-point welcome bonus via RedRoomLedgerService.
  *
  * Member IDs use UUID v4 for collision safety across distributed instances.
- * The welcome bonus amount (1,000) is spec-locked per ASSUMPTIONS.md F-008.
+ * The welcome bonus amount (1,000) is spec-locked per docs/ASSUMPTIONS.md F-008.
  */
 @Injectable()
 export class MemberService {
