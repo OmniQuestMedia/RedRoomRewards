@@ -6,14 +6,13 @@
  * guards and the `TenantScopeMiddleware` can enforce multi-tenant isolation
  * without re-reading the token.
  *
- * Intentionally does NOT reject unauthenticated requests — enforcement is
- * the responsibility of NestJS guards (e.g. a future `JwtAuthGuard`).
- * This keeps the middleware chain composable.
+ * FAIL-CLOSED: Missing or invalid tokens are rejected with 401.
+ * JWT_SECRET must be configured at startup or the middleware will not initialize.
  *
  * @module middleware/auth
  */
 
-import { Injectable, NestMiddleware } from '@nestjs/common';
+import { Injectable, NestMiddleware, OnModuleInit } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import * as jwt from 'jsonwebtoken';
 
@@ -28,10 +27,20 @@ interface RrrJwtPayload {
 }
 
 @Injectable()
-export class AuthMiddleware implements NestMiddleware {
+export class AuthMiddleware implements NestMiddleware, OnModuleInit {
+  private jwtSecret!: string;
+
+  onModuleInit(): void {
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      throw new Error('JWT_SECRET is required for AuthMiddleware');
+    }
+    this.jwtSecret = secret;
+  }
+
   use(
     req: Request & { tenantId?: string; userId?: string },
-    _res: Response,
+    res: Response,
     next: NextFunction,
   ): void {
     const authHeader = req.headers.authorization;
@@ -40,32 +49,27 @@ export class AuthMiddleware implements NestMiddleware {
         ? authHeader.slice(7)
         : undefined;
 
-    if (token) {
-      const secret = process.env.JWT_SECRET;
-      if (!secret) {
-        // JWT_SECRET is not configured — cannot verify tokens safely.
-        // Leave tenantId/userId unset; guards will reject if auth is required.
-        next();
-        return;
-      }
-
-      try {
-        const payload = jwt.verify(token, secret) as RrrJwtPayload;
-
-        if (typeof payload.tenantId === 'string') {
-          req.tenantId = payload.tenantId;
-        }
-        if (typeof payload.userId === 'string') {
-          req.userId = payload.userId;
-        } else if (typeof payload.sub === 'string') {
-          req.userId = payload.sub;
-        }
-      } catch {
-        // Token is invalid or expired; leave tenantId / userId unset.
-        // A guard will reject the request if authentication is required.
-      }
+    if (!token) {
+      res.status(401).json({ error: 'authentication required' });
+      return;
     }
 
-    next();
+    try {
+      const payload = jwt.verify(token, this.jwtSecret) as RrrJwtPayload;
+
+      if (typeof payload.tenantId === 'string') {
+        req.tenantId = payload.tenantId;
+      }
+      if (typeof payload.userId === 'string') {
+        req.userId = payload.userId;
+      } else if (typeof payload.sub === 'string') {
+        req.userId = payload.sub;
+      }
+
+      next();
+    } catch (err) {
+      res.status(401).json({ error: 'invalid or expired token' });
+      return;
+    }
   }
 }
