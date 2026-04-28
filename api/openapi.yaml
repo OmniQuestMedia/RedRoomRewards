@@ -514,6 +514,39 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  /wallets/{userId}/escrow/{escrowId}:
+    get:
+      summary: Get escrow item detail
+      description: |
+        Retrieve full detail for a single escrow item belonging to the user.
+        Tied to the escrow state machine: HELD, SETTLED, REFUNDED, PARTIAL.
+        Terminal states (SETTLED, REFUNDED) are informational only — no CTAs.
+        HELD items surface the linked queue item and the feature that created
+        the hold.
+      operationId: getEscrowDetail
+      tags:
+        - escrow
+      parameters:
+        - $ref: '#/components/parameters/UserIdPath'
+        - name: escrowId
+          in: path
+          required: true
+          description: Escrow item identifier
+          schema:
+            type: string
+        - $ref: '#/components/parameters/RequestIdHeader'
+      responses:
+        '200':
+          description: Escrow item detail retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EscrowItemDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
   # ===== Earn Operations =====
   /earn:
     post:
@@ -719,6 +752,11 @@ paths:
           schema:
             type: string
             enum: [credit, debit, all]
+        - name: reason_code
+          in: query
+          description: Filter by structured reason code (e.g. PURCHASE_EARN, REDEMPTION, REVERSAL)
+          schema:
+            type: string
         - name: startDate
           in: query
           description: Filter transactions after this date (ISO 8601)
@@ -761,7 +799,10 @@ paths:
   /ledger/transactions/{transactionId}:
     get:
       summary: Get transaction details
-      description: Retrieve details of a specific transaction
+      description: |
+        Retrieve full AuditRow detail for a single ledger entry, including
+        correlationId, reason_code, balanceBefore/After, escrowId, queueItemId,
+        and full chain context.
       operationId: getTransaction
       tags:
         - ledger
@@ -769,7 +810,7 @@ paths:
         - name: transactionId
           in: path
           required: true
-          description: Transaction identifier
+          description: Ledger entry identifier
           schema:
             type: string
         - $ref: '#/components/parameters/RequestIdHeader'
@@ -779,7 +820,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Transaction'
+                $ref: '#/components/schemas/TransactionDetail'
         '404':
           $ref: '#/components/responses/NotFound'
         '401':
@@ -1394,7 +1435,88 @@ components:
         pagination:
           $ref: '#/components/schemas/Pagination'
 
-    # Request schemas
+    TransactionDetail:
+      type: object
+      description: |
+        Full AuditRow for a single ledger entry. Returned by
+        GET /ledger/transactions/{transactionId}.
+      required:
+        - id
+        - entryId
+        - userId
+        - accountType
+        - amount
+        - type
+        - balanceState
+        - stateTransition
+        - reason
+        - timestamp
+        - idempotencyKey
+        - previousBalance
+        - newBalance
+        - requestId
+        - currency
+      properties:
+        id:
+          type: string
+          description: Transaction identifier (groups paired entries)
+        entryId:
+          type: string
+          description: Unique ledger entry identifier
+        userId:
+          type: string
+          description: Account identifier (user or model)
+        accountType:
+          type: string
+          enum: [user, model]
+        amount:
+          type: number
+          format: double
+        type:
+          type: string
+          enum: [credit, debit]
+        balanceState:
+          type: string
+          enum: [available, escrow, earned]
+        stateTransition:
+          type: string
+          description: Human-readable state transition (e.g. available→escrow)
+        reason:
+          type: string
+          description: Structured reason code
+          example: performance_request
+        correlationId:
+          type: string
+          description: Correlation ID linking paired ledger entries
+        escrowId:
+          type: string
+          description: Related escrow item ID (if applicable)
+        queueItemId:
+          type: string
+          description: Related queue item ID (if applicable)
+        featureType:
+          type: string
+          description: Feature that initiated the transaction
+        metadata:
+          type: object
+          additionalProperties: true
+        timestamp:
+          type: string
+          format: date-time
+        idempotencyKey:
+          type: string
+        previousBalance:
+          type: number
+          format: double
+        newBalance:
+          type: number
+          format: double
+        requestId:
+          type: string
+        currency:
+          type: string
+
+
     EarnRequest:
       type: object
       required:
@@ -1772,6 +1894,55 @@ components:
         modelId:
           type: string
           description: Model ID if settled
+
+    EscrowItemDetail:
+      type: object
+      description: |
+        Full detail for a single escrow item. Returned by
+        GET /wallets/{userId}/escrow/{escrowId}.
+        States: HELD, SETTLED, REFUNDED, PARTIAL.
+        Terminal states (SETTLED, REFUNDED) are informational only.
+      required:
+        - escrowId
+        - userId
+        - amount
+        - status
+        - queueItemId
+        - featureType
+        - reason
+        - createdAt
+      properties:
+        escrowId:
+          type: string
+        userId:
+          type: string
+        amount:
+          type: number
+          format: double
+        status:
+          type: string
+          enum: [held, settling, settled, refunding, refunded, partial_settling]
+          description: Current escrow state machine status
+        queueItemId:
+          type: string
+        featureType:
+          type: string
+        reason:
+          type: string
+          description: Structured reason code for the hold
+        modelId:
+          type: string
+          description: Model credited on settlement
+        metadata:
+          type: object
+          additionalProperties: true
+        createdAt:
+          type: string
+          format: date-time
+        processedAt:
+          type: string
+          format: date-time
+          description: Timestamp of settlement or refund (absent when HELD)
 
     WebhookAwardPayload:
       type: object
