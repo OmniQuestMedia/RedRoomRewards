@@ -7,6 +7,7 @@ import { ReportingModule } from './reporting/reporting.module';
 import { WhiteLabelModule } from './white-label/white-label.module';
 import { CreatorGiftingPanelModule } from './creator-gifting-panel/creator-gifting-panel.module';
 import { RedRoomLedgerModule } from './redroom-ledger/redroom-ledger.module';
+import { LedgerModule } from './ledger/ledger.module';
 import { WalletModule } from './wallets/wallet.module';
 import { WebhookModule } from './webhooks/webhook.module';
 import { HealthController } from './health/health.controller';
@@ -30,6 +31,7 @@ const SIGNUP_ROUTE = { path: 'api/v1/members/signup', method: RequestMethod.POST
     WhiteLabelModule,
     CreatorGiftingPanelModule,
     RedRoomLedgerModule,
+    LedgerModule,
     WalletModule,
     WebhookModule,
   ],
