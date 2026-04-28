@@ -9,9 +9,11 @@ webhooks, and fraud signals. Not a chat app, not a streaming platform, not a UI.
 
 ## Status
 
-Wave D in progress — observability, rate-limiting, and API hardening.
-452 tests passing across 47 suites. Build clean (`npm run build`).
-See [production schedule](.github/PRODUCTION_SCHEDULE.md) for task-level detail.
+Alpha test prep. Waves A–D closed; post-D wiring audit + security hardening
+landed (fail-closed middleware, signup rate-limit, OpenAPI gated in prod).
+Build clean (`npm run build`); test suite green at last CI run.
+See [production schedule](.github/PRODUCTION_SCHEDULE.md) for task-level detail
+and the open Alpha-prep work list.
 
 ## Key docs
 

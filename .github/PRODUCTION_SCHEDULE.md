@@ -2,7 +2,7 @@
 
 # OmniQuestMediaInc/RedRoomRewards
 
-# Updated: 2026-04-24 (A-CLEAN — Wave A closed, Wave B open)
+# Updated: 2026-04-28 (Waves A–D closed; Alpha test prep open)
 
 # Owner: Kevin B. Hartley, CEO
 
@@ -47,20 +47,22 @@
 
 ## WAVE B — FIZ Wiring + Data Layer (open after A-CLEAN)
 
+_Wave B closed by B-CLEAN (`9788b3b`). Individual rows below landed across PRs #289–#297; SHA shown is the wave-close commit by which all Wave B work was confirmed merged. C and D waves built on top of these._
+
 | ID      | Task                                                                                                                                                                                                                                                                    | Status | Merge SHA |
 | :------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----- | :-------- |
-| B-001   | **CRITICAL** Wire `WalletController.creditPoints` to `PointAccrualService` — remove fabricated-response stub; call real service; create LedgerEntry; mutate Wallet.balance; idempotency wrapper stays. FIZ commit format.                                               | QUEUED | —         |
-| B-002   | **CRITICAL** Wire `WalletController.deductPoints` to `PointRedemptionService` — same pattern as B-001. FIZ commit format.                                                                                                                                               | QUEUED | —         |
-| B-003   | Integration tests — credit→GET shows new balance + ledger entry; deduct→GET shows new balance + ledger entry; idempotency replay = single ledger entry; insufficient balance = rejection + no entry. FIZ commit format. **Depends on B-001, B-002.**                    | QUEUED | —         |
-| B-004   | `Tenant` + `Merchant` models — Mongoose/TypeScript; `merchant_tier` enum; `phase` 1 or 2; indexes; unit tests                                                                                                                                                           | WIP    | —         |
-| B-005   | `LoyaltyAccount` + `IdentityLink` models — Mongoose/TypeScript; unique constraints; unit tests. **Depends on B-004.**                                                                                                                                                   | QUEUED | —         |
-| B-006   | **CRITICAL** Wrap multi-model wallet mutations in `mongoose.startSession` transactions — credit, deduct, escrow hold, escrow release; preserve existing retry logic; update `.env.example` with replica-set note; add rollback test. FIZ commit format.                 | QUEUED | —         |
-| B-007   | `MerchantPairConfig` model — effective-dating; unique partial index; 1:1 default; unit tests. **Depends on B-004.**                                                                                                                                                     | QUEUED | —         |
-| B-008   | CI guard: no hardcoded balance values in `src/` — grep-based script; wired into `ci.yml`; self-tests with bad fixture. FIZ commit format.                                                                                                                               | WIP    | —         |
-| B-009   | CI guard: `tenant_id` scope on all Model queries in `src/services/`, `src/wallets/`, `src/ledger/` — allowlist file for justified exceptions; baseline violation list in report. **Depends on B-004.**                                                                  | QUEUED | —         |
-| B-010   | Extend `IdempotencyService` to redemption, expiration, escrow hold/release; add `idempotency.service.spec.ts`. FIZ commit format.                                                                                                                                       | WIP    | —         |
-| B-011   | Reconciliation job — `ReconciliationService`; `Wallet.balance == sum(PointLot.remaining) == sum(LedgerEntry.delta)`; emit `RECON_MISMATCH` never auto-correct; `npm run reconcile`; admin endpoint behind feature flag. FIZ commit format. **Depends on B-006, B-010.** | WIP    | —         |
-| B-012   | LedgerService invariant tests — append-only reflection check; monotonic sequence; balance projection; non-null correlation_id + reason_code. FIZ commit format.                                                                                                         | WIP    | —         |
+| B-001   | **CRITICAL** Wire `WalletController.creditPoints` to `PointAccrualService` — remove fabricated-response stub; call real service; create LedgerEntry; mutate Wallet.balance; idempotency wrapper stays. FIZ commit format.                                               | DONE   | 9788b3b   |
+| B-002   | **CRITICAL** Wire `WalletController.deductPoints` to `PointRedemptionService` — same pattern as B-001. FIZ commit format.                                                                                                                                               | DONE   | 9788b3b   |
+| B-003   | Integration tests — credit→GET shows new balance + ledger entry; deduct→GET shows new balance + ledger entry; idempotency replay = single ledger entry; insufficient balance = rejection + no entry. FIZ commit format. **Depends on B-001, B-002.**                    | DONE   | 9788b3b   |
+| B-004   | `Tenant` + `Merchant` models — Mongoose/TypeScript; `merchant_tier` enum; `phase` 1 or 2; indexes; unit tests                                                                                                                                                           | DONE   | 9788b3b   |
+| B-005   | `LoyaltyAccount` + `IdentityLink` models — Mongoose/TypeScript; unique constraints; unit tests. **Depends on B-004.**                                                                                                                                                   | DONE   | 9788b3b   |
+| B-006   | **CRITICAL** Wrap multi-model wallet mutations in `mongoose.startSession` transactions — credit, deduct, escrow hold, escrow release; preserve existing retry logic; update `.env.example` with replica-set note; add rollback test. FIZ commit format.                 | DONE   | 9788b3b   |
+| B-007   | `MerchantPairConfig` model — effective-dating; unique partial index; 1:1 default; unit tests. **Depends on B-004.**                                                                                                                                                     | DONE   | 9788b3b   |
+| B-008   | CI guard: no hardcoded balance values in `src/` — grep-based script; wired into `ci.yml`; self-tests with bad fixture. FIZ commit format.                                                                                                                               | DONE   | 9788b3b   |
+| B-009   | CI guard: `tenant_id` scope on all Model queries in `src/services/`, `src/wallets/`, `src/ledger/` — allowlist file for justified exceptions; baseline violation list in report. **Depends on B-004.**                                                                  | DONE   | 9788b3b   |
+| B-010   | Extend `IdempotencyService` to redemption, expiration, escrow hold/release; add `idempotency.service.spec.ts`. FIZ commit format.                                                                                                                                       | DONE   | 9788b3b   |
+| B-011   | Reconciliation job — `ReconciliationService`; `Wallet.balance == sum(PointLot.remaining) == sum(LedgerEntry.delta)`; emit `RECON_MISMATCH` never auto-correct; `npm run reconcile`; admin endpoint behind feature flag. FIZ commit format. **Depends on B-006, B-010.** | DONE   | 9788b3b   |
+| B-012   | LedgerService invariant tests — append-only reflection check; monotonic sequence; balance projection; non-null correlation_id + reason_code. FIZ commit format.                                                                                                         | DONE   | 9788b3b   |
 | B-013   | `admin-ops.service.spec.ts` — full coverage of `src/services/admin-ops.service.ts`. **Depends on A-008.**                                                                                                                                                               | DONE   | 9788b3b   |
 | B-014   | `src/ingest-worker/replay.ts` — replace `any` with `FilterQuery<>`                                                                                                                                                                                                      | DONE   | 9788b3b   |
 | B-015   | Split `src/wallets/types.ts` + `src/services/types.ts` by concern; update all imports; no shape changes                                                                                                                                                                 | DONE   | 9788b3b   |
@@ -132,10 +134,35 @@
 
 ---
 
-## WAVE D — Observability + Rate-Limiting + API Hardening
+## POST-WAVE-D — Wiring Audit + Alpha-prep Hardening
 
-| ID    | Task                                                                                                                                                                        | Status | Merge SHA |
-| :---- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----- | :-------- |
-| D-002 | OpenAPI drift check — `scripts/ci/openapi-drift-check.js` verifies `api/openapi.yaml` exists; full schema-diff deferred until controller surface is stable                 | WIP    | —         |
-| D-003 | Reservation flow E2E — hold → settle → refund lifecycle test at `src/__tests__/e2e/reservation.e2e.spec.ts`; uses WalletService mocks; full DB test deferred to B-006       | WIP    | —         |
-| D-006 | Rate-limit middleware — `src/middleware/rate-limit.middleware.ts`; 60 req/60 s per IP; `express-rate-limit` ^8.4.1; wire into AppModule once route scope confirmed           | WIP    | —         |
+_Landed after D-FINAL during pre-Alpha tightening. Each row links to its merge PR._
+
+| ID  | Task                                                                                                  | Status | Merge SHA / PR |
+| :-- | :---------------------------------------------------------------------------------------------------- | :----- | :------------- |
+| W-1 | Wiring audit — 8 unprotected routes identified                                                        | DONE   | #311           |
+| W-2 | Fail-closed middleware globals + startup env validation                                               | DONE   | #312           |
+| W-3 | Explicit public-route allowlist                                                                       | DONE   | #313           |
+| W-4 | Route-policy + AppModule.configure() + 13 integration tests                                           | DONE   | #314           |
+| W-5 | LEGACY_CONFIGS/ removed (OQMI authorized)                                                             | DONE   | #315           |
+| W-6 | RISK-002 — stricter rate limit on signup endpoint                                                     | DONE   | #316           |
+| W-7 | Gate OpenAPI docs behind `NODE_ENV` in production                                                     | DONE   | #319           |
+| W-8 | Follow-ups: archive README citation fix; remove CodeQL workflow                                       | DONE   | #320           |
+| W-9 | Tier earning multipliers + gift redemption (in-scope for Alpha test)                                  | DONE   | #321           |
+
+---
+
+## ALPHA TEST PREP — open
+
+_Goal: cut `v0.1.0-alpha.1` and run a focused test pack against staging with the Phase-1 merchants (RedRoomPleasures, Cyrano) integrating as third-party tenants over signed API + webhooks._
+
+| ID    | Task                                                                                                                              | Status |
+| :---- | :-------------------------------------------------------------------------------------------------------------------------------- | :----- |
+| ALP-1 | Housekeeping commit — production schedule cleanup + checklist refresh + README status                                              | OPEN   |
+| ALP-2 | `docs/AUTH_CONTRACT.md` — HMAC service-to-service spec for merchant integrations (per-tenant key, replay window, signing canonical) | OPEN   |
+| ALP-3 | `docs/UX_INTEGRATION_BRIEF.md` — auth/rate-limit/idempotency/error-code one-pagers for front-end                                    | OPEN   |
+| ALP-4 | Staging deploy spec — hosting target + Atlas replica set + secrets posture (awaiting CEO hosting decision)                        | OPEN   |
+| ALP-5 | Alpha test pack — financial invariants + tenant/auth boundary + operational                                                       | OPEN   |
+| ALP-6 | First wireframe specs in `docs/ux/` — member onboarding, balance view, ledger/history, redeem, tier badge, ops consoles            | OPEN   |
+| ALP-7 | Phase-1 merchant integration packets — WordPress (RedRoomPleasures) + Cyrano server-to-server                                      | OPEN   |
+| ALP-8 | Cut `v0.1.0-alpha.1` tag once ALP-1..ALP-5 land                                                                                    | OPEN   |
