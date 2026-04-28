@@ -1,31 +1,48 @@
 # RedRoom Rewards™ — Production Deployment Checklist
 
+_Last refreshed: 2026-04-28. Waves A–D + post-D wiring audit closed. Alpha test prep open._
+
 ## Pre-deploy verification
 
 - [ ] `npm run build` succeeds
-- [ ] `npm test` passes (259+ tests)
-- [ ] `npm test -- --coverage` passes (thresholds met)
+- [ ] `npm run test:ci` passes (current floor: ~449 tests / 46 suites; Jest coverage thresholds enforced)
 - [ ] All mandatory 18+ GateGuard AV hooks are active
 - [ ] Promotional Bonus bucket enforced everywhere
-- [ ] OpenAPI docs available at `/api/docs`
-- [ ] Health check at `/health` returns 200
+- [ ] Fail-closed middlewares wired globally; explicit public-route allowlist verified
+- [ ] OpenAPI docs gated behind `NODE_ENV !== 'production'` (or explicit feature flag)
+- [ ] Signup endpoint rate-limit (RISK-002) active
+- [ ] Health check at `/health` returns 200 with DB connectivity + version
+- [ ] CI guards green: charter-integrity, no-hardcoded-balance, tenant-id-scope, openapi-drift
+
+## Infrastructure prerequisites
+
+- [ ] MongoDB **replica set** provisioned (required for `mongoose.startSession` transactions per B-006) — single-node Mongo will not work
+- [ ] Secrets stored in a managed secret store (e.g. AWS Secrets Manager, Doppler) — never in repo or plaintext on host
+- [ ] TLS 1.2+ terminated in front of the API; HTTP→HTTPS redirect
+- [ ] Per-tenant HMAC keys provisioned for Phase-1 merchants (RedRoomPleasures, Cyrano) — see `docs/AUTH_CONTRACT.md` once authored
+- [ ] Structured-log sink wired (pino → CloudWatch / Datadog / equivalent)
+- [ ] External uptime probe against `/health`
 
 ## Staging deployment steps
 
 1. `npm run build`
-2. Set environment variables from `.env.example`
+2. Populate environment variables from `.env.example` against the secret store
 3. `npm run start:prod`
 4. Verify:
-   - Member signup requires AV
+   - Member signup requires AV and is rate-limited
    - AwardingWallet CSV works
    - Creator gifting panel works
    - Burn & reporting endpoints work
+   - Tier earning multipliers + gift redemption (#321) behave per spec
+   - Webhook emit succeeds against a test merchant; HMAC signature validates on receive
 
 ## Production go-live
 
+- Tag the release SHA (e.g. `v0.1.0-alpha.1` for Alpha)
 - Update PRODUCTION_SCHEDULE.md with final SHA
 - Enable branch protection (require up-to-date, require CI)
-- Set up monitoring / logging
-- Add rate limiting
+- Confirm monitoring / logging / alerting wired
+- Confirm rate limiting active on all public routes
+- Rotate any default secrets shipped in `.env.example`
 
-Engine is now complete and production-ready.
+Engine is feature-complete for Alpha. Remaining gates are operational (hosting, monitoring, merchant-integration handshake) — see `.github/PRODUCTION_SCHEDULE.md` § ALPHA TEST PREP.
