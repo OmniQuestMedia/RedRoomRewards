@@ -68,6 +68,9 @@ export const TENANT_SCOPED_ROUTES: RouteInfo[] = [
   { path: 'api/v1/white-label/config', method: RequestMethod.POST },
   { path: 'api/v1/white-label/config/:merchantId', method: RequestMethod.GET },
   { path: 'api/v1/creator/gifting-panel/state', method: RequestMethod.GET },
+  // Screen 06 — Redemption Flow (Member)
+  { path: 'api/v1/redemptions', method: RequestMethod.POST },
+  { path: 'api/v1/redemptions/eligible', method: RequestMethod.GET },
 ];
 
 /**
@@ -84,6 +87,8 @@ export const TENANT_SCOPED_ROUTES: RouteInfo[] = [
  */
 export const AUTH_ONLY_ROUTES: RouteInfo[] = [
   { path: 'api/v1/reports/liability', method: RequestMethod.GET },
+  // Screen 07 — Merchant Admin Awarding Wallet (step-up auth enforced in service)
+  { path: 'api/v1/admin/earn', method: RequestMethod.POST },
   { path: 'api/v1/ledger/transactions', method: RequestMethod.GET },
   { path: 'api/v1/ledger/transactions/:entryId', method: RequestMethod.GET },
   { path: 'api/v1/wallets/:userId/escrow/:escrowId', method: RequestMethod.GET },

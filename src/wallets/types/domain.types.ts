@@ -74,6 +74,12 @@ export enum TransactionReason {
   ROPE_DROP_TIMEOUT = 'rope_drop_timeout',
   ADMIN_REFUND = 'admin_refund',
 
+  // Merchant order redemption
+  MERCHANT_ORDER_REDEMPTION = 'merchant_order_redemption',
+
+  // Admin award reasons (Screen 07)
+  MODEL_GIFT = 'model_gift',
+
   // Debit reasons
   POINT_EXPIRY = 'point_expiry',
   ADMIN_DEBIT = 'admin_debit',
