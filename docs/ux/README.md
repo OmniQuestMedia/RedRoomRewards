@@ -83,6 +83,12 @@ with a `[v2 stub]` tag and a brief note.
 | 01-onboarding  | GateGuard + Step-Up Auth Flow   | Guest → Member / Model / Operator (all)   | draft  |
 | 02             | Redeem flow                     | Member                                    | draft  |
 | 03             | Merchant admin overview         | Merchant Admin                            | draft  |
+| #   | Screen                    | Role           | Status   |
+| --- | ------------------------- | -------------- | -------- |
+| 00  | Shared / cross-stack components | All      | reviewed |
+| 01  | Member balance            | Member         | draft    |
+| 02  | Redeem flow               | Member         | draft    |
+| 03  | Merchant admin overview   | Merchant Admin | draft    |
 
 More screens to follow as Alpha-prep wave continues. Recommended next batch:
 - 04 — Ledger / transaction history (Member)
