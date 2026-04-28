@@ -111,12 +111,12 @@ export class InsufficientBalanceError extends Error {
   }
 }
 
-export class NoCaplConfigError extends Error {
+export class NoCapConfigError extends Error {
   constructor(tenantId: string, merchantId: string, tierName: string) {
     super(
       `No active tier cap config for tenant=${tenantId} merchant=${merchantId} tier=${tierName}`,
     );
-    this.name = 'NoCaplConfigError';
+    this.name = 'NoCapConfigError';
   }
 }
 
@@ -285,7 +285,7 @@ export class RedemptionService {
       .lean();
 
     if (!capConfig) {
-      throw new NoCaplConfigError(request.tenantId, request.merchantId, request.tierName);
+      throw new NoCapConfigError(request.tenantId, request.merchantId, request.tierName);
     }
 
     const tierCapPct = capConfig.redemption_cap_pct;
@@ -322,7 +322,7 @@ export class RedemptionService {
       .lean();
 
     if (!capConfig) {
-      throw new NoCaplConfigError(tenantId, merchantId, tierName);
+      throw new NoCapConfigError(tenantId, merchantId, tierName);
     }
 
     const maxAllowed = Math.floor((capConfig.redemption_cap_pct / 100) * transactionValue);
