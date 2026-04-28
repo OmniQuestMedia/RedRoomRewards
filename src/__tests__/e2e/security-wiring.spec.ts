@@ -108,10 +108,12 @@ describe('Security Wiring — PUBLIC_ROUTES policy', () => {
 // ---------------------------------------------------------------------------
 
 describe('Security Wiring — protected route classification', () => {
-  it('should classify 7 routes as AUTH-AND-TENANT', () => {
-    expect(TENANT_SCOPED_ROUTES).toHaveLength(7);
+  it('should classify 9 routes as AUTH-AND-TENANT', () => {
+    expect(TENANT_SCOPED_ROUTES).toHaveLength(9);
   });
 
+  it('should classify 2 routes as AUTH-ONLY', () => {
+    expect(AUTH_ONLY_ROUTES).toHaveLength(2);
   it('should classify 4 routes as AUTH-ONLY', () => {
     expect(AUTH_ONLY_ROUTES).toHaveLength(4);
   });
