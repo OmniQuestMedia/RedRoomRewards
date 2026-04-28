@@ -6,7 +6,7 @@
 
 **Authority:** this document defers to `docs/DOMAIN_GLOSSARY.md` (canonical naming) and `api/openapi.yaml` (contract). On any conflict, those win.
 
-**Status:** Alpha-frozen. Surface is locked for the duration of Alpha test except for security fixes. Changes require a CHORE/API ticket.
+**Status:** Alpha-ready. Wireframe specs 00–07 are complete and linked from `docs/ux/README.md`. Surface is locked for the duration of Alpha test except for security fixes. Changes require a CHORE/API ticket.
 
 ---
 
