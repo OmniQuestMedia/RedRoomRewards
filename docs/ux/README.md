@@ -77,24 +77,19 @@ with a `[v2 stub]` tag and a brief note.
 
 ## Index
 
-| #              | Screen                          | Role                                      | Status |
-| -------------- | ------------------------------- | ----------------------------------------- | ------ |
-| 01             | Member balance                  | Member                                    | draft  |
-| 01-onboarding  | GateGuard + Step-Up Auth Flow   | Guest → Member / Model / Operator (all)   | draft  |
-| 02             | Redeem flow                     | Member                                    | draft  |
-| 03             | Merchant admin overview         | Merchant Admin                            | draft  |
-| #   | Screen                    | Role           | Status   |
-| --- | ------------------------- | -------------- | -------- |
-| 00  | Shared / cross-stack components | All      | reviewed |
-| 01  | Member balance            | Member         | draft    |
-| 02  | Redeem flow               | Member         | draft    |
-| 03  | Merchant admin overview   | Merchant Admin | draft    |
+| #             | Screen                          | Role                                    | Status   |
+| ------------- | ------------------------------- | --------------------------------------- | -------- |
+| 00            | [Shared / cross-stack components](./00-shared-components.md) | All            | reviewed |
+| 01            | [Member balance](./01-member-balance.md)                     | Member         | draft    |
+| 01-onboarding | [GateGuard + Step-Up Auth Flow](./01-onboarding-gateflows.md) | Guest → Member / Model / Operator (all) | draft |
+| 02            | [Redeem flow](./02-redeem-flow.md)                           | Member         | draft    |
+| 03            | [Merchant admin overview](./03-merchant-admin-overview.md)   | Merchant Admin | draft    |
+| 04            | [Ledger / transaction history](./04-ledger-transaction-history.md) | Member   | draft    |
+| 05            | [Escrow detail](./05-escrow-detail.md)                       | Member         | draft    |
+| 06            | [Redemption flow (model gifting)](./06-redemption-flow.md)   | Model          | draft    |
+| 07            | [Merchant admin awarding wallet](./07-merchant-admin-awarding.md) | Merchant Admin / OQMI Operator | draft |
 
 More screens to follow as Alpha-prep wave continues. Recommended next batch:
-- 04 — Ledger / transaction history (Member)
-- 05 — Escrow detail (Member)
-- 06 — Model gifting panel (Model)
-- 07 — Awarding wallet console (OQMI Operator)
 - 08 — Reporting dashboard (Merchant Admin)
 - 09 — Sign-in / sign-up (with AV gate)
 - 10 — Tier badge component (used across screens)
