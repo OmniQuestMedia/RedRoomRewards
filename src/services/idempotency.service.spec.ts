@@ -37,6 +37,8 @@ describe('IdempotencyService (B-010)', () => {
         ESCROW_RELEASE: 'escrow_release',
         ESCROW_SETTLE: 'escrow_settle',
         ESCROW_REFUND: 'escrow_refund',
+        MERCHANT_REDEMPTION: 'merchant_redemption',
+        ADMIN_EARN: 'admin_earn',
       });
     });
   });

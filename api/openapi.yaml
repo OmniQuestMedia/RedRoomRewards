@@ -698,6 +698,177 @@ paths:
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
 
+  # ===== Screen 06 — Redemption Flow (Member) =====
+  /redemptions:
+    post:
+      summary: Apply RRR Points to a merchant order (idempotent)
+      description: |
+        Places the requested `redemptionAmount` of RRR Points into escrow
+        against a qualifying merchant order. Validates that the amount does not
+        exceed the member's active tier cap and that the available balance is
+        sufficient.
+
+        **Idempotent**: supply the same `X-Idempotency-Key` to replay safely
+        (returns 200 with the original response body).
+
+        **State machine**: Validation → Pending (escrow held) → Settled / Partial / Refunded
+
+        **Error codes**: TIER_CAP_EXCEEDED (422), INSUFFICIENT_BALANCE (402),
+        IDEMPOTENCY_REPLAY (200)
+      operationId: createRedemption
+      tags:
+        - redeem
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRedemptionRequest'
+            examples:
+              merchant_order:
+                summary: Apply 500 points to a merchant order
+                value:
+                  merchantId: "merchant-abc"
+                  orderId: "order-xyz-789"
+                  transactionValue: 5000
+                  redemptionAmount: 500
+                  tierName: "GOLD"
+                  idempotencyKey: "idem-redeem-001"
+      responses:
+        '201':
+          description: Redemption created — points moved to escrow
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateRedemptionResponse'
+              examples:
+                success:
+                  summary: Successful redemption (escrow hold)
+                  value:
+                    redemptionId: "rdm-abc123"
+                    escrowId: "esc-def456"
+                    userId: "user-123"
+                    orderId: "order-xyz-789"
+                    redemptionAmount: 500
+                    newAvailableBalance: 1500
+                    escrowBalance: 500
+                    escrowExpiry: "2026-05-01T12:00:00Z"
+                    status: "pending"
+        '200':
+          description: Idempotency replay — returning cached result (IDEMPOTENCY_REPLAY)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateRedemptionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          description: Insufficient balance (INSUFFICIENT_BALANCE)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                insufficient_balance:
+                  value:
+                    error: "INSUFFICIENT_BALANCE"
+                    message: "Insufficient balance: required 500, available 200"
+                    details:
+                      required: 500
+                      available: 200
+        '422':
+          description: Tier cap exceeded (TIER_CAP_EXCEEDED)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                tier_cap_exceeded:
+                  value:
+                    error: "TIER_CAP_EXCEEDED"
+                    message: "Redemption amount 500 exceeds tier cap of 35% (max 350)"
+                    details:
+                      allowed: 350
+                      requested: 500
+                      capPct: 35
+
+  /redemptions/eligible:
+    get:
+      summary: Check member redemption eligibility for a merchant order
+      description: |
+        Returns the member's current available balance alongside the active tier
+        cap for this merchant. The client uses this response to populate:
+        - Slider max / constraints
+        - Copy slot: "{tierCapPct}% max redemption"
+        - TierBadge
+        - Confirm Redemption button enabled state
+      operationId: getRedemptionEligible
+      tags:
+        - redeem
+      parameters:
+        - $ref: '#/components/parameters/RequestIdHeader'
+        - name: merchantId
+          in: query
+          required: true
+          description: Merchant identifier
+          schema:
+            type: string
+        - name: transactionValue
+          in: query
+          required: true
+          description: Full order value for cap calculation
+          schema:
+            type: number
+            minimum: 0
+        - name: tierName
+          in: query
+          required: true
+          description: Member's current loyalty tier
+          schema:
+            type: string
+            enum: [PLATINUM, GOLD, SILVER, MEMBER, GUEST]
+        - name: userId
+          in: query
+          required: false
+          description: Member identifier (falls back to JWT sub)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Eligibility check result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedemptionEligibleResponse'
+              examples:
+                eligible:
+                  summary: Member is eligible
+                  value:
+                    eligible: true
+                    availableBalance: 2000
+                    tierName: "GOLD"
+                    tierCapPct: 35
+                    maxRedeemableAmount: 350
+                    tierCapLabel: "35% max redemption"
+                ineligible:
+                  summary: Member has no balance
+                  value:
+                    eligible: false
+                    availableBalance: 0
+                    tierName: "SILVER"
+                    tierCapPct: 20
+                    maxRedeemableAmount: 0
+                    tierCapLabel: "20% max redemption"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
   # ===== Ledger Operations =====
   /ledger/transactions:
     get:
@@ -1071,6 +1242,95 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+
+  # ===== Screen 07 — Merchant Admin Awarding Wallet =====
+  /admin/earn:
+    post:
+      summary: Award bonus/promotional points to a member or model (Merchant Admin)
+      description: |
+        Allows a Merchant Admin to award bonus or promotional points to a member
+        or model. Points are credited to the **Promotional Bonus** wallet bucket.
+
+        **Step-up authentication required**: the caller's Bearer JWT must carry
+        `step_up: true` (set by the IdP after the StepUpModal re-auth challenge
+        completes on the client). Requests without this claim receive 403.
+
+        **Reason codes**:
+        - `PROMO_BONUS` — promotional bonus to a member
+        - `MODEL_GIFT`  — gift points to a model
+
+        An immutable AuditRow is created in the ledger for every award.
+
+        **Idempotent** on `X-Idempotency-Key`.
+      operationId: adminEarnAward
+      tags:
+        - admin
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminEarnRequest'
+            examples:
+              promo_bonus:
+                summary: Award promotional bonus to a member
+                value:
+                  recipientId: "user-456"
+                  recipientType: "member"
+                  amount: 1000
+                  reasonCode: "PROMO_BONUS"
+                  walletBucket: "promotional_bonus"
+                  merchantId: "merchant-abc"
+              model_gift:
+                summary: Gift points to a model
+                value:
+                  recipientId: "model-789"
+                  recipientType: "model"
+                  amount: 500
+                  reasonCode: "MODEL_GIFT"
+                  walletBucket: "promotional_bonus"
+                  merchantId: "merchant-abc"
+      responses:
+        '201':
+          description: Points awarded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminEarnResponse'
+              examples:
+                success:
+                  value:
+                    transactionId: "txn-earn-001"
+                    auditId: "aud-001"
+                    recipientId: "user-456"
+                    recipientType: "member"
+                    amount: 1000
+                    reasonCode: "PROMO_BONUS"
+                    walletBucket: "promotional_bonus"
+                    merchantId: "merchant-abc"
+                    timestamp: "2026-04-28T17:00:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Step-up authentication required (STEP_UP_REQUIRED)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                step_up_required:
+                  value:
+                    error: "STEP_UP_REQUIRED"
+                    message: "Step-up authentication is required for this operation"
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
 
   # ===== Webhook Endpoints =====
   /webhooks/external/award:
@@ -2086,6 +2346,199 @@ components:
           type: string
           description: Request ID for tracing
 
+    # ===== Screen 06 — Redemption Flow Schemas =====
+    CreateRedemptionRequest:
+      type: object
+      required:
+        - merchantId
+        - orderId
+        - transactionValue
+        - redemptionAmount
+        - tierName
+        - idempotencyKey
+      properties:
+        userId:
+          type: string
+          description: Member identifier (falls back to JWT sub if omitted)
+          maxLength: 128
+        merchantId:
+          type: string
+          description: Merchant identifier
+          maxLength: 128
+        orderId:
+          type: string
+          description: Merchant-side order reference
+          maxLength: 128
+        transactionValue:
+          type: number
+          description: Full monetary value of the order (used for tier cap calculation)
+          minimum: 0
+        redemptionAmount:
+          type: integer
+          description: RRR points to apply to the order
+          minimum: 1
+        tierName:
+          type: string
+          description: Member's current loyalty tier
+          enum: [PLATINUM, GOLD, SILVER, MEMBER, GUEST]
+        idempotencyKey:
+          type: string
+          description: Caller-supplied idempotency key
+          maxLength: 255
+        requestId:
+          type: string
+          description: Tracing ID
+          maxLength: 128
+
+    CreateRedemptionResponse:
+      type: object
+      required:
+        - redemptionId
+        - escrowId
+        - userId
+        - orderId
+        - redemptionAmount
+        - newAvailableBalance
+        - escrowBalance
+        - escrowExpiry
+        - status
+      properties:
+        redemptionId:
+          type: string
+          description: Unique redemption identifier
+        escrowId:
+          type: string
+          description: Escrow hold identifier
+        userId:
+          type: string
+        orderId:
+          type: string
+        redemptionAmount:
+          type: integer
+          description: Points placed into escrow
+        newAvailableBalance:
+          type: integer
+          description: Member's remaining available balance
+        escrowBalance:
+          type: integer
+          description: Member's total escrow balance after this redemption
+        escrowExpiry:
+          type: string
+          format: date-time
+          description: ISO-8601 timestamp when the escrow hold expires
+        status:
+          type: string
+          enum: [pending]
+          description: Current redemption status
+
+    RedemptionEligibleResponse:
+      type: object
+      required:
+        - eligible
+        - availableBalance
+        - tierName
+        - tierCapPct
+        - maxRedeemableAmount
+        - tierCapLabel
+      properties:
+        eligible:
+          type: boolean
+          description: Whether the member can apply any points to this order
+        availableBalance:
+          type: integer
+          description: Current available point balance
+        tierName:
+          type: string
+          enum: [PLATINUM, GOLD, SILVER, MEMBER, GUEST]
+        tierCapPct:
+          type: number
+          description: Maximum redemption as a percentage of transactionValue
+        maxRedeemableAmount:
+          type: integer
+          description: Maximum points redeemable (min of cap and balance)
+        tierCapLabel:
+          type: string
+          description: Copy slot — e.g. "35% max redemption"
+
+    # ===== Screen 07 — Admin Earn Schemas =====
+    AdminEarnRequest:
+      type: object
+      required:
+        - recipientId
+        - recipientType
+        - amount
+        - reasonCode
+        - walletBucket
+        - merchantId
+        - idempotencyKey
+      properties:
+        recipientId:
+          type: string
+          description: Member or model ID receiving the award
+          maxLength: 128
+        recipientType:
+          type: string
+          enum: [member, model]
+        amount:
+          type: integer
+          description: Points to award (must be positive)
+          minimum: 1
+        reasonCode:
+          type: string
+          enum: [PROMO_BONUS, MODEL_GIFT]
+          description: Structured reason code for the award
+        walletBucket:
+          type: string
+          enum: [promotional_bonus]
+          description: Wallet bucket for the award
+        merchantId:
+          type: string
+          description: Merchant initiating the award
+          maxLength: 128
+        idempotencyKey:
+          type: string
+          description: Caller-supplied idempotency key
+          maxLength: 255
+        requestId:
+          type: string
+          maxLength: 128
+
+    AdminEarnResponse:
+      type: object
+      required:
+        - transactionId
+        - auditId
+        - recipientId
+        - recipientType
+        - amount
+        - reasonCode
+        - walletBucket
+        - merchantId
+        - timestamp
+      properties:
+        transactionId:
+          type: string
+        auditId:
+          type: string
+        recipientId:
+          type: string
+        recipientType:
+          type: string
+          enum: [member, model]
+        amount:
+          type: integer
+        reasonCode:
+          type: string
+          enum: [PROMO_BONUS, MODEL_GIFT]
+        walletBucket:
+          type: string
+          enum: [promotional_bonus]
+        merchantId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
   # ===== Responses =====
   responses:
     BadRequest:
@@ -2122,6 +2575,14 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
+
+    # ===== Screen 06 Schemas =====
+    CreateRedemptionRequest:
+      description: Request body for POST /redemptions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CreateRedemptionRequest'
 
   # ===== Security Schemes =====
   securitySchemes:

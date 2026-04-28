@@ -9,6 +9,8 @@ import { CreatorGiftingPanelModule } from './creator-gifting-panel/creator-gifti
 import { RedRoomLedgerModule } from './redroom-ledger/redroom-ledger.module';
 import { WalletModule } from './wallets/wallet.module';
 import { WebhookModule } from './webhooks/webhook.module';
+import { RedemptionModule } from './redemption/redemption.module';
+import { AdminModule } from './admin/admin.module';
 import { HealthController } from './health/health.controller';
 import productionConfig from './config/production.config';
 import appConfig from './config/app.config';
@@ -32,6 +34,8 @@ const SIGNUP_ROUTE = { path: 'api/v1/members/signup', method: RequestMethod.POST
     RedRoomLedgerModule,
     WalletModule,
     WebhookModule,
+    RedemptionModule,
+    AdminModule,
   ],
   controllers: [HealthController],
 })
