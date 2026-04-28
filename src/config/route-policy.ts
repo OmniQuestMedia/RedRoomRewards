@@ -79,9 +79,17 @@ export const TENANT_SCOPED_ROUTES: RouteInfo[] = [
  * Cross-tenant liability reporting runs with platform-level credentials that
  * are not scoped to a single tenant. The reporter identity is still verified
  * by AuthMiddleware; TenantScopeMiddleware is excluded.
+ *
+ * Ledger transaction history (Screen 04) and escrow detail (Screen 05) are
+ * auth-only — they require a valid JWT so the caller is identified, but they
+ * are read-only queries that do not mutate state and therefore do not require
+ * a tenant scope claim.
  */
 export const AUTH_ONLY_ROUTES: RouteInfo[] = [
   { path: 'api/v1/reports/liability', method: RequestMethod.GET },
   // Screen 07 — Merchant Admin Awarding Wallet (step-up auth enforced in service)
   { path: 'api/v1/admin/earn', method: RequestMethod.POST },
+  { path: 'api/v1/ledger/transactions', method: RequestMethod.GET },
+  { path: 'api/v1/ledger/transactions/:entryId', method: RequestMethod.GET },
+  { path: 'api/v1/wallets/:userId/escrow/:escrowId', method: RequestMethod.GET },
 ];
