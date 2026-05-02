@@ -108,12 +108,34 @@ describe('Security Wiring — PUBLIC_ROUTES policy', () => {
 // ---------------------------------------------------------------------------
 
 describe('Security Wiring — protected route classification', () => {
-  it('should classify 7 routes as AUTH-AND-TENANT', () => {
-    expect(TENANT_SCOPED_ROUTES).toHaveLength(7);
+  it('should classify 9 routes as AUTH-AND-TENANT', () => {
+    expect(TENANT_SCOPED_ROUTES).toHaveLength(9);
   });
 
-  it('should classify 1 route as AUTH-ONLY', () => {
-    expect(AUTH_ONLY_ROUTES).toHaveLength(1);
+  it('should classify 2 routes as AUTH-ONLY', () => {
+    expect(AUTH_ONLY_ROUTES).toHaveLength(2);
+  it('should classify 4 routes as AUTH-ONLY', () => {
+    expect(AUTH_ONLY_ROUTES).toHaveLength(4);
+  });
+
+  it('should include ledger transaction history endpoints in AUTH-ONLY', () => {
+    const listRoute = AUTH_ONLY_ROUTES.find((r) => r.path === 'api/v1/ledger/transactions');
+    expect(listRoute).toBeDefined();
+    expect(listRoute!.method).toBe(RequestMethod.GET);
+
+    const detailRoute = AUTH_ONLY_ROUTES.find(
+      (r) => r.path === 'api/v1/ledger/transactions/:entryId',
+    );
+    expect(detailRoute).toBeDefined();
+    expect(detailRoute!.method).toBe(RequestMethod.GET);
+  });
+
+  it('should include escrow detail endpoint in AUTH-ONLY', () => {
+    const escrowRoute = AUTH_ONLY_ROUTES.find(
+      (r) => r.path === 'api/v1/wallets/:userId/escrow/:escrowId',
+    );
+    expect(escrowRoute).toBeDefined();
+    expect(escrowRoute!.method).toBe(RequestMethod.GET);
   });
 
   it('should put the cross-tenant liability report in AUTH-ONLY (not tenant-scoped)', () => {
