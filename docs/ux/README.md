@@ -88,11 +88,11 @@ with a `[v2 stub]` tag and a brief note.
 | 05            | [Escrow detail](./05-escrow-detail.md)                       | Member         | draft    |
 | 06            | [Redemption flow (model gifting)](./06-redemption-flow.md)   | Model          | draft    |
 | 07            | [Merchant admin awarding wallet](./07-merchant-admin-awarding.md) | Merchant Admin / OQMI Operator | draft |
+| 08            | [Reporting dashboard](./08-reporting-dashboard.md)           | Merchant Admin (cross-tenant variant for OQMI Operator) | draft |
 
-More screens to follow as Alpha-prep wave continues. Recommended next batch:
-- 08 — Reporting dashboard (Merchant Admin)
-- 09 — Sign-in / sign-up (with AV gate)
-- 10 — Tier badge component (used across screens)
+Recommended next batch (deferred / covered elsewhere):
+- 09 — Sign-in / sign-up — covered by [01-onboarding](./01-onboarding-gateflows.md); no separate screen needed for Alpha.
+- 10 — Tier badge component — already specified in [00-shared-components.md](./00-shared-components.md); no separate screen needed.
 
 ---
 
