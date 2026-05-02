@@ -33,6 +33,15 @@ final class RRR_Webhook_Handler {
             'callback'            => [self::class, 'handle'],
             'permission_callback' => '__return_true', // Auth is HMAC, not nonce / cap.
         ]);
+        add_action('rrr_webhook_cleanup', [self::class, 'cleanup_dedupe_record']);
+    }
+
+    /**
+     * WP-cron callback: remove an expired dedupe-claim option. Scheduled at
+     * the same time the claim is created (now + DEDUPE_TTL_SECONDS).
+     */
+    public static function cleanup_dedupe_record(string $dedupe_key): void {
+        delete_option($dedupe_key);
     }
 
     public static function handle(WP_REST_Request $request): WP_REST_Response {
@@ -60,9 +69,24 @@ final class RRR_Webhook_Handler {
         }
 
         // Idempotent dispatch — process once, return 200 on duplicates.
+        // Atomic-claim via add_option: WP options have a unique-key constraint
+        // at the DB layer, so add_option() returns true only for the first
+        // caller; concurrent deliveries of the same event_id race on insert and
+        // exactly one wins. (get_transient + set_transient is non-atomic and
+        // would let duplicates slip through under burst delivery.)
         $dedupe_key = 'rrr_webhook_seen_' . md5($event_id);
-        if (get_transient($dedupe_key) !== false) {
+        $claimed = add_option($dedupe_key, [
+            'claimed_at' => time(),
+            'expires_at' => time() + self::DEDUPE_TTL_SECONDS,
+        ], '', false);
+        if (!$claimed) {
             return new WP_REST_Response(['status' => 'duplicate', 'event_id' => $event_id], 200);
+        }
+        // Schedule cleanup so the options table doesn't grow without bound.
+        // (WP cron is approximate; that's fine — we only need it to fire
+        // sometime after DEDUPE_TTL_SECONDS so the dedupe window is honored.)
+        if (!wp_next_scheduled('rrr_webhook_cleanup', [$dedupe_key])) {
+            wp_schedule_single_event(time() + self::DEDUPE_TTL_SECONDS, 'rrr_webhook_cleanup', [$dedupe_key]);
         }
 
         $event_type = isset($payload['type']) && is_string($payload['type'])
@@ -96,17 +120,26 @@ final class RRR_Webhook_Handler {
         if (!is_string($tenant) || $tenant !== RRR_Config::tenant_id()) {
             return false;
         }
-        if (!is_string($key_id) || $key_id === '') {
+        // AUTH_CONTRACT.md §11: unknown X-RRR-Key-Id → 401 AUTH_INVALID. The
+        // key id must match the configured active key. (Future overlap-style
+        // rotation will accept either the active or the prior key from a small
+        // allowlist; for Alpha we have one active key per tenant.)
+        if (!is_string($key_id) || $key_id !== RRR_Config::api_key_id()) {
             return false;
         }
         if (!is_string($ts) || !is_string($nonce) || !is_string($sig)) {
             return false;
         }
 
-        $ts_unix = strtotime($ts);
-        if ($ts_unix === false) {
+        // AUTH_CONTRACT.md §3 requires X-RRR-Timestamp to be RFC 3339 UTC
+        // (e.g. "2026-04-28T13:42:00Z"). strtotime() is too permissive — it
+        // accepts "now", "yesterday", and other natural-language inputs.
+        // Strict-parse the exact format and reject anything else.
+        $parsed = DateTimeImmutable::createFromFormat('Y-m-d\TH:i:s\Z', $ts, new DateTimeZone('UTC'));
+        if ($parsed === false || $parsed->format('Y-m-d\TH:i:s\Z') !== $ts) {
             return false;
         }
+        $ts_unix = $parsed->getTimestamp();
         if (abs(time() - $ts_unix) > self::REPLAY_WINDOW_SECONDS) {
             return false;
         }

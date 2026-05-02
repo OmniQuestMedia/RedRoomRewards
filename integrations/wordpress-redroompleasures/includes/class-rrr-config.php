@@ -64,10 +64,10 @@ final class RRR_Config {
         }
 
         $secret = constant('RRR_API_SECRET');
-        if (strlen($secret) < 32) {
+        if (strlen($secret) !== 64 || !ctype_xdigit($secret)) {
             return new WP_Error(
                 'rrr_config_weak_secret',
-                'RRR_API_SECRET must be at least 32 characters (256 bits hex).',
+                'RRR_API_SECRET must be exactly 64 hexadecimal characters (256 bits) per docs/AUTH_CONTRACT.md §2.',
             );
         }
 

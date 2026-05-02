@@ -22,6 +22,14 @@ final class RRR_WooCommerce_Hooks {
     private const META_EARN_KEY = '_rrr_earn_idempotency_key';
     /** WC order meta key recording successful earn (so we don't retry forever). */
     private const META_EARN_LEDGER_ID = '_rrr_earn_ledger_entry_id';
+    /**
+     * WC order meta key recording a permanent (4xx) earn failure. Set when
+     * the server returns a deterministic rejection (e.g. EARN_NOT_ALLOWED for
+     * Diamond Concierge per CEO D3) so the hook does NOT re-fire on subsequent
+     * status transitions (processing → completed is a common case).
+     * Holds the X-Request-ID and the server error code for traceability.
+     */
+    private const META_EARN_PERMANENT_FAILURE = '_rrr_earn_permanent_failure';
     /** WC order meta key for the redeem idempotency key. */
     private const META_REDEEM_KEY = '_rrr_redeem_idempotency_key';
     /** WC order meta key recording successful redeem. */
@@ -46,6 +54,13 @@ final class RRR_WooCommerce_Hooks {
 
         // Skip if we've already recorded a successful earn for this order.
         if ($order->get_meta(self::META_EARN_LEDGER_ID) !== '') {
+            return;
+        }
+
+        // Skip if we've previously recorded a deterministic 4xx failure.
+        // Without this, processing → completed (a common WC transition) would
+        // re-fire the hook and re-hit the same server-side rejection.
+        if ($order->get_meta(self::META_EARN_PERMANENT_FAILURE) !== '') {
             return;
         }
 
@@ -93,11 +108,26 @@ final class RRR_WooCommerce_Hooks {
         }
 
         // Don't retry on 4xx — those are deterministic errors (e.g. 422
-        // EARN_NOT_ALLOWED for a Diamond Concierge member). Note in the order
-        // and move on. Background retries on 5xx are TODO (Action Scheduler).
+        // EARN_NOT_ALLOWED for a Diamond Concierge member). Mark the order as
+        // permanently failed so subsequent status transitions don't re-fire,
+        // and add a note. Background retries on 5xx are TODO (Action Scheduler).
+        $http_code = (int) $result['http_code'];
+        $is_permanent = ($http_code >= 400 && $http_code < 500);
+
+        if ($is_permanent) {
+            $order->update_meta_data(self::META_EARN_PERMANENT_FAILURE, wp_json_encode([
+                'http_code'  => $http_code,
+                'error_code' => $result['error_code'] ?? null,
+                'request_id' => $result['request_id'] ?? null,
+                'failed_at'  => gmdate('c'),
+            ]));
+            $order->save();
+        }
+
         $order->add_order_note(sprintf(
-            'RRR earn FAILED: http=%d code=%s request_id=%s',
-            $result['http_code'],
+            'RRR earn FAILED%s: http=%d code=%s request_id=%s',
+            $is_permanent ? ' (permanent — will not retry)' : ' (transient — may retry)',
+            $http_code,
             $result['error_code'] ?? '-',
             $result['request_id'] ?? '-',
         ));

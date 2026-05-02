@@ -68,8 +68,16 @@ const SUSPECT_NAME_RE = new RegExp(
   'i',
 );
 
-// Match log call sites. We treat console.* and logger.* as suspect call shapes.
-// We also count a `pino()` call if it's logging an object literal.
+// Match log call sites. We treat the following call shapes as suspect:
+//   - console.{log,info,warn,error,debug}
+//   - logger.{info,warn,error,debug,trace}
+//   - pinoLogger.{info,warn,error,debug,trace}
+//
+// We deliberately do NOT match `pino(...)` — that's the constructor, not a
+// log call, and matching it would create false positives (`const pino = require('pino')`
+// wouldn't pass, but `const log = pino()` would, and the latter is a constructor
+// call without any logged value to leak). The codebase logs through `logger.info`
+// etc.; if a new logger entrypoint is added, extend the regex.
 const LOG_CALL_RE = /(?:^|[^A-Za-z0-9_])(?:console\.(?:log|info|warn|error|debug)|logger\.(?:info|warn|error|debug|trace)|pinoLogger\.(?:info|warn|error|debug|trace))\s*\(/;
 
 function isExcluded(rel) {

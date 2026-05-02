@@ -166,6 +166,12 @@ final class RRR_Client {
             $error_code = $decoded['code'];
         }
 
+        // Per docs/integrations/redroompleasures-wordpress.md §9 logging hygiene:
+        // every failure logs path, http_code, reason, request_id (and nothing else).
+        if (!$ok) {
+            self::log_failure($path, $http_code, $error_code ?? 'no_error_code', is_string($request_id) ? $request_id : null);
+        }
+
         return [
             'ok'         => $ok,
             'http_code'  => $http_code,

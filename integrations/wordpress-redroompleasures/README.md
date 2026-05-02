@@ -61,7 +61,7 @@ define('RRR_TENANT_ID',   'redroompleasures');
 ### Constraints enforced by the plugin
 
 - `RRR_API_BASE` and `RRR_WEBHOOK_URL` must use HTTPS (or `localhost` for dev).
-- `RRR_API_SECRET` must be at least 32 characters (256 bits hex).
+- `RRR_API_SECRET` must be **exactly 64 hexadecimal characters** (256 bits) per [`docs/AUTH_CONTRACT.md`](../../docs/AUTH_CONTRACT.md) §2. The plugin uses `ctype_xdigit()` to validate hex; an admin notice surfaces if the secret doesn't conform.
 - All five constants are required; missing any produces an admin notice and the plugin refuses to wire any hooks.
 
 ### Where the secret comes from

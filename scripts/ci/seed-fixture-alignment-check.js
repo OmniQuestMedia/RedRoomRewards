@@ -97,18 +97,30 @@ function main() {
     process.exit(selfTest() ? 0 : 1);
   }
 
+  // Both files are canonical for this guard. Missing-file cases must FAIL,
+  // not silently pass — exit 0 here would let an accidental rename / delete
+  // bypass the check. If either canonical file is genuinely going away, the
+  // guard itself should be deliberately removed in the same PR.
   if (!fs.existsSync(TEST_PACK)) {
-    console.log(
-      `seed-fixture-alignment-check: ${path.relative(REPO_ROOT, TEST_PACK)} not present; nothing to verify`,
+    console.error(
+      `seed-fixture-alignment-check: REQUIRED FILE MISSING — ${path.relative(REPO_ROOT, TEST_PACK)}`,
     );
-    return process.exit(0);
+    console.error(
+      'This is a canonical alignment-check input. If you intentionally removed it,\n' +
+        'remove this CI guard in the same PR. Otherwise restore the file.',
+    );
+    return process.exit(1);
   }
 
   if (!fs.existsSync(SEED_SCRIPT)) {
-    console.log(
-      `seed-fixture-alignment-check: ${path.relative(REPO_ROOT, SEED_SCRIPT)} not present; nothing to verify`,
+    console.error(
+      `seed-fixture-alignment-check: REQUIRED FILE MISSING — ${path.relative(REPO_ROOT, SEED_SCRIPT)}`,
     );
-    return process.exit(0);
+    console.error(
+      'This is a canonical alignment-check input. If you intentionally removed it,\n' +
+        'remove this CI guard in the same PR. Otherwise restore the file.',
+    );
+    return process.exit(1);
   }
 
   const testPackIds = extractIds(readFile(TEST_PACK), ID_RE);

@@ -3,42 +3,47 @@
  * Tear-down script for Alpha staging fixtures.
  *
  * Counterpart to scripts/seed-alpha-staging.ts. Removes every record
- * keyed off the test-* prefixed userIds / modelIds, plus their derived
- * records (LedgerEntry, PointLot, EscrowItem) so a subsequent seed run
- * starts from a truly clean slate.
+ * keyed off the test-* prefixed userIds / modelIds, plus the derived
+ * Wallet, ModelWallet, EscrowItem, and PointLot records so a subsequent
+ * seed run starts from a clean slate.
  *
- * Designed to be run between test-pack runs, or after a destructive
- * test that left fixtures in an unrecoverable state.
+ * Designed to be run between test-pack runs to reset fixture state.
+ *
+ * INVARIANT: this script NEVER deletes from the LedgerEntry collection.
+ * The append-only ledger invariant (docs/OPERATIONAL_RUNBOOK.md §0) is
+ * stated unconditionally — "Never UPDATE or DELETE a LedgerEntry row."
+ * That invariant applies in staging too. If a destructive test polluted
+ * the staging ledger with too many test-* entries to be tolerable, the
+ * correct procedure is to drop the entire staging database and re-seed
+ * (a documented manual step — see docs/SEED_ALPHA_STAGING.md §8.4),
+ * not to add a flag here that DELETEs ledger rows.
  *
  * Environment safety (same as seed):
  *   - Refuses to run if NODE_ENV === 'production'.
  *   - Refuses to run if MONGODB_URI host suggests a production cluster
  *     (configurable via SEED_PROD_HOST_DENYLIST env var).
  *   - Operates only on records whose key prefix matches a test-fixture
- *     allowlist (TEST_USER_PREFIX, TEST_MODEL_PREFIX). Will NEVER delete
- *     a record whose ID does not match.
- *   - Refuses to delete ledger entries unless the operator passes
- *     --include-ledger explicitly (the ledger is append-only forever
- *     in production; even on staging we want this to be deliberate).
+ *     allowlist (TEST_USER_PREFIX, TEST_MODEL_PREFIX, TEST_OPERATOR_PREFIX).
+ *     Will NEVER delete a record whose ID does not match.
  *
  * Usage:
  *   npm run teardown:alpha-staging -- --dry-run
  *   npm run teardown:alpha-staging
- *   npm run teardown:alpha-staging -- --include-ledger
  *
  * Authority: defers to docs/ALPHA_TEST_PACK.md §3 (the canonical fixture
  * list) and to the §0 "ledger is append-only" invariant in
- * docs/OPERATIONAL_RUNBOOK.md. The --include-ledger flag is the explicit
- * staging-only override.
+ * docs/OPERATIONAL_RUNBOOK.md.
  */
 
 import mongoose from 'mongoose';
 import { TenantModel } from '../src/db/models/tenant.model';
 import { WalletModel } from '../src/db/models/wallet.model';
 import { ModelWalletModel } from '../src/db/models/model-wallet.model';
-import { LedgerEntryModel } from '../src/db/models/ledger-entry.model';
 import { PointLotModel } from '../src/db/models/point-lot.model';
 import { EscrowItemModel } from '../src/db/models/escrow-item.model';
+// LedgerEntryModel intentionally NOT imported. The append-only ledger
+// invariant (docs/OPERATIONAL_RUNBOOK.md §0) forbids DELETE on ledger rows
+// in any environment.
 
 const TEST_USER_PREFIX = 'test-member-';
 const TEST_MODEL_PREFIX = 'test-model-';
@@ -48,13 +53,22 @@ const PROD_HOST_DENYLIST_DEFAULT = ['prod', 'production', 'live'];
 
 interface Args {
   dryRun: boolean;
-  includeLedger: boolean;
 }
 
 function parseArgs(argv: string[]): Args {
+  // --include-ledger was previously supported; removed per append-only
+  // invariant. Reject explicitly so anyone copying an old command sees
+  // a clear error rather than silent acceptance.
+  if (argv.includes('--include-ledger')) {
+    throw new Error(
+      'teardown-alpha-staging: --include-ledger is not supported. The append-only ' +
+        'ledger invariant (docs/OPERATIONAL_RUNBOOK.md §0) forbids DELETE on ledger ' +
+        'rows in any environment. To wipe ledger entries on staging, drop the entire ' +
+        'staging database manually and re-run npm run seed:alpha-staging.',
+    );
+  }
   return {
     dryRun: argv.includes('--dry-run'),
-    includeLedger: argv.includes('--include-ledger'),
   };
 }
 
@@ -103,9 +117,7 @@ function prefixFilter(prefixes: string[]): { $regex: RegExp } {
 async function teardown(args: Args): Promise<void> {
   console.log(`teardown-alpha-staging: starting${args.dryRun ? ' (DRY RUN)' : ''}`);
   console.log(`teardown-alpha-staging: MONGODB_URI host = ${maskUri(process.env.MONGODB_URI!)}`);
-  console.log(
-    `teardown-alpha-staging: include-ledger = ${args.includeLedger ? 'YES (deliberate override)' : 'no (default)'}`,
-  );
+  console.log('teardown-alpha-staging: ledger entries are PRESERVED (append-only invariant)');
 
   const userPrefixFilter = prefixFilter([TEST_USER_PREFIX, TEST_OPERATOR_PREFIX]);
   const modelPrefixFilter = prefixFilter([TEST_MODEL_PREFIX]);
@@ -156,30 +168,16 @@ async function teardown(args: Args): Promise<void> {
     console.log(`  PointLot             matched=${matched}  ${args.dryRun ? '(dry)' : 'deleted'}`);
   }
 
-  // 5. LedgerEntry — gated behind --include-ledger
-  if (args.includeLedger) {
-    const filter = { accountId: userPrefixFilter };
-    const matched = await LedgerEntryModel.countDocuments(filter);
-    if (!args.dryRun && matched > 0) {
-      const r = await LedgerEntryModel.deleteMany(filter);
-      totalDeleted += r.deletedCount ?? 0;
-    }
-    console.log(
-      `  LedgerEntry          matched=${matched}  ${args.dryRun ? '(dry)' : 'deleted (--include-ledger)'}`,
-    );
-  } else {
-    const filter = { accountId: userPrefixFilter };
-    const matched = await LedgerEntryModel.countDocuments(filter);
-    console.log(
-      `  LedgerEntry          matched=${matched}  skipped (pass --include-ledger to remove)`,
-    );
-  }
+  // LedgerEntry is intentionally not deleted by this script — see the file
+  // header. To wipe ledger entries on staging, drop the staging database
+  // manually and re-run npm run seed:alpha-staging.
 
   // Tenants are NEVER torn down by this script. Tenants are seeded for the
   // life of the staging environment; if you need to remove a tenant row,
   // do it manually with a documented justification.
   const tenantCount = await TenantModel.countDocuments({});
   console.log(`  Tenant               (preserved; ${tenantCount} present)`);
+  console.log('  LedgerEntry          (preserved; append-only invariant)');
 
   console.log(
     `teardown-alpha-staging: done. records-removed=${totalDeleted}${args.dryRun ? ' (DRY RUN — no writes)' : ''}`,

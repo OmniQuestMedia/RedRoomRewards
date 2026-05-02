@@ -199,6 +199,26 @@ ok(
     RRR_Webhook_Handler::verify_signature('redroompleasures', 'test-key-001', 'not-a-timestamp', $nonce, $valid_sig, $body) === false
 );
 
+ok(
+    'natural-language timestamp ("now") rejected (strict RFC 3339 only)',
+    RRR_Webhook_Handler::verify_signature('redroompleasures', 'test-key-001', 'now', $nonce, $valid_sig, $body) === false
+);
+
+ok(
+    'non-Z timestamp rejected (must end in Z, RFC 3339 UTC only)',
+    RRR_Webhook_Handler::verify_signature('redroompleasures', 'test-key-001', '2026-05-02T13:42:00+00:00', $nonce, $valid_sig, $body) === false
+);
+
+ok(
+    'wrong key_id rejected (AUTH_CONTRACT.md §11 — unknown key_id → 401)',
+    RRR_Webhook_Handler::verify_signature('redroompleasures', 'wrong-key-id', $ts, $nonce, $valid_sig, $body) === false
+);
+
+ok(
+    'empty key_id rejected',
+    RRR_Webhook_Handler::verify_signature('redroompleasures', '', $ts, $nonce, $valid_sig, $body) === false
+);
+
 // ───────────────────────────────────────────────────────────────────
 // Summary
 // ───────────────────────────────────────────────────────────────────

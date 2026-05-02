@@ -9,13 +9,22 @@
  * update to api/.openapi-frozen.json — making spec changes deliberate
  * rather than accidental.
  *
+ * The CI mode never writes to the freeze file. If the freeze file is
+ * missing or malformed, CI fails — silently regenerating it would let
+ * a deleted/renamed freeze "heal" itself and bypass the check entirely.
+ * The freeze file can only be (re)written via:
+ *   --update  (after a deliberate spec change; commit the update)
+ *   --init    (one-time bootstrap when the file does not yet exist)
+ *
  * Usage:
- *   node scripts/ci/openapi-freeze-check.js                # CI mode
- *   node scripts/ci/openapi-freeze-check.js --update       # update freeze (after a deliberate spec change)
+ *   node scripts/ci/openapi-freeze-check.js                # CI mode (read-only)
+ *   node scripts/ci/openapi-freeze-check.js --update       # write new freeze after deliberate spec change
+ *   node scripts/ci/openapi-freeze-check.js --init         # bootstrap the freeze file the first time
  *   node scripts/ci/openapi-freeze-check.js --self-test
  *
  * Exits 0 when the live spec hash matches the frozen hash.
- * Exits 1 when they differ (or when the freeze file is missing).
+ * Exits 1 when they differ, when the freeze file is missing/invalid in
+ *   CI mode, or when --init is run against an existing freeze file.
  */
 
 const fs = require('fs');
@@ -109,20 +118,41 @@ function main() {
 
   const liveHash = hashFile(SPEC);
 
+  const freezeExists = fs.existsSync(FREEZE);
+
+  if (process.argv.includes('--init')) {
+    if (freezeExists) {
+      console.error(
+        `openapi-freeze: --init refused — ${path.relative(REPO_ROOT, FREEZE)} already exists. ` +
+          'Use --update if a deliberate spec change requires re-pinning the hash.',
+      );
+      process.exit(1);
+    }
+    writeFreeze(liveHash);
+    console.log(`openapi-freeze: initialized freeze. sha256=${liveHash}`);
+    process.exit(0);
+  }
+
   if (process.argv.includes('--update')) {
     writeFreeze(liveHash);
     console.log(`openapi-freeze: updated freeze. new sha256=${liveHash}`);
     process.exit(0);
   }
 
+  // CI mode (read-only).
   const freeze = loadFreeze();
   if (!freeze) {
-    // First run / freeze file missing. Write it and pass; the diff will be
-    // visible in the same PR that's introducing the freeze, so a reviewer
-    // sees the initial hash being committed.
-    writeFreeze(liveHash);
-    console.log(`openapi-freeze: initialized freeze. sha256=${liveHash}`);
-    process.exit(0);
+    console.error(
+      `openapi-freeze: ${path.relative(REPO_ROOT, FREEZE)} is missing or invalid.`,
+    );
+    console.error('');
+    console.error(
+      'CI mode never writes the freeze file (silent heal would defeat the check).\n' +
+        'If this is the first time the freeze is being introduced, run\n' +
+        '  node scripts/ci/openapi-freeze-check.js --init\n' +
+        'locally and commit the resulting api/.openapi-frozen.json.',
+    );
+    process.exit(1);
   }
 
   if (freeze.sha256 === liveHash) {
