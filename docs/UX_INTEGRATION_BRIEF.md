@@ -119,6 +119,59 @@ Idempotent replay: if the UI re-submits the same `X-Idempotency-Key` with an ide
 
 Similar shape to redemption, but with earn-rate calculation up front: query active `EarnRateConfig` by tenant/merchant/tier/event, apply `base_points_per_unit * inferno_multiplier * amount`, enforce CEO D3 zero-earn for Diamond Concierge.
 
+### 4.4 Reversal lifecycle
+
+Compensating-transaction flow for refunds, manual adjustments, and chargebacks. The original LedgerEntry is **never** mutated — a new entry with the appropriate reversal `reason_code` is appended and linked via `correlation_id`.
+
+```
+  original ledger entry ─▶  reversal authored ─▶  audit chain linked  ─▶  balance recomputed
+                                  │                   │
+                                  ▼                   ▼
+                           reason_code:           correlation_id =
+                           ADMIN_REFUND |         original.correlation_id
+                           MODEL_INITIATED_REFUND |
+                           CHARGEBACK_REVERSAL
+```
+
+UI implications:
+- A reversed entry shows alongside its original in the AuditRow component, with the linkage made explicit (correlation_id match).
+- Operators see a "reverse" affordance only on entries that aren't already reversed; idempotency prevents double-reversal.
+- Members never see a "reversed" state in isolation — they see the reversal entry as a credit/debit in their history with the appropriate reason code.
+- Reversals require step-up auth on the operator side (see `docs/ux/01-onboarding-gateflows.md`).
+
+### 4.5 PointLot expiration lifecycle
+
+PointLots earn under EARLIEST_EXPIRY_THEN_FIFO ordering. The lifecycle has explicit warning, expiry, and redistribution states that drive UI banners and operator workflow.
+
+```
+                  ┌───────────────┐
+   awarded ─────▶ │  ACTIVE       │
+                  │  (expirable)  │
+                  └───────┬───────┘
+                          │  warning window enters (e.g. T-30d, T-7d, T-48h)
+                          ▼
+                  ┌───────────────┐
+                  │  EXPIRING     │  ← UI surfaces expiration warnings here
+                  │  (warned)     │
+                  └───────┬───────┘
+                          │  expiry timestamp passes
+                          ▼
+                  ┌───────────────┐
+                  │  EXPIRED      │  ← reason_code: POINT_EXPIRY appended
+                  │  (terminal)   │
+                  └───────────────┘
+```
+
+UI implications:
+- Member-facing expiration warnings render only when at least one PointLot is in the EXPIRING state. The warning shows the affected amount and date, not lot-level granularity.
+- Operators (`GET /admin/expiration/warnings`) see lot-level detail with the merchant context required to triage.
+- Once a lot is EXPIRED it appears in the ledger as a debit with `reason_code: POINT_EXPIRY` and is removed from the available balance computation.
+- No "un-expire" UI exists. Restoration after expiry requires an admin adjustment with explicit reason and step-up auth.
+
+### 4.6 Step-up auth challenge
+
+Full screen-level treatment of the step-up auth state machine lives in `docs/ux/00-shared-components.md` (StepUpModal interaction) and `docs/ux/01-onboarding-gateflows.md`. Briefly: any high-value action issues a challenge, the user completes MFA / biometric, the response grants or denies, and an audit entry with `reason_code: STEP_UP_GRANTED` or `STEP_UP_DENIED` is appended. The `X-Idempotency-Key` for the original action is generated **after** grant.
+
 ---
 
 ## 5. Tier rules (CEO B5 — locked)
@@ -187,6 +240,46 @@ The UI maps these to user-facing copy. Codes are stable; copy is editorial.
 
 This list will harden as Alpha test exposes real cases. Wireframes should treat each as a distinct UI state, not a generic toast.
 
+### 7.1 Error codes vs reason codes — keep them apart
+
+RRR uses two distinct catalogues, with two distinct audiences. Wireframes must use the right one for the right surface.
+
+- **Error codes** (above) — what the API returns when an operation fails. Audience: the user. Surface: error states, banners, modals. Stable across versions; copy is editorial.
+- **Reason codes** (below) — what gets stamped on a successful LedgerEntry to classify *why* it was created. Audience: auditors, operators, support. Surface: AuditRow, transaction-detail screens, admin reports. **Never** used as user-facing copy.
+
+This split mirrors `docs/UX_CROSS_STACK_ALIGNMENT.md` and is enforced cross-stack: CNZ and Cyrano use the same distinction.
+
+### 7.2 Reason-code catalog (live values from `TransactionReason`)
+
+Sourced from `src/wallets/types/domain.types.ts` enum `TransactionReason`. The AuditRow component (see `docs/ux/00-shared-components.md`) renders these with a human-readable label; the underlying code is stable.
+
+| Reason code                  | Movement | When it's stamped                                                                  |
+| ---------------------------- | -------- | ---------------------------------------------------------------------------------- |
+| `USER_SIGNUP_BONUS`          | credit   | New member's first wallet record after AV verification                             |
+| `REFERRAL_BONUS`             | credit   | Referral attribution successful                                                    |
+| `PROMOTIONAL_AWARD`          | credit   | Merchant or platform promo                                                         |
+| `ADMIN_CREDIT`               | credit   | Operator-issued manual credit; step-up + reason required                           |
+| `MODEL_GIFT`                 | credit   | Model gifts allocation to a member                                                 |
+| `MERCHANT_ORDER_REDEMPTION`  | debit    | Member redeems against a merchant order                                            |
+| `CHIP_MENU_PURCHASE`         | debit    | Member spend on chip-menu action (CNZ-shaped flow on connected platform)           |
+| `PERFORMANCE_REQUEST`        | debit    | Hold-into-escrow for a performance request                                         |
+| `PERFORMANCE_COMPLETED`      | settle   | Escrow settled to model after performance completes                                |
+| `PARTIAL_PERFORMANCE`        | settle   | Escrow split-settled (some refunded, some settled)                                 |
+| `PERFORMANCE_ABANDONED`      | refund   | Escrow refunded — model abandoned                                                  |
+| `USER_DISCONNECTED`          | refund   | Escrow refunded — user dropped before performance                                  |
+| `MODEL_INITIATED_REFUND`     | refund   | Model voluntarily refunded                                                         |
+| `ROPE_DROP_TIMEOUT`          | refund   | Escrow refunded due to handshake/queue timeout                                     |
+| `ADMIN_REFUND`               | refund   | Operator-issued refund; step-up + reason required                                  |
+| `ADMIN_DEBIT`                | debit    | Operator-issued manual debit; step-up + reason required                            |
+| `POINT_EXPIRY`               | debit    | PointLot expiration (see §4.5)                                                     |
+| `STEP_UP_GRANTED`            | audit    | Audit-only entry; step-up auth challenge succeeded                                 |
+| `STEP_UP_DENIED`             | audit    | Audit-only entry; step-up auth challenge denied                                    |
+
+Notes:
+- All reversal-shaped codes (`*_REFUND`, `MODEL_INITIATED_REFUND`, `ROPE_DROP_TIMEOUT`, `PERFORMANCE_ABANDONED`, `USER_DISCONNECTED`) carry `correlation_id` matching the original entry, per §4.4.
+- `STEP_UP_GRANTED` / `STEP_UP_DENIED` are audit-only — they do not move balance. The AuditRow component renders them with a distinct icon family.
+- A `CHARGEBACK_REVERSAL` code is referenced in the domain glossary; it is not yet in the live enum and is reserved for the payment-rails wave (post-Alpha).
+
 ---
 
 ## 8. Cross-stack vocabulary (do not invent)
@@ -235,7 +328,32 @@ Creative agencies skinning the wireframes inherit these constraints.
 
 ---
 
-## 11. Cross-stack alignment with Cyrano
+## 11. Event topology — poll vs stream
+
+Wireframes must choose the right refresh model for each surface. RRR is request/response with webhook fan-out; CNZ and Cyrano use NATS for live data. Cross-stack components that share a screen need to behave consistently regardless of which side the data comes from.
+
+| Surface                                        | Topology in RRR                                          | Equivalent in CNZ / Cyrano             |
+| ---------------------------------------------- | -------------------------------------------------------- | -------------------------------------- |
+| Member balance                                 | Poll on screen focus + after any user action             | NATS `wallet.{userId}.updated`         |
+| Member ledger / transaction history            | Poll on screen focus; paginated                          | NATS `ledger.{userId}.append`          |
+| Merchant admin activity feed                   | Poll every 30s while focused; refresh on user action     | NATS `tenant.{tenantId}.activity`      |
+| Webhook delivery status (operator console)     | Poll every 60s; refresh on dispatch                      | NATS `webhook.{tenantId}.status`       |
+| Rate-limit / 429                               | Surface `Retry-After` header; never silent retry         | Same                                   |
+| Auth session expiry                            | 401 on next request → redirect to sign-in                | Same                                   |
+| Reconciliation pause (`RECON_MISMATCH`)        | 409 on action → blocking modal, do not auto-retry        | Same                                   |
+| Step-up auth grant/deny                        | Synchronous response within the StepUpModal flow         | Same                                   |
+
+UI rules:
+- **No silent polling on member-facing pure-display screens.** If a member has the balance screen open and away, do not hammer the API — poll only on focus, on tab return, and after user action.
+- **No client-side push pretending to be live.** If a surface is poll-driven in RRR, the wireframe must indicate that (e.g. a "last updated 12s ago" timestamp). Don't dress up polling as streaming.
+- **Cross-stack components stay agnostic.** The `WalletBuckets` and `AuditRow` components in `docs/ux/00-shared-components.md` accept data via props — they do not know whether the host fetched via REST or NATS.
+- **Operator consoles can be more aggressive.** Activity feeds and reconciliation dashboards may poll on a 30-60s interval while focused; that's acceptable for a tool used by a small audience.
+
+When/if RRR ever needs live updates beyond polling, the path is **server-sent events (SSE)** off existing webhook infrastructure — not bolting NATS onto RRR. Out of scope for Alpha.
+
+---
+
+## 12. Cross-stack alignment with Cyrano
 
 RRR and Cyrano are at the same UX stage and will be designed by the same Grok-driven workflow. To keep the two coherent without a heavy design system:
 
@@ -248,7 +366,7 @@ If Grok is producing wireframes for both stacks, treat this brief as the loyalty
 
 ---
 
-## 12. Wireframe specs live in `docs/ux/`
+## 13. Wireframe specs live in `docs/ux/`
 
 See `docs/ux/README.md` for the spec format and the index of completed screens. Each spec binds explicitly to the endpoints, states, error codes, and rules in this brief.
 
