@@ -17,6 +17,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,js,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,json}\"",
     "validate:schema": "node scripts/validate-schema.js",
+    "seed:alpha-staging": "ts-node scripts/seed-alpha-staging.ts",
     "type-check": "tsc --noEmit",
     "prepare": "husky"
   },
