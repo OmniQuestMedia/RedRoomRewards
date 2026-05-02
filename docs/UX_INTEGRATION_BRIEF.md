@@ -276,6 +276,7 @@ Sourced from `src/wallets/types/domain.types.ts` enum `TransactionReason`. The A
 | `STEP_UP_DENIED`             | audit    | Audit-only entry; step-up auth challenge denied                                    |
 
 Notes:
+- `CHIP_MENU_PURCHASE` and `SPIN_WHEEL_PLAY` classify spend on **connected-merchant features** (CNZ-owned game/menu surfaces). They are audit labels for the debit; the gameplay, RNG, and chance-based logic live on the calling merchant — never on RRR (CEO D1). RRR's role is wallet validation + debit only, called via signed service-to-service request per `docs/AUTH_CONTRACT.md`.
 - All reversal-shaped codes (`*_REFUND`, `MODEL_INITIATED_REFUND`, `ROPE_DROP_TIMEOUT`, `PERFORMANCE_ABANDONED`, `USER_DISCONNECTED`) carry `correlation_id` matching the original entry, per §4.4.
 - `STEP_UP_GRANTED` / `STEP_UP_DENIED` are audit-only — they do not move balance. The AuditRow component renders them with a distinct icon family.
 - A `CHARGEBACK_REVERSAL` code is referenced in the domain glossary; it is not yet in the live enum and is reserved for the payment-rails wave (post-Alpha).
