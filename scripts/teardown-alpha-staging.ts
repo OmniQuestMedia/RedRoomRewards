@@ -1,0 +1,207 @@
+#!/usr/bin/env ts-node
+/**
+ * Tear-down script for Alpha staging fixtures.
+ *
+ * Counterpart to scripts/seed-alpha-staging.ts. Removes every record
+ * keyed off the test-* prefixed userIds / modelIds, plus their derived
+ * records (LedgerEntry, PointLot, EscrowItem) so a subsequent seed run
+ * starts from a truly clean slate.
+ *
+ * Designed to be run between test-pack runs, or after a destructive
+ * test that left fixtures in an unrecoverable state.
+ *
+ * Environment safety (same as seed):
+ *   - Refuses to run if NODE_ENV === 'production'.
+ *   - Refuses to run if MONGODB_URI host suggests a production cluster
+ *     (configurable via SEED_PROD_HOST_DENYLIST env var).
+ *   - Operates only on records whose key prefix matches a test-fixture
+ *     allowlist (TEST_USER_PREFIX, TEST_MODEL_PREFIX). Will NEVER delete
+ *     a record whose ID does not match.
+ *   - Refuses to delete ledger entries unless the operator passes
+ *     --include-ledger explicitly (the ledger is append-only forever
+ *     in production; even on staging we want this to be deliberate).
+ *
+ * Usage:
+ *   npm run teardown:alpha-staging -- --dry-run
+ *   npm run teardown:alpha-staging
+ *   npm run teardown:alpha-staging -- --include-ledger
+ *
+ * Authority: defers to docs/ALPHA_TEST_PACK.md §3 (the canonical fixture
+ * list) and to the §0 "ledger is append-only" invariant in
+ * docs/OPERATIONAL_RUNBOOK.md. The --include-ledger flag is the explicit
+ * staging-only override.
+ */
+
+import mongoose from 'mongoose';
+import { TenantModel } from '../src/db/models/tenant.model';
+import { WalletModel } from '../src/db/models/wallet.model';
+import { ModelWalletModel } from '../src/db/models/model-wallet.model';
+import { LedgerEntryModel } from '../src/db/models/ledger-entry.model';
+import { PointLotModel } from '../src/db/models/point-lot.model';
+import { EscrowItemModel } from '../src/db/models/escrow-item.model';
+
+const TEST_USER_PREFIX = 'test-member-';
+const TEST_MODEL_PREFIX = 'test-model-';
+const TEST_OPERATOR_PREFIX = 'test-operator-';
+
+const PROD_HOST_DENYLIST_DEFAULT = ['prod', 'production', 'live'];
+
+interface Args {
+  dryRun: boolean;
+  includeLedger: boolean;
+}
+
+function parseArgs(argv: string[]): Args {
+  return {
+    dryRun: argv.includes('--dry-run'),
+    includeLedger: argv.includes('--include-ledger'),
+  };
+}
+
+function refuseIfProd(): void {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'teardown-alpha-staging: NODE_ENV=production — refusing to run. This script is for staging only.',
+    );
+  }
+
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    throw new Error('teardown-alpha-staging: MONGODB_URI is required.');
+  }
+
+  const denylist = (process.env.SEED_PROD_HOST_DENYLIST ?? PROD_HOST_DENYLIST_DEFAULT.join(','))
+    .split(',')
+    .map((s) => s.trim().toLowerCase())
+    .filter((s) => s.length > 0);
+
+  const lowered = uri.toLowerCase();
+  for (const needle of denylist) {
+    if (lowered.includes(needle)) {
+      throw new Error(
+        `teardown-alpha-staging: MONGODB_URI contains "${needle}" — refusing to run. ` +
+          `If this is a false positive, set SEED_PROD_HOST_DENYLIST to a narrower list.`,
+      );
+    }
+  }
+}
+
+function maskUri(uri: string): string {
+  return uri.replace(/(mongodb(?:\+srv)?:\/\/)([^@]+)@/, '$1<redacted>@');
+}
+
+/**
+ * Build a Mongo regex filter that matches strings starting with any of the
+ * given prefixes. Anchored to start-of-string so we never match a record
+ * whose ID *contains* "test-" in the middle.
+ */
+function prefixFilter(prefixes: string[]): { $regex: RegExp } {
+  const escaped = prefixes.map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  return { $regex: new RegExp(`^(${escaped.join('|')})`) };
+}
+
+async function teardown(args: Args): Promise<void> {
+  console.log(`teardown-alpha-staging: starting${args.dryRun ? ' (DRY RUN)' : ''}`);
+  console.log(`teardown-alpha-staging: MONGODB_URI host = ${maskUri(process.env.MONGODB_URI!)}`);
+  console.log(
+    `teardown-alpha-staging: include-ledger = ${args.includeLedger ? 'YES (deliberate override)' : 'no (default)'}`,
+  );
+
+  const userPrefixFilter = prefixFilter([TEST_USER_PREFIX, TEST_OPERATOR_PREFIX]);
+  const modelPrefixFilter = prefixFilter([TEST_MODEL_PREFIX]);
+
+  let totalDeleted = 0;
+
+  // 1. Wallets keyed by test userId
+  {
+    const filter = { userId: userPrefixFilter };
+    const matched = await WalletModel.countDocuments(filter);
+    if (!args.dryRun && matched > 0) {
+      const r = await WalletModel.deleteMany(filter);
+      totalDeleted += r.deletedCount ?? 0;
+    }
+    console.log(`  Wallet               matched=${matched}  ${args.dryRun ? '(dry)' : 'deleted'}`);
+  }
+
+  // 2. Model wallets keyed by test modelId
+  {
+    const filter = { modelId: modelPrefixFilter };
+    const matched = await ModelWalletModel.countDocuments(filter);
+    if (!args.dryRun && matched > 0) {
+      const r = await ModelWalletModel.deleteMany(filter);
+      totalDeleted += r.deletedCount ?? 0;
+    }
+    console.log(`  ModelWallet          matched=${matched}  ${args.dryRun ? '(dry)' : 'deleted'}`);
+  }
+
+  // 3. Escrow items linked to test users or models
+  {
+    const filter = { $or: [{ userId: userPrefixFilter }, { modelId: modelPrefixFilter }] };
+    const matched = await EscrowItemModel.countDocuments(filter);
+    if (!args.dryRun && matched > 0) {
+      const r = await EscrowItemModel.deleteMany(filter);
+      totalDeleted += r.deletedCount ?? 0;
+    }
+    console.log(`  EscrowItem           matched=${matched}  ${args.dryRun ? '(dry)' : 'deleted'}`);
+  }
+
+  // 4. PointLots — wallet_id is the userId on the wallet
+  {
+    const filter = { wallet_id: userPrefixFilter };
+    const matched = await PointLotModel.countDocuments(filter);
+    if (!args.dryRun && matched > 0) {
+      const r = await PointLotModel.deleteMany(filter);
+      totalDeleted += r.deletedCount ?? 0;
+    }
+    console.log(`  PointLot             matched=${matched}  ${args.dryRun ? '(dry)' : 'deleted'}`);
+  }
+
+  // 5. LedgerEntry — gated behind --include-ledger
+  if (args.includeLedger) {
+    const filter = { accountId: userPrefixFilter };
+    const matched = await LedgerEntryModel.countDocuments(filter);
+    if (!args.dryRun && matched > 0) {
+      const r = await LedgerEntryModel.deleteMany(filter);
+      totalDeleted += r.deletedCount ?? 0;
+    }
+    console.log(
+      `  LedgerEntry          matched=${matched}  ${args.dryRun ? '(dry)' : 'deleted (--include-ledger)'}`,
+    );
+  } else {
+    const filter = { accountId: userPrefixFilter };
+    const matched = await LedgerEntryModel.countDocuments(filter);
+    console.log(
+      `  LedgerEntry          matched=${matched}  skipped (pass --include-ledger to remove)`,
+    );
+  }
+
+  // Tenants are NEVER torn down by this script. Tenants are seeded for the
+  // life of the staging environment; if you need to remove a tenant row,
+  // do it manually with a documented justification.
+  const tenantCount = await TenantModel.countDocuments({});
+  console.log(`  Tenant               (preserved; ${tenantCount} present)`);
+
+  console.log(
+    `teardown-alpha-staging: done. records-removed=${totalDeleted}${args.dryRun ? ' (DRY RUN — no writes)' : ''}`,
+  );
+}
+
+async function main(): Promise<void> {
+  const args = parseArgs(process.argv.slice(2));
+
+  refuseIfProd();
+
+  await mongoose.connect(process.env.MONGODB_URI!);
+
+  try {
+    await teardown(args);
+  } finally {
+    await mongoose.disconnect();
+  }
+}
+
+main().catch((err) => {
+  console.error('teardown-alpha-staging: FAILED');
+  console.error(err instanceof Error ? err.message : String(err));
+  process.exitCode = 1;
+});

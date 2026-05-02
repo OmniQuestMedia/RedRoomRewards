@@ -99,11 +99,76 @@ Drift between the test pack and this script is the most likely failure mode. The
 
 ## 7. Open follow-ups (v2)
 
-- **CI alignment check** — assert this script's fixture list matches `ALPHA_TEST_PACK.md` §3 exactly.
-- **Tear-down script** — `scripts/teardown-alpha-staging.ts` to remove every `test-*` fixture and its associated PointLots / LedgerEntries / Escrows. Useful after a destructive test run.
+- **CI alignment check** — assert this script's fixture list matches `ALPHA_TEST_PACK.md` §3 exactly. **Implemented** as `scripts/ci/seed-fixture-alignment-check.js`; see §8.
+- **Tear-down script** — `scripts/teardown-alpha-staging.ts` to remove every `test-*` fixture and its associated PointLots / LedgerEntries / Escrows. **Implemented**; see §8 below.
 - **Fixture archive** — snapshot fixture state before a test run so post-run forensics has a known baseline.
 - **Multi-environment support** — currently single-cluster. Production tear-up would need an explicit, separate bootstrap script (which this never becomes — production fixtures are real data).
 
 ---
 
-_Updates require a CHORE: commit. Keep this doc and the script in lock-step with `docs/ALPHA_TEST_PACK.md` §3._
+## 8. Tear-down: `npm run teardown:alpha-staging`
+
+Counterpart to seed. Removes the test fixtures and their derived records so a subsequent `seed:alpha-staging` starts from truly empty.
+
+### 8.1 What it removes
+
+- `Wallet` records where `userId` starts with `test-member-` or `test-operator-`.
+- `ModelWallet` records where `modelId` starts with `test-model-`.
+- `EscrowItem` records linked to any of those `userId` / `modelId` values.
+- `PointLot` records linked to any of those `userId`s (via `wallet_id`).
+- `LedgerEntry` records linked — **only when `--include-ledger` is passed**. The default is to leave the ledger intact, since the ledger is append-only as a system invariant. Even on staging, removing ledger entries should be a deliberate action.
+
+### 8.2 What it does NOT remove
+
+- **`Tenant` records.** Tenants are seeded for the lifetime of the staging environment. If a tenant row needs to come out, do it manually with a documented justification.
+- **Anything whose key doesn't match the `test-` prefix allowlist.** This is the primary safety; the script will never touch a real (non-test-prefixed) record even if something else in the data has gone wrong.
+
+### 8.3 Running it
+
+Always dry-run first:
+
+```bash
+npm run teardown:alpha-staging -- --dry-run
+```
+
+Output is one line per collection with `matched=N` and a `dry` / `deleted` indicator. Inspect it before applying.
+
+To apply (preserving ledger):
+
+```bash
+npm run teardown:alpha-staging
+```
+
+To apply (including ledger — only on staging, only when you've decided you want a full reset):
+
+```bash
+npm run teardown:alpha-staging -- --include-ledger
+```
+
+### 8.4 Production safety
+
+Same three layers as the seed script:
+
+1. **`NODE_ENV=production`** → hard refusal.
+2. **`MONGODB_URI` host denylist** (`prod` / `production` / `live`, tunable via `SEED_PROD_HOST_DENYLIST`).
+3. **Prefix-anchored deletion.** Filters use `^(test-member-|test-operator-|test-model-)` regexes anchored to start-of-string. A record whose ID merely *contains* `test-` somewhere will not match.
+
+### 8.5 Suggested workflow
+
+Between full test-pack runs, when fixtures are clean:
+
+```bash
+npm run teardown:alpha-staging   # clears wallets, escrows, lots; preserves tenants and ledger
+npm run seed:alpha-staging       # restores known-good starting state
+```
+
+After a destructive test that left ledger entries you want to drop:
+
+```bash
+npm run teardown:alpha-staging -- --include-ledger
+npm run seed:alpha-staging
+```
+
+---
+
+_Updates require a CHORE: commit. Keep this doc, the seed script, and the tear-down script in lock-step with `docs/ALPHA_TEST_PACK.md` §3._
