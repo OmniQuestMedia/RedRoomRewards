@@ -112,10 +112,8 @@ describe('Security Wiring — protected route classification', () => {
     expect(TENANT_SCOPED_ROUTES).toHaveLength(9);
   });
 
-  it('should classify 2 routes as AUTH-ONLY', () => {
-    expect(AUTH_ONLY_ROUTES).toHaveLength(2);
-  it('should classify 4 routes as AUTH-ONLY', () => {
-    expect(AUTH_ONLY_ROUTES).toHaveLength(4);
+  it('should classify 5 routes as AUTH-ONLY', () => {
+    expect(AUTH_ONLY_ROUTES).toHaveLength(5);
   });
 
   it('should include ledger transaction history endpoints in AUTH-ONLY', () => {

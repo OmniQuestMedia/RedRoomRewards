@@ -13,11 +13,7 @@
  * Call this from app bootstrap before initializing NestJS modules.
  */
 
-const REQUIRED_ENV_VARS = [
-  'JWT_SECRET',
-  'QUEUE_AUTH_SECRET',
-  'RRR_WEBHOOK_SECRET',
-] as const;
+const REQUIRED_ENV_VARS = ['JWT_SECRET', 'QUEUE_AUTH_SECRET', 'RRR_WEBHOOK_SECRET'] as const;
 
 export function validateEnv(): void {
   const isProduction = process.env.NODE_ENV === 'production';

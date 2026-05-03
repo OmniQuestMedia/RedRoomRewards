@@ -2,7 +2,7 @@
 
 # OmniQuestMediaInc/RedRoomRewards
 
-# Updated: 2026-04-28 (Waves A–D closed; Alpha test prep open)
+# Updated: 2026-05-03 (Waves A–D closed; Alpha test prep landing)
 
 # Owner: Kevin B. Hartley, CEO
 
@@ -152,17 +152,17 @@ _Landed after D-FINAL during pre-Alpha tightening. Each row links to its merge P
 
 ---
 
-## ALPHA TEST PREP — open
+## ALPHA TEST PREP — landing
 
 _Goal: cut `v0.1.0-alpha.1` and run a focused test pack against staging with the Phase-1 merchants (RedRoomPleasures, Cyrano) integrating as third-party tenants over signed API + webhooks._
 
-| ID    | Task                                                                                                                              | Status |
-| :---- | :-------------------------------------------------------------------------------------------------------------------------------- | :----- |
-| ALP-1 | Housekeeping commit — production schedule cleanup + checklist refresh + README status                                              | OPEN   |
-| ALP-2 | `docs/AUTH_CONTRACT.md` — HMAC service-to-service spec for merchant integrations (per-tenant key, replay window, signing canonical) | OPEN   |
-| ALP-3 | `docs/UX_INTEGRATION_BRIEF.md` — auth/rate-limit/idempotency/error-code one-pagers for front-end                                    | OPEN   |
-| ALP-4 | Staging deploy spec — hosting target + Atlas replica set + secrets posture (awaiting CEO hosting decision)                        | OPEN   |
-| ALP-5 | Alpha test pack — financial invariants + tenant/auth boundary + operational                                                       | OPEN   |
-| ALP-6 | First wireframe specs in `docs/ux/` — member onboarding, balance view, ledger/history, redeem, tier badge, ops consoles            | OPEN   |
-| ALP-7 | Phase-1 merchant integration packets — WordPress (RedRoomPleasures) + Cyrano server-to-server                                      | OPEN   |
-| ALP-8 | Cut `v0.1.0-alpha.1` tag once ALP-1..ALP-5 land                                                                                    | OPEN   |
+| ID    | Task                                                                                                                                | Status      | Merge SHA / PR |
+| :---- | :---------------------------------------------------------------------------------------------------------------------------------- | :---------- | :------------- |
+| ALP-1 | Housekeeping commit — production schedule cleanup + checklist refresh + README status                                                | IN PROGRESS | this PR        |
+| ALP-2 | `docs/AUTH_CONTRACT.md` — HMAC service-to-service spec for merchant integrations (per-tenant key, replay window, signing canonical)   | DONE        | bb6c30e (#322) |
+| ALP-3 | `docs/UX_INTEGRATION_BRIEF.md` — auth/rate-limit/idempotency/error-code one-pagers for front-end                                      | DONE        | bb6c30e (#322) |
+| ALP-4 | Staging deploy spec — hosting target + Atlas replica set + secrets posture (DigitalOcean TOR1, MongoDB Atlas TOR replica set)         | DONE        | bb6c30e (#322); production deploy spec landed in 3a5fc7c (#332). Health-probe split + `.env.example` polish in this PR. |
+| ALP-5 | Alpha test pack — financial invariants + tenant/auth boundary + operational                                                          | DONE        | 0c2f919 (#330); test-suite expansion this PR. |
+| ALP-6 | First wireframe specs in `docs/ux/` — member onboarding, balance view, ledger/history, redeem, tier badge, ops consoles               | DONE        | 6a272eb (#323) → ffe8c5a (#328) → 6fc3fc1 (#329) → 8eb9490 (#331); 9 specs (00–08) now landed |
+| ALP-7 | Phase-1 merchant integration packets — WordPress (RedRoomPleasures) + Cyrano server-to-server                                         | DONE        | 0c2f919 (#330); WP plugin scaffold landed in 40987a8 (#333). Polish + sample payload pass this PR. |
+| ALP-8 | Cut `v0.1.0-alpha.1` tag once ALP-1..ALP-7 polish lands                                                                              | OPEN        |                |

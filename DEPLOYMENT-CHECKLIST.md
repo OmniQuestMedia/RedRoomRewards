@@ -1,11 +1,11 @@
 # RedRoom Rewards™ — Production Deployment Checklist
 
-_Last refreshed: 2026-04-28. Waves A–D + post-D wiring audit closed. Alpha test prep open._
+_Last refreshed: 2026-05-03. Waves A–D + post-D wiring audit closed. Alpha test prep landing._
 
 ## Pre-deploy verification
 
 - [ ] `npm run build` succeeds
-- [ ] `npm run test:ci` passes (current floor: ~449 tests / 46 suites; Jest coverage thresholds enforced)
+- [ ] `npm run test:ci` passes (current floor: 550 tests / 57 suites; Jest coverage thresholds enforced)
 - [ ] All mandatory 18+ GateGuard AV hooks are active
 - [ ] Promotional Bonus bucket enforced everywhere
 - [ ] Fail-closed middlewares wired globally; explicit public-route allowlist verified
@@ -19,7 +19,7 @@ _Last refreshed: 2026-04-28. Waves A–D + post-D wiring audit closed. Alpha tes
 - [ ] MongoDB **replica set** provisioned (required for `mongoose.startSession` transactions per B-006) — single-node Mongo will not work
 - [ ] Secrets stored in a managed secret store (e.g. AWS Secrets Manager, Doppler) — never in repo or plaintext on host
 - [ ] TLS 1.2+ terminated in front of the API; HTTP→HTTPS redirect
-- [ ] Per-tenant HMAC keys provisioned for Phase-1 merchants (RedRoomPleasures, Cyrano) — see `docs/AUTH_CONTRACT.md` once authored
+- [ ] Per-tenant HMAC keys provisioned for Phase-1 merchants (RedRoomPleasures, Cyrano) — see [`docs/AUTH_CONTRACT.md`](docs/AUTH_CONTRACT.md)
 - [ ] Structured-log sink wired (pino → CloudWatch / Datadog / equivalent)
 - [ ] External uptime probe against `/health`
 
