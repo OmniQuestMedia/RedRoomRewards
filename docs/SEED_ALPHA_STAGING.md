@@ -120,6 +120,10 @@ Counterpart to seed. Removes the test fixtures and their derived records so a su
 ### 8.2 What it does NOT remove (and why)
 
 - **`LedgerEntry` records — never.** The append-only ledger invariant (`docs/OPERATIONAL_RUNBOOK.md` §0: *"Never UPDATE or DELETE a LedgerEntry row"*) is stated unconditionally and applies in staging too. An earlier draft of this script exposed an `--include-ledger` flag; that flag has been removed. Attempting to pass it produces an error. If staging accumulates too many ledger entries to be tolerable, see §8.4 (full DB drop).
+- `LedgerEntry` records linked — **only when `--include-ledger` is passed**. The default is to leave the ledger intact, since the ledger is append-only as a system invariant. Even on staging, removing ledger entries should be a deliberate action.
+
+### 8.2 What it does NOT remove
+
 - **`Tenant` records.** Tenants are seeded for the lifetime of the staging environment. If a tenant row needs to come out, do it manually with a documented justification.
 - **Anything whose key doesn't match the `test-` prefix allowlist.** This is the primary safety; the script will never touch a real (non-test-prefixed) record even if something else in the data has gone wrong.
 
@@ -134,6 +138,7 @@ npm run teardown:alpha-staging -- --dry-run
 Output is one line per collection with `matched=N` and a `dry` / `deleted` indicator. Inspect it before applying.
 
 To apply:
+To apply (preserving ledger):
 
 ```bash
 npm run teardown:alpha-staging
@@ -160,6 +165,13 @@ npm run seed:alpha-staging
 This is intentionally a manual procedure rather than a flag on the teardown script — the friction is the safety. A drop-database step that requires the operator to read the URI out loud and run `mongosh` is exactly the level of deliberateness this should require.
 
 ### 8.5 Production safety
+To apply (including ledger — only on staging, only when you've decided you want a full reset):
+
+```bash
+npm run teardown:alpha-staging -- --include-ledger
+```
+
+### 8.4 Production safety
 
 Same three layers as the seed script:
 
@@ -168,12 +180,24 @@ Same three layers as the seed script:
 3. **Prefix-anchored deletion.** Filters use `^(test-member-|test-operator-|test-model-)` regexes anchored to start-of-string. A record whose ID merely *contains* `test-` somewhere will not match.
 
 ### 8.6 Suggested workflow
+### 8.5 Suggested workflow
 
 Between full test-pack runs, when fixtures are clean:
 
 ```bash
 npm run teardown:alpha-staging   # clears wallets, model wallets, escrows, lots; preserves tenants and ledger
 npm run seed:alpha-staging       # restores known-good starting state
+```
+
+npm run teardown:alpha-staging   # clears wallets, escrows, lots; preserves tenants and ledger
+npm run seed:alpha-staging       # restores known-good starting state
+```
+
+After a destructive test that left ledger entries you want to drop:
+
+```bash
+npm run teardown:alpha-staging -- --include-ledger
+npm run seed:alpha-staging
 ```
 
 ---

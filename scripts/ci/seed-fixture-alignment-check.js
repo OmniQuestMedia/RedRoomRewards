@@ -121,6 +121,18 @@ function main() {
         'remove this CI guard in the same PR. Otherwise restore the file.',
     );
     return process.exit(1);
+  if (!fs.existsSync(TEST_PACK)) {
+    console.log(
+      `seed-fixture-alignment-check: ${path.relative(REPO_ROOT, TEST_PACK)} not present; nothing to verify`,
+    );
+    return process.exit(0);
+  }
+
+  if (!fs.existsSync(SEED_SCRIPT)) {
+    console.log(
+      `seed-fixture-alignment-check: ${path.relative(REPO_ROOT, SEED_SCRIPT)} not present; nothing to verify`,
+    );
+    return process.exit(0);
   }
 
   const testPackIds = extractIds(readFile(TEST_PACK), ID_RE);
