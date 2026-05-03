@@ -36,6 +36,16 @@ jobs:
           node scripts/ci/seed-fixture-alignment-check.js --self-test
           node scripts/ci/seed-fixture-alignment-check.js
 
+      - name: Log-secret-leak check
+        run: |
+          node scripts/ci/log-secret-leak-check.js --self-test
+          node scripts/ci/log-secret-leak-check.js
+
+      - name: OpenAPI freeze check
+        run: |
+          node scripts/ci/openapi-freeze-check.js --self-test
+          node scripts/ci/openapi-freeze-check.js
+
       - name: Required file structure
         run: |
           required_files=(
