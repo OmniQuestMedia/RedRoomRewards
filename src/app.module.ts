@@ -48,16 +48,21 @@ export class AppModule implements NestModule {
     consumer.apply(SignupRateLimitMiddleware).forRoutes(SIGNUP_ROUTE);
 
     // Step 1b — General rate limiting on all other authenticated surfaces.
-    // Health probe is excluded to avoid probe traffic counting against limits.
-    // Signup is excluded so it is governed only by SignupRateLimitMiddleware
-    // and not double-counted.
+    // Health probes are excluded so orchestrator probe traffic does not
+    // count against limits. Signup is excluded so it is governed only by
+    // SignupRateLimitMiddleware and not double-counted.
     consumer
       .apply(RateLimitMiddleware)
-      .exclude({ path: 'health', method: RequestMethod.GET }, SIGNUP_ROUTE)
+      .exclude(
+        { path: 'health', method: RequestMethod.GET },
+        { path: 'health/live', method: RequestMethod.GET },
+        { path: 'health/ready', method: RequestMethod.GET },
+        SIGNUP_ROUTE,
+      )
       .forRoutes(
         ...AUTH_ONLY_ROUTES,
         ...TENANT_SCOPED_ROUTES,
-        ...PUBLIC_ROUTES.filter((r) => r.path !== 'health'),
+        ...PUBLIC_ROUTES.filter((r) => !r.path.startsWith('health')),
       );
 
     // Step 2 — Auth on AUTH-ONLY and AUTH-AND-TENANT routes.

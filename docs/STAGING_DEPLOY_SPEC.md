@@ -108,8 +108,20 @@ All secrets generated with `node -e "console.log(require('crypto').randomBytes(3
 
 ### 4.3 Health checks
 
-- DO App Platform liveness probe → `GET /health` (returns 200 with DB connectivity + version per D-005).
-- External uptime probe (Better Uptime / UptimeRobot) → same endpoint, 1-minute interval.
+Three endpoints, three audiences:
+
+| Endpoint           | Purpose                                                                   | Status semantics                                                               |
+| ------------------ | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `GET /health`      | Combined human/external summary — version, DB readyState, components      | Always 200 if process responds; body `status` is `ok` or `degraded`            |
+| `GET /health/live` | Orchestrator **liveness** — restart container on failure                  | Always 200 if process can respond. Failure means process is dead → restart.    |
+| `GET /health/ready` | Orchestrator **readiness** — gate traffic on DB readiness                | 200 when Mongo `readyState === 1`; **503** otherwise. Roll-out gate.           |
+
+Configuration:
+- DO App Platform **liveness** probe → `GET /health/live`, 5s interval, 3-failure restart threshold.
+- DO App Platform **readiness** probe → `GET /health/ready`, 10s interval, 2-failure remove-from-rotation threshold (so a slow Atlas reconnect doesn't take an instance out for a single blip).
+- External uptime probe (Better Uptime / UptimeRobot) → `GET /health`, 1-minute interval, alert on non-200 OR `status: degraded`.
+
+The legacy single-`/health` endpoint stays in place so older probes continue to work; new orchestration must use `/health/live` and `/health/ready` so DB blips don't trigger spurious container restarts.
 
 ### 4.4 Logging
 
@@ -229,7 +241,9 @@ In the order the operator should create things:
 7. Wire VPC peering / PrivateLink so App Platform → Atlas traffic stays private.
 8. Run schema migrations against Atlas.
 9. Smoke test:
-   - `GET /health` returns 200 with DB connectivity + version.
+   - `GET /health` returns 200 with `status: ok`, DB connectivity, and the version string from `package.json`.
+   - `GET /health/live` returns 200 with `{"status":"live"}`.
+   - `GET /health/ready` returns 200 with `{"status":"ready", "database":{"connected":true,"readyState":1}}`. Disconnect Mongo briefly and confirm it returns **503** with `{"status":"not_ready"}` before re-checking.
    - `POST /webhooks/external/award` round-trips a signed test payload.
    - `GET /api/docs` is **not** reachable in production mode (NODE_ENV=production gate).
    - Signup endpoint enforces 5/min rate limit.
