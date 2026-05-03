@@ -71,3 +71,27 @@ jobs:
 
       - name: Schema validation
         run: node scripts/validate-schema.js
+
+      - name: Type check (tsc --noEmit)
+        run: npm run type-check
+
+      - name: Lint (ESLint)
+        run: npm run lint
+
+      - name: Prettier format check
+        run: npm run format:check
+
+      - name: Build (tsc)
+        run: npm run build
+
+      - name: Tests with coverage (test:ci)
+        run: npm run test:ci
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ github.sha }}
+          path: coverage/
+          retention-days: 14
+          if-no-files-found: ignore
