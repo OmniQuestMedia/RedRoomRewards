@@ -42,21 +42,21 @@ module.exports = {
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html', 'json-summary'],
-  // Coverage floor is pinned to current measured levels (A-011, re-pinned in
-  // #277 after PR #272 introduced uncovered services, and again in #283 after
-  // payloads #4-#10 added more uncovered surface than tests).
-  // Target is 80% across the board; ratchet up, never down, as services
-  // gain real test coverage (notably: admin-ops, idempotency, ingest-worker,
-  // reservations, balance-snapshot-cache, receipt-endpoint.example).
-  // Current measured (PR #283):
-  //   statements 56.85% (-23.15), branches 50.13% (-29.87),
-  //   lines      57.55% (-22.45), functions 51.27% (-28.73)
+  // Coverage floor is pinned to current measured levels (A-011, re-pinned
+  // in #277, #283, and again in ALP-5 after the reconciliation, HMAC
+  // canonical, and health-probe specs landed). The 80% target is the goal;
+  // the ratchet only ever moves up. Notable still-uncovered surface that
+  // would lift the floor further: admin-ops, ingest-worker, balance-
+  // snapshot-cache, white-label.module, webhook.module, reporting service.
+  // Current measured (ALP-5 commit):
+  //   statements 64.32 (-15.68), branches 59.72 (-20.28),
+  //   lines      65.09 (-14.91), functions 61.24 (-18.76)
   coverageThreshold: {
     global: {
-      branches: 48,
-      functions: 50,
-      lines: 57,
-      statements: 56,
+      branches: 58,
+      functions: 60,
+      lines: 64,
+      statements: 63,
     },
   },
 
