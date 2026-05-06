@@ -2,6 +2,8 @@
 
 Loyalty-points backend for OmniQuest Media Inc. — Node.js / TypeScript, NestJS, MongoDB.
 
+> **Sovereign Policy:** [OQMI Infrastructure and Security Policy](OQMI_INFRASTRUCTURE_AND_SECURITY_POLICY.md) — company-wide operational, security, and infrastructure authority (v1.0, effective 2026-05-06). All teams and agents must comply. Where any conflict arises with older security documents, this policy prevails.
+
 ## What this is
 
 A loyalty platform: wallet management, point earn/redeem, ledger, tier engine,
@@ -23,6 +25,7 @@ detail.
 
 | Doc | Purpose |
 |-----|---------|
+| [**Infrastructure & Security Policy**](OQMI_INFRASTRUCTURE_AND_SECURITY_POLICY.md) | **Sovereign security & infra policy (v1.0)** |
 | [Architecture](docs/UNIVERSAL_ARCHITECTURE.md) | System design |
 | [API spec](api/openapi.yaml) | Endpoint contracts |
 | [Domain glossary](docs/DOMAIN_GLOSSARY.md) | Naming authority |
