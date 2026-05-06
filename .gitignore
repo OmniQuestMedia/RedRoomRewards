@@ -129,5 +129,17 @@ docs/.vitepress/dist
 .tern-port
 .vscode-test
 
+# ── Yarn (if used in connected workspaces / Cyrano / eComms) ──────────────
+yarn.lock
+.yarn/
+.yarnrc.yml
+.pnp.cjs
+
+# ── Docker ────────────────────────────────────────────────────────────────
+.docker/
+docker-compose.override.yml
+
 # ── Custom Exclusions ──────────────────────────────────────────────────────
-# TODO: Add project-specific exclusions below this line
+# Project-specific exclusions below this line
+REPORT_BACK/
+*.report-back.md

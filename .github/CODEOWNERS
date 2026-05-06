@@ -1,0 +1,34 @@
+# CODEOWNERS — RedRoomRewards
+# Authority: Kevin B. Hartley, CEO — OmniQuest Media Inc.
+# All PRs require approval from the matching owner(s).
+# Changes to financial-integrity paths require CEO review.
+
+# Default: all files require OQMInc org review
+* @OmniQuestMediaInc/rrrdev
+
+# Governance and policy — CEO approval required
+OQMI_INFRASTRUCTURE_AND_SECURITY_POLICY.md @OmniQuestMediaInc/ceo
+PROGRAM_CONTROL/ @OmniQuestMediaInc/ceo
+.github/PRODUCTION_SCHEDULE.md @OmniQuestMediaInc/ceo
+.github/copilot-instructions.md @OmniQuestMediaInc/ceo
+
+# Financial Integrity Zone — requires dedicated FIZ review
+src/ledger/ @OmniQuestMediaInc/rrrdev @OmniQuestMediaInc/ceo
+src/wallets/ @OmniQuestMediaInc/rrrdev @OmniQuestMediaInc/ceo
+src/services/point-accrual.service.ts @OmniQuestMediaInc/rrrdev @OmniQuestMediaInc/ceo
+src/services/point-redemption.service.ts @OmniQuestMediaInc/rrrdev @OmniQuestMediaInc/ceo
+src/services/point-expiration.service.ts @OmniQuestMediaInc/rrrdev @OmniQuestMediaInc/ceo
+
+# API contracts — require rrrdev approval
+api/ @OmniQuestMediaInc/rrrdev
+src/api/ @OmniQuestMediaInc/rrrdev
+
+# DB schema / models — require rrrdev approval
+src/db/ @OmniQuestMediaInc/rrrdev
+
+# Infrastructure
+infra/ @OmniQuestMediaInc/rrrdev
+.github/workflows/ @OmniQuestMediaInc/rrrdev
+
+# Archive — read-only historical reference; changes require ceo
+archive/ @OmniQuestMediaInc/ceo
