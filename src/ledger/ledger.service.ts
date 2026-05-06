@@ -21,6 +21,7 @@ import {
 import { LedgerEntryModel, ILedgerEntry } from '../db/models/ledger-entry.model';
 import { IdempotencyRecordModel } from '../db/models/idempotency.model';
 import { TransactionType, TransactionReason } from '../wallets/types';
+import logger from '../lib/logger';
 
 /**
  * Default configuration for ledger service
@@ -686,7 +687,7 @@ export class LedgerService implements ILedgerService {
     _expiryDays?: number,
   ) {
     // STUB: real implementation in next payload
-    console.log(`[Ledger] Created gifting promotion for ${creatorId}`);
+    logger.info({ creatorId }, 'Ledger gifting-promotion created (stub)');
     return true;
   }
 

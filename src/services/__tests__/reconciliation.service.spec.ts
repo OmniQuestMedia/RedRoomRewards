@@ -1,6 +1,7 @@
 import { ReconciliationService } from '../reconciliation.service';
 import { LedgerService } from '../../ledger/ledger.service';
 import { ReconciliationReport } from '../../ledger/types';
+import logger from '../../lib/logger';
 
 /**
  * ReconciliationService coverage (B-011 invariant gate).
@@ -89,14 +90,14 @@ describe('ReconciliationService', () => {
   });
 
   describe('mismatch handling', () => {
-    let consoleErrorSpy: jest.SpyInstance;
+    let loggerErrorSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      loggerErrorSpy = jest.spyOn(logger, 'error').mockImplementation(() => logger);
     });
 
     afterEach(() => {
-      consoleErrorSpy.mockRestore();
+      loggerErrorSpy.mockRestore();
     });
 
     it('returns balanced=false and details.reconciled=false on a mismatch', async () => {
@@ -126,22 +127,23 @@ describe('ReconciliationService', () => {
       );
       const service = new ReconciliationService(ledger);
       await service.reconcileUser('user-1', 'tenant-A');
-      expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-      const payload = JSON.parse(consoleErrorSpy.mock.calls[0][0] as string);
-      expect(payload.event).toBe('RECON_MISMATCH');
-      expect(payload.accountId).toBe('user-1');
-      expect(payload.accountType).toBe('user');
-      expect(payload.difference).toBe(100);
-      expect(payload.calculatedBalance).toBe(1000);
-      expect(payload.actualBalance).toBe(1100);
-      expect(typeof payload.reportedAt).toBe('string');
+      expect(loggerErrorSpy).toHaveBeenCalledTimes(1);
+      const [fields, message] = loggerErrorSpy.mock.calls[0] as [Record<string, unknown>, string];
+      expect(fields.event).toBe('RECON_MISMATCH');
+      expect(fields.accountId).toBe('user-1');
+      expect(fields.accountType).toBe('user');
+      expect(fields.difference).toBe(100);
+      expect(fields.calculatedBalance).toBe(1000);
+      expect(fields.actualBalance).toBe(1100);
+      expect(typeof fields.reportedAt).toBe('string');
+      expect(message).toBe('Reconciliation mismatch detected');
     });
 
     it('does NOT emit a log when reconciliation passes', async () => {
       const ledger = makeLedgerStub(makeReportFixture());
       const service = new ReconciliationService(ledger);
       await service.reconcileUser('user-1', 'tenant-A');
-      expect(consoleErrorSpy).not.toHaveBeenCalled();
+      expect(loggerErrorSpy).not.toHaveBeenCalled();
     });
 
     it('NEVER calls a write method on the ledger when a mismatch is detected', async () => {

@@ -2,8 +2,15 @@
  * Lightweight Metrics Logger
  *
  * Simple console-based metrics logging for M1 production hardening.
- * Follows existing logging patterns in the codebase.
- * In production, this can be replaced with a proper metrics backend.
+ * Emits structured JSON to stdout/stderr so external collection
+ * (CloudWatch, Datadog, Better Stack) can parse on its own — this is
+ * intentional and predates the pino migration in D-001.
+ *
+ * Follow-up tracked in CLEANUP.md: replace these console.* writes with
+ * pino while preserving the AlertSeverity / MetricEventType routing.
+ * The route table here doesn't map cleanly onto pino's level scheme
+ * (info/warn/error), so the migration needs explicit mapping rather
+ * than a sed-and-pray.
  */
 
 import { MetricData, AlertData, MetricEventType, AlertSeverity } from './types';
