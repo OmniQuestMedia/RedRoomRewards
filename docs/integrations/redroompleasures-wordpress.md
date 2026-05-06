@@ -180,6 +180,13 @@ RRR posts signed webhooks to your `RRR_WEBHOOK_URL` for events relevant to your 
 | `refund.applied`         | An OQMI Operator issued a refund affecting a member | Email the member, update local order record               |
 | `expiration.warning`     | A member has points expiring within 30 days        | Email the member with the affected amount                  |
 
+Concrete sample payload bodies for `refund.applied` and `expiration.warning`
+live in [`docs/contracts/examples/outbound-webhooks/`](../contracts/examples/outbound-webhooks/).
+Use them as fixtures in `tests/run-tests.php` so the parser doesn't drift
+from the live shape. (`earn.confirmed` is currently a confirmation-only
+event with no body shape pinned — RRR may upgrade it to a fuller envelope
+in a later wave; the WP plugin should treat unknown fields as a no-op.)
+
 ### 5.1 Verifying inbound webhook signatures
 
 Same envelope as §4 of `docs/AUTH_CONTRACT.md`, but in reverse — RRR signs, you verify. Reject any delivery whose timestamp drifts > ±5 min, whose `X-RRR-Tenant` isn't `redroompleasures`, or whose signature doesn't validate.

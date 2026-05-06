@@ -74,7 +74,9 @@ All Merchant Admin endpoints, cross-tenant; plus expiration-process endpoints un
 | Inbound   | `POST /webhooks/external/award`   | HMAC-SHA256 in handler (not Bearer) |
 | Outbound  | (emit to merchant-registered URL) | HMAC-signed payload                 |
 
-See `docs/AUTH_CONTRACT.md` for HMAC envelope spec.
+- HMAC envelope, headers, error codes: [`docs/AUTH_CONTRACT.md`](./AUTH_CONTRACT.md).
+- Payload contracts (JSON Schema + canonical examples): [`docs/contracts/xxx-events.schema.json`](./contracts/xxx-events.schema.json) and [`docs/contracts/examples/`](./contracts/examples/).
+- Idempotency/retry semantics for outbound delivery: [`docs/contracts/idempotency-and-retries.md`](./contracts/idempotency-and-retries.md).
 
 ---
 

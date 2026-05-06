@@ -15,6 +15,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Injectable } from '@nestjs/common';
 import { ISettlementRecord, SettlementRecordModel } from '../db/models/settlement-record.model';
+import logger from '../lib/logger';
 
 @Injectable()
 export class SettlementService {
@@ -31,8 +32,13 @@ export class SettlementService {
     periodEnd: Date,
     correlationId?: string,
   ): Promise<ISettlementRecord> {
-    console.log(
-      `[Settlement] Processing period ${periodStart.toISOString()} to ${periodEnd.toISOString()} for tenant ${tenantId}`,
+    logger.info(
+      {
+        tenantId,
+        periodStart: periodStart.toISOString(),
+        periodEnd: periodEnd.toISOString(),
+      },
+      'Settlement period processing started',
     );
 
     const record = new SettlementRecordModel({

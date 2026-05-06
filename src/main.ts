@@ -8,7 +8,7 @@ import logger from './lib/logger';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  app.setGlobalPrefix('api/v1', { exclude: ['health'] });
+  app.setGlobalPrefix('api/v1', { exclude: ['health', 'health/live', 'health/ready'] });
   app.enableCors({ origin: true }); // tighten in prod
   app.enableShutdownHooks();
 

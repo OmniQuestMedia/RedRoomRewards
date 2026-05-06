@@ -151,10 +151,28 @@ RRR retries failed deliveries with exponential backoff (1m, 5m, 30m, 2h, 12h) fo
 
 The current implementation accepts inbound webhooks via `POST /webhooks/external/award` and verifies HMAC against `RRR_WEBHOOK_SECRET` (single system-level key). This is **Alpha-acceptable but not Alpha-final**: the Alpha-final state requires per-tenant keys.
 
-Migration path (tracked as ALP-2 follow-up):
+### 8.1 Live divergence from §3–§5 (read this before integrating)
+
+The §3 envelope and §4 canonical signing string are the **target** specification. The live receive path in `src/webhooks/webhook-receive.service.ts` uses a **simpler, transient scheme** during Alpha:
+
+| Aspect           | Target (§3–§5)                                                                              | Live (Alpha)                                                                            |
+| ---------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Signature header | `X-RRR-Signature`                                                                            | `x-webhook-signature`                                                                   |
+| Canonical string | 5-line: `METHOD\nPATH\nTIMESTAMP\nNONCE\nSHA256_HEX(body)`                                  | `${timestamp}.${JSON.stringify(payload)}`                                               |
+| Replay window    | ±5 min timestamp + (tenant, nonce) sliding-window check                                      | timestamp present in canonical but **drift not enforced**; dedup is by `eventId` only   |
+| Tenant key       | per-tenant lookup by `(X-RRR-Tenant, X-RRR-Key-Id)`                                          | single shared `RRR_WEBHOOK_SECRET`                                                      |
+| Missing secret   | fail-closed (rejected at boot by `validateEnv`)                                              | fail-closed in production (boot validation); fail-open (`return true`) outside production for stub-mode dev |
+
+These divergences are deliberate Alpha-scope shortcuts and they are gated by:
+- `validateEnv()` (`src/config/validate-env.ts`) treats `RRR_WEBHOOK_SECRET` as required in `NODE_ENV=production` — so the dev-only fail-open path is unreachable in staging or production.
+- Webhook traffic in Phase-1 is restricted to the two named merchants (RedRoomPleasures, Cyrano) over allow-listed source IPs at the edge.
+
+### 8.2 Migration path (tracked as ALP-2 follow-up)
 1. Add a `merchant_api_keys` collection (tenant_id, key_id, secret_hash, status, rotated_at).
-2. Update `WebhookReceiveService.verifySignature` to look up the key by `(X-RRR-Tenant, X-RRR-Key-Id)` instead of a single env var.
-3. Keep `RRR_WEBHOOK_SECRET` as a fallback for the system-level "platform → tenant" channel only.
+2. Switch `WebhookReceiveService.verifySignature` to the §4 canonical string and look up the key by `(X-RRR-Tenant, X-RRR-Key-Id)` instead of a single env var.
+3. Enforce the ±5 min timestamp window and the (tenant, nonce) sliding-window check at the receive boundary, not just `eventId` dedup.
+4. Keep `RRR_WEBHOOK_SECRET` as a fallback for the system-level "platform → tenant" channel only.
+5. Remove the dev-mode fail-open in `verifySignature` once a separate `WEBHOOK_TEST_MODE=true` flag exists for local stub testing.
 
 Until that migration lands, Phase-1 merchants share a single `RRR_WEBHOOK_SECRET` rotated quarterly, with the explicit understanding that this is a transient state.
 

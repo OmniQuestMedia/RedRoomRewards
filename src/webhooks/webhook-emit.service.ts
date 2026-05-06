@@ -9,6 +9,7 @@
  */
 
 import { Injectable } from '@nestjs/common';
+import logger from '../lib/logger';
 
 export interface WebhookPayload {
   /** Dot-separated event type (e.g. "fraud.signal", "points.awarded"). */
@@ -37,6 +38,6 @@ export class WebhookEmitService {
     // TODO (C-005 / next wave): Fan-out to registered webhook endpoints with HMAC signing,
     // exponential-backoff retry, and idempotency key tracking.
     // For now, log the emission so it is visible in structured logs.
-    console.log(JSON.stringify({ event: 'WEBHOOK_EMIT', payload }));
+    logger.info({ event: 'WEBHOOK_EMIT', payload }, 'Webhook emit (stub)');
   }
 }

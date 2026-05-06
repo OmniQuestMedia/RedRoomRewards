@@ -42,12 +42,16 @@ import { RouteInfo } from '@nestjs/common/interfaces';
 /**
  * Routes that are accessible without authentication or tenant context.
  *
- * Health — liveness/readiness probe; must not require auth.
- * Signup — account creation; auth token does not exist yet at this point.
- * Webhooks — authenticated by HMAC signature in the handler, not by Bearer JWT.
+ * Health        — combined health summary; must not require auth.
+ * Health/live   — orchestrator liveness probe; must not require auth.
+ * Health/ready  — orchestrator readiness probe (DB-aware); must not require auth.
+ * Signup        — account creation; auth token does not exist yet at this point.
+ * Webhooks      — authenticated by HMAC signature in the handler, not by Bearer JWT.
  */
 export const PUBLIC_ROUTES: RouteInfo[] = [
   { path: 'health', method: RequestMethod.GET },
+  { path: 'health/live', method: RequestMethod.GET },
+  { path: 'health/ready', method: RequestMethod.GET },
   { path: 'api/v1/members/signup', method: RequestMethod.POST },
   { path: 'api/v1/webhooks/receive', method: RequestMethod.POST },
 ];

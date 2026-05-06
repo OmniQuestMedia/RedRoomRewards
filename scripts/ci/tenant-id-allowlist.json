@@ -4,7 +4,7 @@
   "allow": [
     {
       "file": "src/ledger/ledger.service.ts",
-      "line": 152,
+      "line": 153,
       "model": "LedgerEntryModel",
       "method": "findOne",
       "_note": "idempotencyKey is globally unique (UUID); tenant scoping not possible without adding tenant_id to CreateLedgerEntryRequest (follow-up ticket)"

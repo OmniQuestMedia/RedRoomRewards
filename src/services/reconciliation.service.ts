@@ -14,6 +14,7 @@
 import { Injectable } from '@nestjs/common';
 import { LedgerService } from '../ledger/ledger.service';
 import { ReconciliationReport } from '../ledger/types';
+import logger from '../lib/logger';
 
 /** Result shape returned by reconcileUser / reconcileModel. */
 export interface ReconciliationResult {
@@ -80,9 +81,10 @@ export class ReconciliationService {
 
     if (!report.reconciled) {
       // RECON_MISMATCH — never auto-correct; surface for human review.
-      // Log as structured JSON so alerting pipelines can parse fields directly.
-      console.error(
-        JSON.stringify({
+      // Emitted at error level so alerting pipelines can filter on it
+      // directly. `event: 'RECON_MISMATCH'` is the stable parsing handle.
+      logger.error(
+        {
           event: 'RECON_MISMATCH',
           accountId,
           accountType,
@@ -90,7 +92,8 @@ export class ReconciliationService {
           calculatedBalance: report.calculatedBalance,
           actualBalance: report.actualBalance,
           reportedAt: report.reportedAt.toISOString(),
-        }),
+        },
+        'Reconciliation mismatch detected',
       );
     }
 

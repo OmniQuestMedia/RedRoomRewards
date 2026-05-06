@@ -71,12 +71,24 @@ function mockReqRes(): {
 // ---------------------------------------------------------------------------
 
 describe('Security Wiring — PUBLIC_ROUTES policy', () => {
-  it('should contain exactly 3 routes', () => {
-    expect(PUBLIC_ROUTES).toHaveLength(3);
+  it('should contain exactly 5 routes (3 health + signup + webhook receive)', () => {
+    expect(PUBLIC_ROUTES).toHaveLength(5);
   });
 
-  it('should include GET /health as liveness probe', () => {
+  it('should include GET /health as combined health summary', () => {
     const route = PUBLIC_ROUTES.find((r) => r.path === 'health');
+    expect(route).toBeDefined();
+    expect(route!.method).toBe(RequestMethod.GET);
+  });
+
+  it('should include GET /health/live as orchestrator liveness probe', () => {
+    const route = PUBLIC_ROUTES.find((r) => r.path === 'health/live');
+    expect(route).toBeDefined();
+    expect(route!.method).toBe(RequestMethod.GET);
+  });
+
+  it('should include GET /health/ready as orchestrator readiness probe', () => {
+    const route = PUBLIC_ROUTES.find((r) => r.path === 'health/ready');
     expect(route).toBeDefined();
     expect(route!.method).toBe(RequestMethod.GET);
   });
@@ -112,10 +124,8 @@ describe('Security Wiring — protected route classification', () => {
     expect(TENANT_SCOPED_ROUTES).toHaveLength(9);
   });
 
-  it('should classify 2 routes as AUTH-ONLY', () => {
-    expect(AUTH_ONLY_ROUTES).toHaveLength(2);
-  it('should classify 4 routes as AUTH-ONLY', () => {
-    expect(AUTH_ONLY_ROUTES).toHaveLength(4);
+  it('should classify 5 routes as AUTH-ONLY', () => {
+    expect(AUTH_ONLY_ROUTES).toHaveLength(5);
   });
 
   it('should include ledger transaction history endpoints in AUTH-ONLY', () => {

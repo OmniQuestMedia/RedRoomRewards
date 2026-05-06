@@ -38,9 +38,7 @@ export class RateLimitMiddleware implements NestMiddleware, OnModuleInit {
 
     const parsed = parseInt(value, 10);
     if (isNaN(parsed) || parsed <= 0) {
-      throw new Error(
-        `RATE_LIMIT_PER_MINUTE must be a positive integer, got: ${value}`,
-      );
+      throw new Error(`RATE_LIMIT_PER_MINUTE must be a positive integer, got: ${value}`);
     }
 
     return parsed;

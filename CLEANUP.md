@@ -112,6 +112,15 @@ Verified-clean terms: `directory`, `profile.?view`, `browse`, `discover`,
 - [ ] Remove or rewrite legacy seeders, tests, or fixtures tied to old features.
       _(Follow-up: `archive/xxxchatnow-seed/` is already removed; re-verify no
       seeders reference retired concepts during Wave C.)_
+- [ ] Migrate `src/metrics/logger.ts` and `src/metrics/ingest-logger.ts` from
+      direct `console.*` writes to pino while preserving the AlertSeverity /
+      MetricEventType routing. The two files emit structured JSON to
+      stdout/stderr by design (M1 production hardening) — they predate the
+      pino migration in D-001 and are the last `console.*` callers under
+      `src/`. They each carry a file-level `eslint-disable no-console` and a
+      header comment noting the migration intent. _(Tracked post-Alpha:
+      mapping AlertSeverity → pino levels needs explicit table, not a
+      sed-and-pray pass.)_
 
 ---
 

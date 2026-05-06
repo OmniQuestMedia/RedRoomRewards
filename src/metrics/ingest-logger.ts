@@ -3,6 +3,11 @@
  *
  * Production-safe logging for /v1/events/ingest endpoint with automatic redaction.
  * Logs only approved fields, omitting secrets, PII, and raw payloads.
+ *
+ * Emits structured JSON to stdout via console.log so external collection
+ * (CloudWatch, Datadog, Better Stack) can parse on its own — this is
+ * intentional and predates the pino migration in D-001. Migration is
+ * tracked alongside src/metrics/logger.ts in CLEANUP.md.
  */
 
 /**

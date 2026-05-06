@@ -1,0 +1,27 @@
+{
+  "event": "expiration.warning",
+  "emittedAt": "2026-05-03T13:47:55.678Z",
+  "data": {
+    "tenant_id": "tenant-example",
+    "user_id": "rrp-member-1a2b",
+    "lots": [
+      {
+        "lot_id": "lot-aabbccdd",
+        "amount_remaining": 250,
+        "expires_at": "2026-06-01T00:00:00.000Z",
+        "earned_at": "2025-12-01T00:00:00.000Z",
+        "reason_code": "PROMOTIONAL_AWARD"
+      },
+      {
+        "lot_id": "lot-eeff0011",
+        "amount_remaining": 100,
+        "expires_at": "2026-06-15T00:00:00.000Z",
+        "earned_at": "2025-12-15T00:00:00.000Z",
+        "reason_code": "REFERRAL_BONUS"
+      }
+    ],
+    "total_expiring_amount": 350,
+    "earliest_expiry_at": "2026-06-01T00:00:00.000Z",
+    "request_id": "req-4c5d6e7f"
+  }
+}

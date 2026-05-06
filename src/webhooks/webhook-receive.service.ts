@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { createHmac, timingSafeEqual } from 'crypto';
 import { IdempotencyService } from '../services/idempotency.service';
 import { WebhookEmitService } from './webhook-emit.service';
+import logger from '../lib/logger';
 
 /** Operation name used for webhook-receive idempotency records. */
 const WEBHOOK_RECEIVE_OP = 'webhook_receive';
@@ -48,7 +49,7 @@ export class WebhookReceiveService {
       return existing as { status: string; eventId: string };
     }
 
-    console.log(`[Webhook] Received event ${eventId}`);
+    logger.info({ eventId }, 'Webhook event received');
 
     const result: { status: string; eventId: string } = { status: 'accepted', eventId };
     await this.idempotency.recordKey(
