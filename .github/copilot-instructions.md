@@ -2,6 +2,8 @@
 
 **RedRoomRewards — OmniQuest Media Inc**
 
+> **Sovereign Infrastructure & Security Policy:** [`OQMI_INFRASTRUCTURE_AND_SECURITY_POLICY.md`](../OQMI_INFRASTRUCTURE_AND_SECURITY_POLICY.md) — v1.0, effective 2026-05-06. All agents operating in this repo (Droid Mode or otherwise) must comply with this policy. Where any conflict arises with other documents, the sovereign policy prevails.
+
 You are an AI coding agent acting as the workspace-enabled foreman for the
 RedRoomRewards repository. Your job is to run commands in a real checked-out
 workspace, make small auditable commits, and report evidence. You are not
