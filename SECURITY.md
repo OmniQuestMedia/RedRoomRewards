@@ -1,6 +1,6 @@
 ## Security Policy
 
-> **Sovereign Policy:** [OQMI Infrastructure and Security Policy](OQMI_INFRASTRUCTURE_AND_SECURITY_POLICY.md) — company-wide operational, security, and infrastructure authority (v1.0, effective 2026-05-06). All teams and agents must comply. Where any conflict arises with older security documents or sections of this file, the sovereign policy prevails. Conflicting older sections have been archived to `docs/security/archive/`.
+> **Sovereign Policy:** [OQMI Infrastructure and Security Policy](OQMI_INFRASTRUCTURE_AND_SECURITY_POLICY.md) — company-wide operational, security, and infrastructure authority (v1.0, effective 2026-05-06). All teams and agents must comply. Where any conflict arises with older security documents or sections of this file, the sovereign policy prevails.
 
 ### Last Updated: 2026-05-06
 
