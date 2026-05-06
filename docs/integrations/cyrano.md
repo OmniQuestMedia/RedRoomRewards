@@ -229,6 +229,11 @@ RRR posts signed webhooks to your registered receive URL. For Alpha, Cyrano subs
 | `expiration.warning`   | A Cyrano member has points expiring within 30 days                      | Surface to Cyrano member-account UI                            |
 | `refund.applied`       | OQMI Operator issued a refund affecting a Cyrano member                 | Update local cache; notify member if appropriate              |
 
+Concrete sample payload bodies for every event in the table above live in
+[`docs/contracts/examples/outbound-webhooks/`](../contracts/examples/outbound-webhooks/).
+Use them as fixtures for the Cyrano-side parser tests so the parser
+doesn't drift from the live shape.
+
 ### 5.1 Verifying inbound signatures
 
 Same envelope as `docs/AUTH_CONTRACT.md` §4, but you're the verifier:

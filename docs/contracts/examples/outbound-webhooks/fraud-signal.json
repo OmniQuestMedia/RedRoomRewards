@@ -1,0 +1,26 @@
+{
+  "event": "fraud.signal",
+  "emittedAt": "2026-05-03T13:45:33.012Z",
+  "data": {
+    "patterns": [
+      {
+        "type": "VELOCITY",
+        "description": "Abnormally high point-earn rate detected within window"
+      },
+      {
+        "type": "IMMEDIATE_REDEMPTION",
+        "description": "Redemption detected immediately after a large earn event"
+      }
+    ],
+    "userId": "cyrano-member-9f8e",
+    "evidence": {
+      "tenantId": "tenant-example",
+      "userId": "cyrano-member-9f8e",
+      "merchantId": "cyrano",
+      "operationType": "redeem",
+      "amount": 4500,
+      "occurredAt": "2026-05-03T13:45:32.998Z"
+    },
+    "detectedAt": "2026-05-03T13:45:33.005Z"
+  }
+}
