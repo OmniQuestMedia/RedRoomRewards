@@ -28,7 +28,6 @@ const LoyaltyAccountSchema = new Schema<ILoyaltyAccount>(
       type: Schema.Types.ObjectId,
       ref: 'TenantB001',
       required: true,
-      index: true,
     },
     external_user_id: {
       type: String,
@@ -61,7 +60,6 @@ const LoyaltyAccountSchema = new Schema<ILoyaltyAccount>(
 );
 
 LoyaltyAccountSchema.index({ tenant_id: 1, external_user_id: 1 }, { unique: true });
-LoyaltyAccountSchema.index({ tenant_id: 1, external_user_id: 1 });
 
 export const LoyaltyAccountModel: Model<ILoyaltyAccount> = mongoose.model<ILoyaltyAccount>(
   'LoyaltyAccountB002',

@@ -20,7 +20,6 @@ const TenantSchema = new Schema<ITenant>(
       trim: true,
       maxlength: 128,
       unique: true,
-      index: true,
     },
     name: {
       type: String,
@@ -45,8 +44,6 @@ const TenantSchema = new Schema<ITenant>(
     versionKey: false,
   },
 );
-
-TenantSchema.index({ slug: 1 }, { unique: true });
 
 export const TenantModel: Model<ITenant> = mongoose.model<ITenant>('TenantB001', TenantSchema);
 export { TenantSchema };

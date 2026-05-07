@@ -19,13 +19,11 @@ const IdentityLinkSchema = new Schema<IIdentityLink>(
       type: Schema.Types.ObjectId,
       ref: 'LoyaltyAccountB002',
       required: true,
-      index: true,
     },
     merchant_id: {
       type: Schema.Types.ObjectId,
       ref: 'MerchantB001',
       required: true,
-      index: true,
     },
     external_account_ref: {
       type: String,
@@ -52,7 +50,6 @@ const IdentityLinkSchema = new Schema<IIdentityLink>(
 );
 
 IdentityLinkSchema.index({ merchant_id: 1, external_account_ref: 1 }, { unique: true });
-IdentityLinkSchema.index({ merchant_id: 1, external_account_ref: 1 });
 
 export const IdentityLinkModel: Model<IIdentityLink> = mongoose.model<IIdentityLink>(
   'IdentityLinkB002',

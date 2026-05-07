@@ -30,7 +30,6 @@ const MerchantSchema = new Schema<IMerchant>(
       type: Schema.Types.ObjectId,
       ref: 'TenantB001',
       required: true,
-      index: true,
     },
     slug: {
       type: String,
@@ -68,7 +67,6 @@ const MerchantSchema = new Schema<IMerchant>(
 );
 
 MerchantSchema.index({ tenant_id: 1, slug: 1 }, { unique: true });
-MerchantSchema.index({ tenant_id: 1, slug: 1 });
 
 export const MerchantModel: Model<IMerchant> = mongoose.model<IMerchant>(
   'MerchantB001',
