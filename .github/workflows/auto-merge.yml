@@ -35,6 +35,9 @@ jobs:
     name: Enable Auto Merge
     if: >-
       github.event_name == 'pull_request' &&
+      (startsWith(github.head_ref, 'copilot/') ||
+       startsWith(github.head_ref, 'grok/') ||
+       startsWith(github.head_ref, 'agent/')) &&
       !contains(github.event.pull_request.labels.*.name, 'fiz') &&
       !contains(github.event.pull_request.labels.*.name, 'ceo-gate')
     runs-on: ubuntu-24.04
@@ -57,8 +60,11 @@ jobs:
     name: Skip Gated PR
     if: >-
       github.event_name == 'pull_request' &&
-      (contains(github.event.pull_request.labels.*.name, 'fiz') ||
-       contains(github.event.pull_request.labels.*.name, 'ceo-gate'))
+      ((startsWith(github.head_ref, 'copilot/') ||
+        startsWith(github.head_ref, 'grok/') ||
+        startsWith(github.head_ref, 'agent/')) &&
+       (contains(github.event.pull_request.labels.*.name, 'fiz') ||
+        contains(github.event.pull_request.labels.*.name, 'ceo-gate')))
     runs-on: ubuntu-24.04
 
     steps:

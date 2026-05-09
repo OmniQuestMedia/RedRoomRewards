@@ -1,0 +1,21 @@
+name: Copilot Internal Fast-Path
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  fast-gate:
+    runs-on: ubuntu-latest
+    if: startsWith(github.head_ref, 'copilot/') || startsWith(github.head_ref, 'grok/') || startsWith(github.head_ref, 'agent/')
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run type-check && npm run lint && npm run format:check && npm run test:ci && npm run ship-gate
