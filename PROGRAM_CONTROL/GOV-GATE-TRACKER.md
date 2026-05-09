@@ -52,3 +52,4 @@ governed by the normal auto-merge path and is tracked in §6 itself.
 | ---------------- | ------ | ---- | ---------- | ---------- | ---------------------------------------------------------------------------------------- |
 | RRR-GOV-002      | MERGED | —    | 2026-04-21 | 2026-04-21 | Charter ratification, merge commit `ccb288e`. Persistent per §0 — does not move to DONE. |
 | RRR-GOV-002-A001 | MERGED | #227 | 2026-04-21 | 2026-04-21 | Archive CLAUDE.md, merge commit `954dec9`. DONE record: `DONE/RRR-GOV-002-A001-DONE.md`. |
+| WORK-ORDER-PHASE0 | OPEN | —    | 2026-05-06 | —          | Phase 0 cleanup & housekeeping; work complete pending CEO merge review. rule_applied_id: INFRA_POLICY_v1.0 |

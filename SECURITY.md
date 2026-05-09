@@ -1,6 +1,8 @@
 ## Security Policy
 
-### Last Updated: January 4, 2026
+> **Sovereign Policy:** [OQMI Infrastructure and Security Policy](OQMI_INFRASTRUCTURE_AND_SECURITY_POLICY.md) — company-wide operational, security, and infrastructure authority (v1.0, effective 2026-05-06). All teams and agents must comply. Where any conflict arises with older security documents or sections of this file, the sovereign policy prevails.
+
+### Last Updated: 2026-05-06
 
 At OmniQuestMedia, the security of our platform and user data is of the utmost
 priority. Below, we outline the standards and practices used to ensure a secure

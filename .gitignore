@@ -143,3 +143,18 @@ docker-compose.override.yml
 # Project-specific exclusions below this line
 REPORT_BACK/
 *.report-back.md
+
+# ── Canada-Sovereign Infra (INFRA_POLICY_v1.0) ────────────────────────────
+# KMS key material — never committed
+*.kms-key
+*.kms-key.json
+kms-credentials/
+kms-config.local.*
+# Immutable backup manifests (local cache only)
+backup-manifests/
+*.backup-manifest.local
+# Encrypted reference files (raw sensitive paths)
+*.enc-ref
+encrypted-refs/
+# DR / restore staging scratch
+restore-staging/
