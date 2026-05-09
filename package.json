@@ -21,6 +21,7 @@
     "teardown:alpha-staging": "ts-node scripts/teardown-alpha-staging.ts",
     "reconcile": "ts-node scripts/reconcile.ts",
     "type-check": "tsc --noEmit",
+    "ship-gate": "node scripts/ci/charter-integrity-check.js && node scripts/ci/no-hardcoded-balance.js && node scripts/ci/tenant-id-scope-check.js && node scripts/ci/seed-fixture-alignment-check.js && node scripts/ci/log-secret-leak-check.js && node scripts/ci/openapi-freeze-check.js",
     "prepare": "husky"
   },
   "keywords": [
