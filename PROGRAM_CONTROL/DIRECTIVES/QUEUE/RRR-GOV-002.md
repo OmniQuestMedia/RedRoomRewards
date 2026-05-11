@@ -451,7 +451,7 @@ tasks carry `FIZ: YES` because they touch the financial code paths.
 #### Task B-001 — Tenant \+ Merchant models
 
 - **Status:** DONE
-- **Agent:** grok
+- **Agent:** copilot
 - **Type:** DB
 - **CEO_GATE:** NO
 - **FIZ:** NO
@@ -482,7 +482,7 @@ tasks carry `FIZ: YES` because they touch the financial code paths.
 #### Task B-002 — LoyaltyAccount \+ IdentityLink models
 
 - **Status:** DONE
-- **Agent:** grok
+- **Agent:** copilot
 - **Type:** DB
 - **CEO_GATE:** NO
 - **FIZ:** NO
