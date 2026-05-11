@@ -22,7 +22,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { LedgerService } from '../ledger/ledger.service';
 import { WalletModel } from '../db/models/wallet.model';
 import { EscrowItemModel } from '../db/models/escrow-item.model';
-import { TierCapConfigModel } from '../db/models/tier-cap-config.model';
+import { TierCapConfigModel, type ITierCapConfig } from '../db/models/tier-cap-config.model';
 import { TransactionType, TransactionReason } from '../wallets/types';
 
 /** Allowed reason codes for Screen 07 that may appear as escrow annotations */
@@ -315,7 +315,7 @@ export class RedemptionService {
     const capConfig = await TierCapConfigModel.findOne({
       tenant_id: { $eq: tenantId },
       merchant_id: { $eq: merchantId },
-      tier_name: { $eq: tierName },
+      tier_name: { $eq: tierName as ITierCapConfig['tier_name'] },
       superseded_at: null,
     })
       .sort({ effective_at: -1 })

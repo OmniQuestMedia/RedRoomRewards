@@ -58,6 +58,11 @@ function getChangedFiles() {
 
 const gates = [
   {
+    id: 'type-check',
+    command: 'npm run type-check',
+    required: true,
+  },
+  {
     id: 'lint-clean',
     command: 'npm run lint:ci',
     required: true,

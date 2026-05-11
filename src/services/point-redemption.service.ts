@@ -12,7 +12,7 @@
 
 import { IWalletService } from './types';
 import { EscrowHoldRequest, TransactionReason } from '../wallets/types';
-import { TierCapConfigModel } from '../db/models/tier-cap-config.model';
+import { TierCapConfigModel, type ITierCapConfig } from '../db/models/tier-cap-config.model';
 
 /**
  * Request to redeem points for a feature
@@ -287,7 +287,7 @@ export class PointRedemptionService {
     const capConfig = await TierCapConfigModel.findOne({
       tenant_id: { $eq: tenantId },
       merchant_id: { $eq: merchantId },
-      tier_name: { $eq: tierName },
+      tier_name: { $eq: tierName as ITierCapConfig['tier_name'] },
       superseded_at: null,
     }).sort({ effective_at: -1 });
 
