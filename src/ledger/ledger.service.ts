@@ -168,7 +168,18 @@ export class LedgerService implements ILedgerService {
    */
   async queryEntries(filter: LedgerQueryFilter): Promise<LedgerQueryResult> {
     // Build query
-    const query: mongoose.FilterQuery<ILedgerEntry> = {};
+    const query: {
+      accountId?: { $eq: ILedgerEntry['accountId'] };
+      accountType?: { $eq: ILedgerEntry['accountType'] };
+      type?: { $eq: ILedgerEntry['type'] };
+      reason?: { $eq: ILedgerEntry['reason'] };
+      balanceState?: { $eq: ILedgerEntry['balanceState'] };
+      escrowId?: { $eq: NonNullable<ILedgerEntry['escrowId']> };
+      queueItemId?: { $eq: NonNullable<ILedgerEntry['queueItemId']> };
+      featureType?: { $eq: NonNullable<ILedgerEntry['featureType']> };
+      tenant_id?: { $eq: NonNullable<ILedgerEntry['tenant_id']> };
+      timestamp?: { $gte?: Date; $lte?: Date };
+    } = {};
 
     if (filter.accountId) {
       query.accountId = { $eq: filter.accountId };
@@ -219,14 +230,22 @@ export class LedgerService implements ILedgerService {
     const sortOrder = filter.sortOrder === 'asc' ? 1 : -1;
     const sort: Record<string, 1 | -1> = { [sortField]: sortOrder };
 
-    // Execute query — include tenant_id inline so B-009 can verify scoping
-    const scopedQuery: mongoose.FilterQuery<ILedgerEntry> = filter.tenantId
-      ? { ...query, tenant_id: { $eq: filter.tenantId } }
-      : query;
-
     const [entries, totalCount] = await Promise.all([
-      LedgerEntryModel.find(scopedQuery).sort(sort).skip(offset).limit(limit).lean().exec(),
-      LedgerEntryModel.countDocuments(scopedQuery),
+      LedgerEntryModel.find(
+        filter.tenantId
+          ? ({ tenant_id: { $eq: filter.tenantId }, ...query } as typeof query)
+          : query,
+      )
+        .sort(sort)
+        .skip(offset)
+        .limit(limit)
+        .lean()
+        .exec(),
+      LedgerEntryModel.countDocuments(
+        filter.tenantId
+          ? ({ tenant_id: { $eq: filter.tenantId }, ...query } as typeof query)
+          : query,
+      ),
     ]);
 
     // Map results
@@ -262,7 +281,12 @@ export class LedgerService implements ILedgerService {
     asOf?: Date,
     tenantId?: string,
   ): Promise<BalanceSnapshot> {
-    const query: mongoose.FilterQuery<ILedgerEntry> = {
+    const query: {
+      accountId: { $eq: ILedgerEntry['accountId'] };
+      accountType: { $eq: ILedgerEntry['accountType'] };
+      tenant_id?: { $eq: NonNullable<ILedgerEntry['tenant_id']> };
+      timestamp?: { $lte: Date };
+    } = {
       accountId: { $eq: accountId },
       accountType: { $eq: accountType },
     };
@@ -272,11 +296,12 @@ export class LedgerService implements ILedgerService {
     }
 
     // Get all entries up to the specified time — include tenant_id inline so B-009 can verify scoping
-    const scopedQuery: mongoose.FilterQuery<ILedgerEntry> = tenantId
-      ? { ...query, tenant_id: { $eq: tenantId } }
-      : query;
-
-    const entries = await LedgerEntryModel.find(scopedQuery).sort({ timestamp: 1 }).lean().exec();
+    const entries = await LedgerEntryModel.find(
+      tenantId ? ({ tenant_id: { $eq: tenantId }, ...query } as typeof query) : query,
+    )
+      .sort({ timestamp: 1 })
+      .lean()
+      .exec();
 
     // Calculate balances by state
     const balances: { [key: string]: number } = {
