@@ -75,6 +75,8 @@ cp .env.example .env   # fill in secrets
 npm install
 npm run build
 npm test
+npm run ship-gate
+# or: yarn ship-gate
 ```
 
 ### Lint & format

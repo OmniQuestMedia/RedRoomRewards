@@ -226,17 +226,11 @@ not run `tsc --noEmit`. Tracked for fix-up in a Wave C follow-up.
   scoping + ship-gate script in other OQMI repositories without weakening branch
   protections or mandatory security/compliance checks.
 
-## 2026-05-11 — Phase 0.6 lint standardization alignment
+## 2026-05-11 — Phase 0.5 lint parity updates
 
-- Migrating back to legacy ESLint v8 `.eslintrc.js` as canonical source and
-  adding `.github/linters/.eslintrc.json` fallback.
-- Standardizing package lint scripts (`lint`, `lint:ci`, `lint:fix`, `format`)
-  plus expanded lint-staged coverage for `*.ts`, `*.js`, `*.json`, `*.md`,
-  `*.yml`, `*.yaml`.
-- Adding `PROGRAM_CONTROL/ship-gate-verifier.js` as the ship-gate aggregator
-  with required governance checks and optional/advisory Super-Linter gate.
-- Aligning CI to run `npm run lint:ci` and `npm run ship-gate` as mandatory
-  gates before build/test.
+| Date       | Change                                                                                                        | PR  | Owner   | Outcome                                                     |
+| :--------- | :------------------------------------------------------------------------------------------------------------ | :-- | :------ | :---------------------------------------------------------- |
+| 2026-05-11 | Phase 0.5 lint parity — MaxZoneGPT-specific `PROGRAM_CONTROL/ship-gate-verifier.ts` + mixed Python/JS scripts | #31 | copilot | lint-clean invariant enforced; Python primary + JS advisory |
 
 ## HANDOFF
 

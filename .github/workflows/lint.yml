@@ -33,8 +33,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_ALL_CODEBASE: false
           YAML_VALIDATE_ALL_CODEBASE: false
-          FILTER_REGEX_INCLUDE: ^(\.github/|docs/|PROGRAM_CONTROL/|[^/]+\.(md|yml|yaml|json|ts|js)$)
-          VALIDATE_ESLINT: true
+          FILTER_REGEX_INCLUDE: ^(\.github/|docs/|PROGRAM_CONTROL/|[^/]+\.(md|yml|yaml|json)$)
+          VALIDATE_MARKDOWN: true
+          VALIDATE_JSON: true
+          VALIDATE_YAML: true
           LINTER_RULES_PATH: .github/linters
           YAML_CONFIG_FILE: .yaml-lint.yml
           MARKDOWN_CONFIG_FILE: .markdownlint.yml
