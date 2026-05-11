@@ -47,7 +47,7 @@
       (above).
 - [ ] Correct OQMI_SYSTEM_STATE.md template drift.
 - [ ] Add Super-Linter workflow (canonical from RedRoomRewards/ChatNowZone).
-- [ ] Run full `yarn install && yarn ship-gate` + CI matrix.
+- [ ] Run full `npm install && npm run ship-gate` + CI matrix.
 - [ ] Merge only after green + human review (CEO on governance paths).
 
 ## Phase 1: Foundation & Compliance (Ready After Phase 0 Sign-off)

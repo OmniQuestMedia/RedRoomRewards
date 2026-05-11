@@ -127,7 +127,7 @@ export const INVARIANTS: ShipGateInvariant[] = [
   {
     id: 'super-linter-clean',
     description: 'Run advisory Super-Linter in local docker mode',
-    command: `docker run --rm -e VALIDATE_ALL_CODEBASE=false -e FILTER_REGEX_INCLUDE="^(\\\\.github/|docs/|PROGRAM_CONTROL/|[^/]+\\\\.(md|yml|yaml|json|ts|js)$)" -e VALIDATE_ESLINT=true -e LINTER_RULES_PATH=.github/linters -e GITHUB_ACTIONS=true -v ${shellEscape(`${process.cwd()}:/tmp/lint`)} ghcr.io/super-linter/super-linter:slim-v8`,
+    command: `docker run --rm -e VALIDATE_ALL_CODEBASE=false -e FILTER_REGEX_INCLUDE="^(\\\\.github/|docs/|PROGRAM_CONTROL/|[^/]+\\\\.(md|yml|yaml|json)$)" -e VALIDATE_MARKDOWN=true -e VALIDATE_JSON=true -e VALIDATE_YAML=true -e LINTER_RULES_PATH=.github/linters -e GITHUB_ACTIONS=true -v ${shellEscape(`${process.cwd()}:/tmp/lint`)} ghcr.io/super-linter/super-linter:slim-v8`,
     required: false,
     skip: process.env.SHIP_GATE_RUN_SUPER_LINTER !== '1',
     skipReason: 'Advisory gate disabled by default. Set SHIP_GATE_RUN_SUPER_LINTER=1 to enable.',
