@@ -115,16 +115,52 @@ Verified-clean terms: `directory`, `profile.?view`, `browse`, `discover`,
 - [ ] Migrate `src/metrics/logger.ts` and `src/metrics/ingest-logger.ts` from
       direct `console.*` writes to pino while preserving the AlertSeverity /
       MetricEventType routing. The two files emit structured JSON to
-      stdout/stderr by design (M1 production hardening) — they predate the
-      pino migration in D-001 and are the last `console.*` callers under
-      `src/`. They each carry a file-level `eslint-disable no-console` and a
-      header comment noting the migration intent. _(Tracked post-Alpha:
-      mapping AlertSeverity → pino levels needs explicit table, not a
-      sed-and-pray pass.)_
+      stdout/stderr by design (M1 production hardening) — they predate the pino
+      migration in D-001 and are the last `console.*` callers under `src/`. They
+      each carry a file-level `eslint-disable no-console` and a header comment
+      noting the migration intent. _(Tracked post-Alpha: mapping AlertSeverity →
+      pino levels needs explicit table, not a sed-and-pray pass.)_
 
 ---
 
-## How to Use this List
+## P0.5 — Ledger Compliance Flags (rule_applied_id audit, 2026-05-11)
+
+Per coding doctrine §9.3, every ledger write must carry a `rule_applied_id` on
+the entry. The following **production** service / worker files touch the ledger
+(`.create`, `.save`, or construct `LedgerEntry` objects) but do **not** yet
+reference `rule_applied_id`. They are flagged here for follow-up in Phase 1.
+
+> **FIZ scope** — any fix to these files requires the `FIZ:` commit prefix with
+> `REASON:`, `IMPACT:`, and `CORRELATION_ID:` fields, and mandatory human review
+> before merge.
+
+| File                                       | Why flagged                                                    |
+| ------------------------------------------ | -------------------------------------------------------------- |
+| `src/ledger/ledger.service.ts`             | Core ledger write path — `rule_applied_id` not in entry schema |
+| `src/services/point-accrual.service.ts`    | Creates ledger entries on earn events                          |
+| `src/services/admin-ops.service.ts`        | Admin earn/adjust creates ledger entries                       |
+| `src/admin/admin-earn.service.ts`          | Admin earn path, ledger writes present                         |
+| `src/redemption/redemption.service.ts`     | Redeem path creates ledger entries                             |
+| `src/services/creator-gifting.service.ts`  | Gifting transactions write to ledger                           |
+| `src/wallets/wallet.service.ts`            | Wallet mutation path, ledger entry creation                    |
+| `src/services/settlement.service.ts`       | Settlement path writes ledger entries                          |
+| `src/services/point-expiration.service.ts` | Expiry compensating entries                                    |
+| `src/reservations/service.ts`              | Reservation hold/release ledger entries                        |
+| `src/ingest-worker/worker.ts`              | Ingest worker creates ledger entries on events                 |
+| `src/ingest-worker/replay.ts`              | Replay path writes ledger entries                              |
+| `src/events/wallet-event-publisher.ts`     | Emits events after ledger writes                               |
+
+**Recommended remediation (Phase 1):**
+
+1. Add `rule_applied_id` to the `LedgerEntryDocument` schema
+   (`src/db/models/ledger-entry.model.ts`) and to the `CreateLedgerEntryDto`.
+2. Propagate a required `rule_applied_id` parameter through
+   `LedgerService.create`.
+3. Update all call sites in the files above to pass the applicable rule ID.
+4. Add a CI check (`scripts/ci/no-hardcoded-balance.js` pattern) that fails the
+   build if any ledger write omits `rule_applied_id`.
+
+---
 
 Mark each item as complete when the module, API, endpoint, UI, or DB schema is
 purged. For ambiguous cases, escalate to architecture review.

@@ -1,8 +1,9 @@
 /**
- * .eslintrc.js — RedRoomRewards (Legacy ESLint Config Reference)
+ * LEGACY_eslintrc.js — RedRoomRewards (Legacy ESLint Config Reference)
  *
  * ⚠️  NOTICE: This file is a REFERENCE COPY for ESLint 8 / ESLint 9.
  *     It is NOT the active config for this project.
+ *     Renamed from .eslintrc.js as part of P0.1 linting stabilisation.
  *
  *     The active config is: eslint.config.mjs  (flat config, required for ESLint 10+)
  *     ESLint 10 ignores .eslintrc.* files by default.
@@ -14,7 +15,7 @@
  *   extends: ['next/core-web-vitals', 'next/typescript']
  *
  * TODO: Add `eslint-config-next` and `eslint-plugin-react` packages:
- *   yarn add -D eslint-config-next eslint-plugin-react eslint-plugin-react-hooks
+ *   npm install -D eslint-config-next eslint-plugin-react eslint-plugin-react-hooks
  */
 
 module.exports = {
