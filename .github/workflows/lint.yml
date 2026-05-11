@@ -1,7 +1,7 @@
 ---
 name: Lint (Super-Linter)
 
-on:  # yamllint disable-line rule:truthy
+on: # yamllint disable-line rule:truthy
   pull_request:
   push:
     branches: [main]
@@ -36,6 +36,10 @@ jobs:
           VALIDATE_YAML: true
           VALIDATE_JSON: true
           VALIDATE_MARKDOWN: true
+          # Disable Super-Linter's built-in ESLint runner — the repo uses ESLint 10
+          # flat config (eslint.config.mjs) which Super-Linter does not yet support.
+          # TypeScript linting is handled by the separate CI job (npm run lint:ci).
+          VALIDATE_ESLINT: false
 
           # Lint only the diff on PRs, not the whole repo.
           VALIDATE_ALL_CODEBASE: false
@@ -47,9 +51,10 @@ jobs:
           FILTER_REGEX_INCLUDE: ^(\.github/[^/]+\.(md|ya?ml|json)$|\.github/(workflows|linters)/.+\.(md|ya?ml|json)$|docs/.+\.(md|ya?ml|json)$|[^/]+\.(md|ya?ml|json)$)
 
           # EXCLUDE: governance archives, legacy configs, reference libraries,
-          # historical docs, vendored trees, and any path containing a space
-          # (Super-Linter's path handling is fragile with spaces in filenames).
-          FILTER_REGEX_EXCLUDE: (^|/)(archive|LEGACY_CONFIGS|REFERENCE_LIBRARY|PROGRAM_CONTROL|node_modules|dist|build|out|coverage|\.next|super-linter-output)/|(^|/)docs/history/|.* .*|(^|/)tsconfig(\.[^/]+)?\.json$
+          # historical docs, vendored trees, any path containing a space
+          # (Super-Linter's path handling is fragile with spaces in filenames),
+          # and package-lock.json (auto-generated, not diff-reviewed).
+          FILTER_REGEX_EXCLUDE: (^|/)(archive|LEGACY_CONFIGS|REFERENCE_LIBRARY|PROGRAM_CONTROL|node_modules|dist|build|out|coverage|\.next|super-linter-output)/|(^|/)docs/history/|.* .*|(^|/)tsconfig(\.[^/]+)?\.json$|(^|/)package-lock\.json$
 
           # Point validators at the repo's pinned configs explicitly.
           LINTER_RULES_PATH: .github/linters

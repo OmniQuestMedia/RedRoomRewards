@@ -19,6 +19,7 @@ pnpm-lock.yaml
 
 # Legacy archived configs (do not reformat)
 LEGACY_CONFIGS/
+LEGACY_eslintrc.js
 
 # Generated / vendored files
 *.min.js
