@@ -262,6 +262,9 @@ function getChangedFiles() {
 
 const gates = [
   {
+    id: 'type-check',
+    command: 'npm run type-check',
+    required: true,
     id: 'lint-surface',
     required: true,
     run: validateCanonicalLintSurface,

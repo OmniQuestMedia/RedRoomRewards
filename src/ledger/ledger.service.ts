@@ -169,14 +169,15 @@ export class LedgerService implements ILedgerService {
   async queryEntries(filter: LedgerQueryFilter): Promise<LedgerQueryResult> {
     // Build query
     const query: {
-      accountId?: { $eq: string };
-      accountType?: { $eq: string };
-      type?: { $eq: string };
-      reason?: { $eq: string };
-      balanceState?: { $eq: string };
-      escrowId?: { $eq: string };
-      queueItemId?: { $eq: string };
-      featureType?: { $eq: string };
+      accountId?: { $eq: ILedgerEntry['accountId'] };
+      accountType?: { $eq: ILedgerEntry['accountType'] };
+      type?: { $eq: ILedgerEntry['type'] };
+      reason?: { $eq: ILedgerEntry['reason'] };
+      balanceState?: { $eq: ILedgerEntry['balanceState'] };
+      escrowId?: { $eq: NonNullable<ILedgerEntry['escrowId']> };
+      queueItemId?: { $eq: NonNullable<ILedgerEntry['queueItemId']> };
+      featureType?: { $eq: NonNullable<ILedgerEntry['featureType']> };
+      tenant_id?: { $eq: NonNullable<ILedgerEntry['tenant_id']> };
       timestamp?: { $gte?: Date; $lte?: Date };
     } = {};
 
@@ -229,7 +230,6 @@ export class LedgerService implements ILedgerService {
     const sortOrder = filter.sortOrder === 'asc' ? 1 : -1;
     const sort: Record<string, 1 | -1> = { [sortField]: sortOrder };
 
-    // Execute query — include tenant_id inline so B-009 can verify scoping
     const [entries, totalCount] = await Promise.all([
       LedgerEntryModel.find(
         filter.tenantId ? { tenant_id: { $eq: filter.tenantId }, ...query } : query,
@@ -278,8 +278,9 @@ export class LedgerService implements ILedgerService {
     tenantId?: string,
   ): Promise<BalanceSnapshot> {
     const query: {
-      accountId: { $eq: string };
-      accountType: { $eq: string };
+      accountId: { $eq: ILedgerEntry['accountId'] };
+      accountType: { $eq: ILedgerEntry['accountType'] };
+      tenant_id?: { $eq: NonNullable<ILedgerEntry['tenant_id']> };
       timestamp?: { $lte: Date };
     } = {
       accountId: { $eq: accountId },
