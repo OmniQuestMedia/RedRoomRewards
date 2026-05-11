@@ -43,7 +43,7 @@ Any PR that changes CI must include:
 
 1. Naming and scope
    - Use a single canonical lint workflow file, recommended name:
-     `.github/workflows/lint.yml`
+     `.github/workflows/super-linter.yml`
    - If a different lint workflow already exists, either:
      - migrate it to the canonical file, or
      - declare it canonical and delete or disable duplicates

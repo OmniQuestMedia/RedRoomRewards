@@ -1,12 +1,12 @@
 # OQMI SYSTEM STATE — RedRoomRewards
 
 **Document:** `PROGRAM_CONTROL/DIRECTIVES/QUEUE/OQMI_SYSTEM_STATE_RRR.md`
-**Repo:** OmniQuestMediaInc/RedRoomRewards **Version:** v3.0 (B-CLEAN — Wave B
-closed, Wave C open) **Last Updated:** 2026-04-25 **Owner:** Kevin B. Hartley,
-CEO — OmniQuest Media Inc. **Active Charter:** `.github/PRODUCTION_SCHEDULE.md`
-(waveform schedule, parsed by CI) **Governance Companion:**
-`PROGRAM_CONTROL/DIRECTIVES/QUEUE/RRR-GOV-002.md` **Agent Instructions:**
-`.github/copilot-instructions.md`
+**Repo:** OmniQuestMediaInc/RedRoomRewards **Version:** v3.1 (Phase 0.6 lint
+standardization alignment) **Last Updated:** 2026-05-11 **Owner:** Kevin B.
+Hartley, CEO — OmniQuest Media Inc. **Active Charter:**
+`.github/PRODUCTION_SCHEDULE.md` (waveform schedule, parsed by CI) **Governance
+Companion:** `PROGRAM_CONTROL/DIRECTIVES/QUEUE/RRR-GOV-002.md` **Agent
+Instructions:** `.github/copilot-instructions.md`
 
 > Living tracker. Rewritten on every PR that materially changes state. Disjoint
 > from `OQMI_SYSTEM_STATE.md` (ChatNowZone–BUILD scope) — do not read across.
@@ -231,6 +231,29 @@ not run `tsc --noEmit`. Tracked for fix-up in a Wave C follow-up.
 | Date       | Change                                                                                                        | PR  | Owner   | Outcome                                                     |
 | :--------- | :------------------------------------------------------------------------------------------------------------ | :-- | :------ | :---------------------------------------------------------- |
 | 2026-05-11 | Phase 0.5 lint parity — MaxZoneGPT-specific `PROGRAM_CONTROL/ship-gate-verifier.ts` + mixed Python/JS scripts | #31 | copilot | lint-clean invariant enforced; Python primary + JS advisory |
+
+---
+
+## §9 — UPDATE PROTOCOL
+
+This file remains a same-PR living record. Any merge that changes §2 inventory,
+§3 DONE, §4 WIP, §5 OUTSTANDING, §6 BLOCKERS, §7 RETIRED, or the current
+governance/CI posture in this repo must update this file in the same PR.
+
+Rules:
+
+1. **Same-PR update.** State changes land with the work they describe; no
+   follow-up sync PRs.
+2. **Authority order.** If this file disagrees with
+   `.github/PRODUCTION_SCHEDULE.md`, the schedule wins and this file must be
+   corrected. If it disagrees with `.github/copilot-instructions.md` on
+   doctrine, the doctrine file wins.
+3. **Header stamp.** Bump **Last Updated** whenever any substantive section
+   changes.
+4. **RRR-only scope.** Do not copy CNZ-scoped state into this file or reuse this
+   file as a template without re-scoping the repo metadata first.
+5. **Retirements are append-only.** §7 records permanent decisions. Removing a
+   retirement entry requires a charter/governance amendment.
 
 ## HANDOFF
 
