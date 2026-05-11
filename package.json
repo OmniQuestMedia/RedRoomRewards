@@ -13,7 +13,8 @@
     "test:verbose": "jest --verbose",
     "test:ci": "jest --ci --coverage --maxWorkers=2",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "lint:ci": "eslint . --max-warnings=0 && prettier --check \"src/**/*.{ts,tsx,js,json}\" && npm run type-check",
+    "lint:fix": "eslint . --fix && prettier --write \"src/**/*.{ts,tsx,js,json}\"",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,json}\"",
     "validate:schema": "node scripts/validate-schema.js",
@@ -52,8 +53,6 @@
     "@nestjs/testing": "^11.1.19",
     "@types/jest": "^30.0.0",
     "@types/node": "^25.6.2",
-    "@typescript-eslint/eslint-plugin": "^8.58.2",
-    "@types/node": "^25.6.0",
     "@typescript-eslint/eslint-plugin": "^8.59.2",
     "@typescript-eslint/parser": "^8.58.2",
     "ajv": "^8.20.0",
@@ -75,6 +74,9 @@
   "lint-staged": {
     "*.ts": [
       "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
       "prettier --write"
     ]
   }
