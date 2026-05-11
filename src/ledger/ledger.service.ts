@@ -232,9 +232,7 @@ export class LedgerService implements ILedgerService {
 
     const [entries, totalCount] = await Promise.all([
       LedgerEntryModel.find(
-        filter.tenantId
-          ? ({ tenant_id: { $eq: filter.tenantId }, ...query } as typeof query)
-          : query,
+        filter.tenantId ? { tenant_id: { $eq: filter.tenantId }, ...query } : query,
       )
         .sort(sort)
         .skip(offset)
@@ -242,9 +240,7 @@ export class LedgerService implements ILedgerService {
         .lean()
         .exec(),
       LedgerEntryModel.countDocuments(
-        filter.tenantId
-          ? ({ tenant_id: { $eq: filter.tenantId }, ...query } as typeof query)
-          : query,
+        filter.tenantId ? { tenant_id: { $eq: filter.tenantId }, ...query } : query,
       ),
     ]);
 
@@ -297,7 +293,7 @@ export class LedgerService implements ILedgerService {
 
     // Get all entries up to the specified time — include tenant_id inline so B-009 can verify scoping
     const entries = await LedgerEntryModel.find(
-      tenantId ? ({ tenant_id: { $eq: tenantId }, ...query } as typeof query) : query,
+      tenantId ? { tenant_id: { $eq: tenantId }, ...query } : query,
     )
       .sort({ timestamp: 1 })
       .lean()
