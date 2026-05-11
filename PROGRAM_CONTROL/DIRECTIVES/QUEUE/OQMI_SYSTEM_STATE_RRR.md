@@ -233,15 +233,18 @@ not run `tsc --noEmit`. Tracked for fix-up in a Wave C follow-up.
 - Standardizing package lint scripts (`lint`, `lint:ci`, `lint:fix`, `format`)
   plus expanded lint-staged coverage for `*.ts`, `*.js`, `*.json`, `*.md`,
   `*.yml`, `*.yaml`.
-- Adding `PROGRAM_CONTROL/ship-gate-verifier.js` as the ship-gate aggregator
-  with required governance checks plus a canonical lint-surface invariant for
-  mixed JS/TS repositories.
+- Converting ship-gate to `PROGRAM_CONTROL/ship-gate-verifier.ts` (mixed-pattern
+  parity baseline from MaxZoneGPT) with required governance checks plus the
+  `cross-repo-lint-parity` invariant for cross-repo lint standardization.
 - Replacing `.github/workflows/lint.yml` with the canonical
   `.github/workflows/super-linter.yml` entrypoint and standardizing the
   markdownlint config filename at `.github/linters/.markdown-lint.yml`.
 - Aligning CI to run `npm run lint:ci` and `npm run ship-gate` as mandatory
   gates before build/test, with Super-Linter scoped to `.github/`, `docs/`,
   `PROGRAM_CONTROL/`, and root governance/config files.
+- Propagation status: RedRoomRewards Phase 0.6 cross-repo linting + ship-gate
+  template adoption completed on this branch;
+  Cyrano/Marketplace-Build/eCommsZone remain for parallel PR propagation.
 
 ---
 

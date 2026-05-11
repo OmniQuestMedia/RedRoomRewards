@@ -13,7 +13,9 @@
     "test:verbose": "jest --verbose",
     "test:ci": "jest --ci --coverage --maxWorkers=2",
     "lint": "eslint . --max-warnings=0",
-    "lint:ci": "eslint . --max-warnings=0 && prettier --check . && tsc --noEmit",
+    "lint:ci-python": "node -e \"console.log('No Python sources — skipping python lint gate.')\"",
+    "lint:ci-js": "eslint . --max-warnings=0 && prettier --check . && tsc --noEmit",
+    "lint:ci": "npm run lint:ci-python && npm run lint:ci-js",
     "lint:fix": "eslint . --fix && prettier --write .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -22,7 +24,7 @@
     "teardown:alpha-staging": "ts-node scripts/teardown-alpha-staging.ts",
     "reconcile": "ts-node scripts/reconcile.ts",
     "type-check": "tsc --noEmit",
-    "ship-gate": "node PROGRAM_CONTROL/ship-gate-verifier.js",
+    "ship-gate": "ts-node PROGRAM_CONTROL/ship-gate-verifier.ts",
     "prepare": "husky"
   },
   "keywords": [
