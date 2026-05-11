@@ -14,7 +14,7 @@
 
 # - No CEO gate. No PR review required. Auto-merge when CI passes.
 
-# - Claude Code is the primary coder. GitHub Copilot handles file ops, cleanup, audits only.
+# - Grok is the primary build agent. GitHub Copilot handles file ops, cleanup, audits only.
 
 # - On task completion: update Status to DONE, add Merge SHA, move on.
 

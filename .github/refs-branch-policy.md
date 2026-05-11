@@ -10,7 +10,7 @@ OmniQuest Media Inc. **Established:** 2026-04-18
 
 All branches prefixed with `refs/` are **PERMANENT READ-ONLY REFERENCE
 LIBRARIES**. They contain cloned open-source repositories, research materials,
-or internal reference content used by Claude Code and Copilot when authoring
+or internal reference content used by Grok and Copilot when authoring
 directives. They are never deleted and never merged to main.
 
 ---
