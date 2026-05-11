@@ -42,8 +42,7 @@ Consolidate into a single source of truth:
    invariants, prohibitions) — content previously held in `CLAUDE.md` and
    implied by Phase 2 §2 / §5A / §5E of the governance assessment.
 2. The **prioritized active work stream** — coding tasks, sequenced by
-   dependency, executed first-come-first-served by either Copilot or Claude
-   Code.
+   dependency, executed first-come-first-served by Grok.
 
 This eliminates the multi-document drift that produced the stale Build State in
 `CLAUDE.md` and the open-ended "Sovereign Kernel" / "Tech Debt Delta" /
@@ -65,8 +64,8 @@ This eliminates the multi-document drift that produced the stale Build State in
 
 **DROID MODE (default for executing agents)**
 
-- `claude-code`, executing a single task from §6. (Copilot was retired from this
-  workflow on 2026-04-21 — see §2.3 and §10.)
+- `grok`, executing a single task from §6. (Copilot remains limited to file ops,
+  cleanup, and audits — see §2.3 and §10.)
 - May only act on the task currently claimed.
 - HARD_STOP on any ambiguity, missing dependency, missing operator decision, or
   invariant conflict (§3).
@@ -102,17 +101,17 @@ This eliminates the multi-document drift that produced the stale Build State in
 
 ### 2.3 Stream model
 
-**Single ordered list, first-come-first-served. Single active agent
-(`claude-code`) as of 2026-04-21.**
+**Single ordered list, first-come-first-served. Single active agent (`grok`) as
+of 2026-05-11.**
 
-- Each task carries an `Agent:` hint: `copilot` | `claude-code` | `either`.
+- Each task carries an `Agent:` hint: `grok` | `copilot` | `either`.
 - The hint is a routing suggestion, not an exclusivity lock.
 - An agent claims the next unblocked task whose `Depends-on:` are all `DONE`.
-- **Copilot retired 2026-04-21** (CEO directive). `claude-code` is the sole
-  executing agent for the remainder of this charter. Existing `copilot` and
-  `either` hints in §6 are historical and do not block `claude-code` from
-  claiming any unblocked task — the 24-hour hint-override wait below is
-  suspended while the roster remains single-agent.
+- **Claude fully removed 2026-05-11** (CEO directive). `grok` is the sole
+  executing build agent for the remainder of this charter. Existing `copilot`
+  and `either` hints in §6 are historical and do not block `grok` from claiming
+  any unblocked task — the 24-hour hint-override wait below is suspended while
+  the roster remains single-agent.
 - _(Dormant until a second agent is re-introduced.)_ An agent that cannot
   satisfy a task's `Agent:` hint may still execute it if no other agent has
   claimed it within 24h, but must note the override in the report-back.
@@ -451,8 +450,8 @@ tasks carry `FIZ: YES` because they touch the financial code paths.
 
 #### Task B-001 — Tenant \+ Merchant models
 
-- **Status:** WIP
-- **Agent:** claude-code
+- **Status:** DONE
+- **Agent:** copilot
 - **Type:** DB
 - **CEO_GATE:** NO
 - **FIZ:** NO
@@ -475,13 +474,15 @@ tasks carry `FIZ: YES` because they touch the financial code paths.
 - **Commit format:**
   `DB: Tenant + Merchant models with phase and tier — RRR-GOV-002-B001`
 - **Report-back:** `PROGRAM_CONTROL/REPORT_BACK/RRR-GOV-002-B001-report.md`
+- **Merge SHA:** 35b78b7d9ed2f193be294c265779b8bc1c59156c
+- **DONE record:** RRR-GOV-002-B001-DONE.md
 
 ---
 
 #### Task B-002 — LoyaltyAccount \+ IdentityLink models
 
-- **Status:** WIP
-- **Agent:** claude-code
+- **Status:** DONE
+- **Agent:** copilot
 - **Type:** DB
 - **CEO_GATE:** NO
 - **FIZ:** NO
@@ -499,6 +500,8 @@ tasks carry `FIZ: YES` because they touch the financial code paths.
 - **Commit format:**
   `DB: LoyaltyAccount + IdentityLink models — RRR-GOV-002-B002`
 - **Report-back:** `PROGRAM_CONTROL/REPORT_BACK/RRR-GOV-002-B002-report.md`
+- **Merge SHA:** 35b78b7d9ed2f193be294c265779b8bc1c59156c
+- **DONE record:** RRR-GOV-002-B002-DONE.md
 
 ---
 
@@ -585,7 +588,7 @@ tasks carry `FIZ: YES` because they touch the financial code paths.
 #### Task B-006 — Extend IdempotencyService coverage
 
 - **Status:** QUEUED
-- **Agent:** claude-code
+- **Agent:** grok
 - **Type:** FIZ
 - **CEO_GATE:** NO
 - **FIZ:** YES
@@ -608,7 +611,7 @@ tasks carry `FIZ: YES` because they touch the financial code paths.
 #### Task B-007 — Reconciliation job
 
 - **Status:** QUEUED
-- **Agent:** claude-code
+- **Agent:** grok
 - **Type:** FIZ
 - **CEO_GATE:** NO
 - **FIZ:** YES

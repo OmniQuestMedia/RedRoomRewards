@@ -126,7 +126,7 @@ git checkout -b fix/your-bug-fix
 **Branch Naming Convention**:
 
 - `copilot/<directive-id>` — Copilot agent branches (auto-created)
-- `claude/<directive-id>` — Claude Code agent branches (auto-created)
+- `grok/<directive-id>` — Grok agent branches (auto-created)
 - `feature/<short-name>` — Human-authored features
 - `fix/<short-name>` — Bug fixes
 - `infra/<short-name>` — Infrastructure and CI changes
