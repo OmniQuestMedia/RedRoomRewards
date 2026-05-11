@@ -22,7 +22,11 @@ function runCommand(command: string, options: Record<string, unknown> = {}): voi
 function getRestrictedPathRegex(): RegExp {
   const pattern =
     process.env.RESTRICTED_PATH_REGEX || '^(src\\/(ledger|wallets|consent)\\/|.*\\bpii\\b.*)';
-  return new RegExp(pattern, 'i');
+  try {
+    return new RegExp(pattern, 'i');
+  } catch {
+    throw new Error('Invalid RESTRICTED_PATH_REGEX; unable to compile regular expression.');
+  }
 }
 
 function assertSafeGitRef(ref: string): void {
@@ -79,7 +83,7 @@ export const INVARIANTS: ShipGateInvariant[] = [
   {
     id: 'js-lint-clean',
     description: 'eslint + prettier + tsc (if JS/TS files present)',
-    command: 'npm run lint:ci-js || echo "No JS lint configured — advisory"',
+    command: 'npm run lint:ci-js',
     required: false,
   },
   {
@@ -127,7 +131,13 @@ export const INVARIANTS: ShipGateInvariant[] = [
   {
     id: 'super-linter-clean',
     description: 'Run advisory Super-Linter in local docker mode',
-    command: `docker run --rm -e VALIDATE_ALL_CODEBASE=false -e FILTER_REGEX_INCLUDE="^(\\\\.github/|docs/|PROGRAM_CONTROL/|[^/]+\\\\.(md|yml|yaml|json)$)" -e VALIDATE_MARKDOWN=true -e VALIDATE_JSON=true -e VALIDATE_YAML=true -e LINTER_RULES_PATH=.github/linters -e GITHUB_ACTIONS=true -v ${shellEscape(`${process.cwd()}:/tmp/lint`)} ghcr.io/super-linter/super-linter:slim-v8`,
+    command: (() => {
+      const workspacePath = process.cwd();
+      if (!workspacePath || workspacePath === '/') {
+        throw new Error('Unsafe workspace path for Super-Linter mount.');
+      }
+      return `docker run --rm -e VALIDATE_ALL_CODEBASE=false -e FILTER_REGEX_INCLUDE="^(\\\\.github/|docs/|PROGRAM_CONTROL/|[^/]+\\\\.(md|yml|yaml|json)$)" -e VALIDATE_MARKDOWN=true -e VALIDATE_JSON=true -e VALIDATE_YAML=true -e LINTER_RULES_PATH=.github/linters -e GITHUB_ACTIONS=true -v ${shellEscape(`${workspacePath}:/tmp/lint`)} ghcr.io/super-linter/super-linter:slim-v8`;
+    })(),
     required: false,
     skip: process.env.SHIP_GATE_RUN_SUPER_LINTER !== '1',
     skipReason: 'Advisory gate disabled by default. Set SHIP_GATE_RUN_SUPER_LINTER=1 to enable.',

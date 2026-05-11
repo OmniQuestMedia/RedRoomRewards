@@ -15,7 +15,7 @@
     "lint": "flake8 src tests --exit-zero && (eslint . --max-warnings=0 || echo 'JS lint advisory')",
     "lint:ci": "npm run lint:ci-python && npm run lint:ci-js",
     "lint:ci-python": "flake8 src tests --count --select=E9,F63,F7,F82 --show-source --statistics && black --check --line-length=100 src tests && isort --check-only --profile black src tests",
-    "lint:ci-js": "eslint . --max-warnings=0 && prettier --check . && (tsc --noEmit || echo 'No full TS config yet')",
+    "lint:ci-js": "sh -c 'if [ -n \"$(git ls-files \"*.js\" \"*.ts\" \"*.jsx\" \"*.tsx\")\" ]; then eslint . --max-warnings=0 && prettier --check . && (tsc --noEmit || echo \"No full TS config yet\"); else echo \"No JS/TS files present — advisory\"; fi'",
     "lint:fix": "eslint . --fix && prettier --write .",
     "format": "black --line-length=100 src tests && isort --profile black src tests && prettier --write .",
     "format:check": "prettier --check .",
