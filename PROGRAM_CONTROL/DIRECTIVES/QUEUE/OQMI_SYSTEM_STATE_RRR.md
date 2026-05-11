@@ -232,6 +232,21 @@ not run `tsc --noEmit`. Tracked for fix-up in a Wave C follow-up.
 | :--------- | :------------------------------------------------------------------------------------------------------------ | :-- | :------ | :---------------------------------------------------------- |
 | 2026-05-11 | Phase 0.5 lint parity — MaxZoneGPT-specific `PROGRAM_CONTROL/ship-gate-verifier.ts` + mixed Python/JS scripts | #31 | copilot | lint-clean invariant enforced; Python primary + JS advisory |
 
+- Migrating back to legacy ESLint v8 `.eslintrc.js` as canonical source and
+  adding `.github/linters/.eslintrc.json` fallback.
+- Standardizing package lint scripts (`lint`, `lint:ci`, `lint:fix`, `format`)
+  plus expanded lint-staged coverage for `*.ts`, `*.js`, `*.json`, `*.md`,
+  `*.yml`, `*.yaml`.
+- Adding `PROGRAM_CONTROL/ship-gate-verifier.js` as the ship-gate aggregator
+  with required governance checks plus a canonical lint-surface invariant for
+  mixed JS/TS repositories.
+- Replacing `.github/workflows/lint.yml` with the canonical
+  `.github/workflows/super-linter.yml` entrypoint and standardizing the
+  markdownlint config filename at `.github/linters/.markdown-lint.yml`.
+- Aligning CI to run `npm run lint:ci` and `npm run ship-gate` as mandatory
+  gates before build/test, with Super-Linter scoped to `.github/`, `docs/`,
+  `PROGRAM_CONTROL/`, and root governance/config files.
+
 ---
 
 ## §9 — UPDATE PROTOCOL
