@@ -16,6 +16,7 @@ const EXTENSION_SCAN_IGNORES = new Set([
   'out',
   'super-linter-output',
 ]);
+const EXTENSION_SCAN_DOTDIRS_ALLOW = new Set(['.github', '.husky']);
 
 function runCommand(command, options = {}) {
   execSync(command, {
@@ -60,7 +61,7 @@ function repoHasExtension(dir, extensions) {
   }
 
   for (const entry of fs.readdirSync(absoluteDir, { withFileTypes: true })) {
-    if (entry.name.startsWith('.') && entry.name !== '.github' && entry.name !== '.husky') {
+    if (entry.name.startsWith('.') && !EXTENSION_SCAN_DOTDIRS_ALLOW.has(entry.name)) {
       continue;
     }
 
@@ -91,12 +92,11 @@ function repoHasExtension(dir, extensions) {
 function lintStagedCovers(patterns, extensions) {
   const normalizedPatterns = patterns
     .join(' ')
-    .replace(/[{}*.,!?()[\]/\\-]/g, ' ')
+    .replace(/[{}*.,!?()[\]\/\\-]/g, ' ')
     .toLowerCase();
+  const coveragePattern = new RegExp(`(^|\\s)(${extensions.join('|')})(\\s|$)`);
 
-  return extensions.some((extension) =>
-    new RegExp(`(^|\\s)${extension}(\\s|$)`).test(normalizedPatterns),
-  );
+  return coveragePattern.test(normalizedPatterns);
 }
 
 function validateCanonicalLintSurface() {
