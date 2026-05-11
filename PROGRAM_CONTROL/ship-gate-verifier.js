@@ -1,6 +1,21 @@
 #!/usr/bin/env node
 
+const fs = require('node:fs');
+const path = require('node:path');
 const { execSync, execFileSync } = require('node:child_process');
+
+const REPO_ROOT = process.cwd();
+const EXTENSION_SCAN_IGNORES = new Set([
+  '.git',
+  '.next',
+  'archive',
+  'build',
+  'coverage',
+  'dist',
+  'node_modules',
+  'out',
+  'super-linter-output',
+]);
 
 function runCommand(command, options = {}) {
   execSync(command, {
@@ -24,6 +39,184 @@ function assertSafeGitRef(ref) {
 
 function shellEscape(value) {
   return `'${value.replace(/'/g, `'\"'\"'`)}'`;
+}
+
+function pathExists(relativePath) {
+  return fs.existsSync(path.join(REPO_ROOT, relativePath));
+}
+
+function readText(relativePath) {
+  try {
+    return fs.readFileSync(path.join(REPO_ROOT, relativePath), 'utf8');
+  } catch {
+    return null;
+  }
+}
+
+function repoHasExtension(dir, extensions) {
+  const absoluteDir = path.join(REPO_ROOT, dir);
+  if (!fs.existsSync(absoluteDir)) {
+    return false;
+  }
+
+  for (const entry of fs.readdirSync(absoluteDir, { withFileTypes: true })) {
+    if (entry.name.startsWith('.') && entry.name !== '.github' && entry.name !== '.husky') {
+      continue;
+    }
+
+    if (entry.isDirectory()) {
+      if (EXTENSION_SCAN_IGNORES.has(entry.name)) {
+        continue;
+      }
+
+      if (repoHasExtension(path.join(dir, entry.name), extensions)) {
+        return true;
+      }
+      continue;
+    }
+
+    const extension = path.extname(entry.name);
+    if (entry.name.endsWith('.d.ts')) {
+      continue;
+    }
+
+    if (extensions.includes(extension)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function lintStagedCovers(patterns, extensions) {
+  const normalizedPatterns = patterns
+    .join(' ')
+    .replace(/[{}*.,!?()[\]/\\-]/g, ' ')
+    .toLowerCase();
+
+  return extensions.some((extension) =>
+    new RegExp(`(^|\\s)${extension}(\\s|$)`).test(normalizedPatterns),
+  );
+}
+
+function validateCanonicalLintSurface() {
+  const failures = [];
+  const checks = [];
+  const packageJsonRaw = readText('package.json');
+  let packageJson = {};
+
+  if (!pathExists('.eslintrc.js')) {
+    failures.push('.eslintrc.js is missing at the repo root.');
+  } else {
+    checks.push('.eslintrc.js present at repo root');
+  }
+
+  if (!packageJsonRaw) {
+    failures.push('package.json is missing or unreadable.');
+  } else {
+    try {
+      packageJson = JSON.parse(packageJsonRaw);
+    } catch {
+      failures.push('package.json is not valid JSON.');
+    }
+  }
+
+  const scripts =
+    typeof packageJson.scripts === 'object' && packageJson.scripts ? packageJson.scripts : {};
+  const lintStaged =
+    typeof packageJson['lint-staged'] === 'object' && packageJson['lint-staged']
+      ? packageJson['lint-staged']
+      : {};
+  const lintStagedPatterns = Object.keys(lintStaged);
+  const hasTsFiles = repoHasExtension('.', ['.ts', '.tsx']);
+  const hasJsFiles = repoHasExtension('.', ['.js', '.jsx', '.cjs', '.mjs']);
+
+  if (typeof scripts.lint !== 'string') {
+    failures.push('package.json is missing a lint script.');
+  } else {
+    checks.push('package.json exposes lint script');
+  }
+
+  if (typeof scripts['lint:ci'] !== 'string') {
+    failures.push('package.json is missing a lint:ci script.');
+  } else {
+    checks.push('package.json exposes lint:ci script');
+  }
+
+  if (typeof scripts['lint:fix'] !== 'string') {
+    failures.push('package.json is missing a lint:fix script.');
+  } else {
+    checks.push('package.json exposes lint:fix script');
+  }
+
+  if (typeof scripts['format:check'] !== 'string') {
+    failures.push('package.json is missing a format:check script.');
+  } else {
+    checks.push('package.json exposes format:check script');
+  }
+
+  if (lintStagedPatterns.length === 0) {
+    failures.push('package.json is missing lint-staged configuration.');
+  } else {
+    checks.push('package.json contains lint-staged config');
+  }
+
+  if (hasTsFiles) {
+    if (!lintStagedCovers(lintStagedPatterns, ['ts', 'tsx'])) {
+      failures.push(
+        'lint-staged does not cover TypeScript file patterns for this mixed-language repo.',
+      );
+    } else {
+      checks.push('lint-staged covers TypeScript files');
+    }
+  }
+
+  if (hasJsFiles) {
+    if (!lintStagedCovers(lintStagedPatterns, ['js', 'jsx', 'cjs', 'mjs'])) {
+      failures.push(
+        'lint-staged does not cover JavaScript file patterns for this mixed-language repo.',
+      );
+    } else {
+      checks.push('lint-staged covers JavaScript files');
+    }
+  }
+
+  if (!pathExists('.github/workflows/super-linter.yml')) {
+    failures.push('.github/workflows/super-linter.yml is missing.');
+  } else {
+    checks.push('.github/workflows/super-linter.yml present');
+  }
+
+  if (!pathExists('.github/linters/.markdown-lint.yml')) {
+    failures.push('.github/linters/.markdown-lint.yml is missing.');
+  } else {
+    checks.push('.github/linters/.markdown-lint.yml present');
+  }
+
+  if (!pathExists('.github/linters/.yaml-lint.yml')) {
+    failures.push('.github/linters/.yaml-lint.yml is missing.');
+  } else {
+    checks.push('.github/linters/.yaml-lint.yml present');
+  }
+
+  const huskyHook = readText('.husky/pre-commit') ?? '';
+  if (!huskyHook.includes('lint-staged')) {
+    failures.push('.husky/pre-commit does not invoke lint-staged.');
+  } else {
+    checks.push('.husky/pre-commit invokes lint-staged');
+  }
+
+  checks.forEach((check) => console.log(`SHIP-GATE [lint-surface] CHECK: ${check}`));
+
+  if (failures.length > 0) {
+    throw new Error(
+      [
+        'Canonical lint surface invariant failed.',
+        ...failures.map((failure) => ` - ${failure}`),
+        'Remediation: add the canonical Super-Linter workflow plus npm lint/lint-staged coverage for every active JS/TS surface.',
+      ].join('\n'),
+    );
+  }
 }
 
 function getChangedFiles() {
@@ -57,6 +250,11 @@ function getChangedFiles() {
 }
 
 const gates = [
+  {
+    id: 'lint-surface',
+    required: true,
+    run: validateCanonicalLintSurface,
+  },
   {
     id: 'lint-clean',
     command: 'npm run lint:ci',
@@ -96,7 +294,7 @@ const gates = [
   },
   {
     id: 'super-linter-clean',
-    command: `docker run --rm -e VALIDATE_ALL_CODEBASE=false -e FILTER_REGEX_INCLUDE="^(\\\\.github/|docs/|PROGRAM_CONTROL/|[^/]+\\\\.(md|yml|yaml|json|ts|js)$)" -e VALIDATE_ESLINT=true -e LINTER_RULES_PATH=.github/linters -e GITHUB_ACTIONS=true -v ${shellEscape(`${process.cwd()}:/tmp/lint`)} ghcr.io/super-linter/super-linter:slim-v8`,
+    command: `docker run --rm -e VALIDATE_YAML=true -e VALIDATE_JSON=true -e VALIDATE_MARKDOWN=true -e VALIDATE_ALL_CODEBASE=false -e IGNORE_GITIGNORED_FILES=true -e FILTER_REGEX_INCLUDE="^(\\\\.github/|docs/|PROGRAM_CONTROL/|[^/]+\\\\.(md|yml|yaml|json)$)" -e FILTER_REGEX_EXCLUDE="(^|/)(LEGACY_CONFIGS|archive|node_modules|dist|build|coverage|out|\\\\.next)/" -e LINTER_RULES_PATH=.github/linters -e STRIP_DEFAULT_WORKSPACE_FOR_REGEX=true -e LOG_LEVEL=DEBUG -e GITHUB_ACTIONS=true -v ${shellEscape(`${process.cwd()}:/tmp/lint`)} ghcr.io/super-linter/super-linter:slim-v8`,
     required: false,
     skip: process.env.SHIP_GATE_RUN_SUPER_LINTER !== '1',
     skipReason: 'Advisory gate disabled by default. Set SHIP_GATE_RUN_SUPER_LINTER=1 to enable.',
@@ -130,8 +328,12 @@ for (const gate of gates) {
   }
 
   try {
-    console.log(`SHIP-GATE [${gate.id}] RUN: ${gate.command}`);
-    runCommand(gate.command, { shell: '/bin/bash' });
+    console.log(`SHIP-GATE [${gate.id}] RUN: ${gate.command ?? 'custom validator'}`);
+    if (typeof gate.run === 'function') {
+      gate.run();
+    } else {
+      runCommand(gate.command, { shell: '/bin/bash' });
+    }
     console.log(`SHIP-GATE [${gate.id}] PASS`);
   } catch (error) {
     console.error(`SHIP-GATE [${gate.id}] FAIL`);

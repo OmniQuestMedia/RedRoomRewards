@@ -1,6 +1,6 @@
 # .markdownlintignore — RedRoomRewards
 # Paths markdownlint should skip entirely. These are also excluded by the
-# Super-Linter FILTER_REGEX_EXCLUDE in .github/workflows/lint.yml, but listing
+# Super-Linter FILTER_REGEX_EXCLUDE in .github/workflows/super-linter.yml, but listing
 # them here means local `npx markdownlint` runs behave the same as CI.
 
 # Application code directories — no markdown enforced here.
