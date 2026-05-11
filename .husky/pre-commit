@@ -1,1 +1,11 @@
+#!/usr/bin/env sh
+# .husky/pre-commit — RedRoomRewards
+#
+# Runs lint-staged on staged files only (fast incremental check + auto-fix).
+# File-type coverage is defined in the "lint-staged" section of package.json:
+#   *.ts                   → eslint --fix + prettier --write
+#   *.{json,md,yml,yaml}   → prettier --write
+#
+# For a full-repo lint gate run: npm run lint:ci
+# For a full-repo fix pass run:  npm run lint:fix
 npx lint-staged
