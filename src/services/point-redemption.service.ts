@@ -280,14 +280,14 @@ export class PointRedemptionService {
   async validateTierCap(
     tenantId: string,
     merchantId: string,
-    tierName: string,
+    tierName: ITierCapConfig['tier_name'],
     transactionValue: number,
     redemptionAmount: number,
   ): Promise<void> {
     const capConfig = await TierCapConfigModel.findOne({
       tenant_id: { $eq: tenantId },
       merchant_id: { $eq: merchantId },
-      tier_name: { $eq: tierName as ITierCapConfig['tier_name'] },
+      tier_name: { $eq: tierName },
       superseded_at: null,
     }).sort({ effective_at: -1 });
 
