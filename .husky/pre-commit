@@ -3,7 +3,7 @@
 #
 # Runs lint-staged on staged files only (fast incremental check + auto-fix).
 # File-type coverage is defined in the "lint-staged" section of package.json:
-#   *.ts                   → eslint --fix + prettier --write
+#   *.{ts,js}              → eslint --fix + prettier --write
 #   *.{json,md,yml,yaml}   → prettier --write
 #
 # For a full-repo lint gate run: npm run lint:ci
