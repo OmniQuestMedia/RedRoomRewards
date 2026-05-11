@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { execSync } = require('node:child_process');
+const { execSync, execFileSync } = require('node:child_process');
 
 function runCommand(command, options = {}) {
   execSync(command, {
@@ -10,7 +10,21 @@ function runCommand(command, options = {}) {
   });
 }
 
-const restrictedPathRegex = /^(src\/(ledger|wallets|consent)\/|.*\bpii\b.*)/i;
+function getRestrictedPathRegex() {
+  const pattern =
+    process.env.RESTRICTED_PATH_REGEX || '^(src\\/(ledger|wallets|consent)\\/|.*\\bpii\\b.*)';
+  return new RegExp(pattern, 'i');
+}
+
+function assertSafeGitRef(ref) {
+  if (!/^[A-Za-z0-9._/-]+$/.test(ref)) {
+    throw new Error(`Unsafe git ref value: ${ref}`);
+  }
+}
+
+function shellEscape(value) {
+  return `'${value.replace(/'/g, `'\"'\"'`)}'`;
+}
 
 function getChangedFiles() {
   const eventName = process.env.GITHUB_EVENT_NAME;
@@ -20,10 +34,21 @@ function getChangedFiles() {
     return [];
   }
 
-  runCommand(`git fetch --no-tags origin ${baseRef}:refs/remotes/origin/${baseRef}`);
-  const output = execSync(`git diff --name-only refs/remotes/origin/${baseRef}...HEAD`, {
-    encoding: 'utf8',
-  });
+  assertSafeGitRef(baseRef);
+  execFileSync(
+    'git',
+    ['fetch', '--no-tags', 'origin', `${baseRef}:refs/remotes/origin/${baseRef}`],
+    {
+      stdio: 'inherit',
+    },
+  );
+  const output = execFileSync(
+    'git',
+    ['diff', '--name-only', `refs/remotes/origin/${baseRef}...HEAD`],
+    {
+      encoding: 'utf8',
+    },
+  );
 
   return output
     .split('\n')
@@ -71,8 +96,7 @@ const gates = [
   },
   {
     id: 'super-linter-clean',
-    command:
-      'docker run --rm -e VALIDATE_ALL_CODEBASE=false -e FILTER_REGEX_INCLUDE="^(\\.github/|docs/|PROGRAM_CONTROL/|[^/]+\\.(md|yml|yaml|json|ts|js)$)" -e VALIDATE_ESLINT=true -e LINTER_RULES_PATH=.github/linters -e GITHUB_ACTIONS=true -v "$PWD":/tmp/lint ghcr.io/super-linter/super-linter:slim-v8',
+    command: `docker run --rm -e VALIDATE_ALL_CODEBASE=false -e FILTER_REGEX_INCLUDE="^(\\\\.github/|docs/|PROGRAM_CONTROL/|[^/]+\\\\.(md|yml|yaml|json|ts|js)$)" -e VALIDATE_ESLINT=true -e LINTER_RULES_PATH=.github/linters -e GITHUB_ACTIONS=true -v ${shellEscape(`${process.cwd()}:/tmp/lint`)} ghcr.io/super-linter/super-linter:slim-v8`,
     required: false,
     skip: process.env.SHIP_GATE_RUN_SUPER_LINTER !== '1',
     skipReason: 'Advisory gate disabled by default. Set SHIP_GATE_RUN_SUPER_LINTER=1 to enable.',
@@ -82,6 +106,7 @@ const gates = [
 let failed = false;
 
 let changedFiles = [];
+const restrictedPathRegex = getRestrictedPathRegex();
 try {
   changedFiles = getChangedFiles();
 } catch (error) {

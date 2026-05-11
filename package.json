@@ -16,7 +16,7 @@
     "lint:ci": "eslint . --max-warnings=0 && prettier --check . && tsc --noEmit",
     "lint:fix": "eslint . --fix && prettier --write .",
     "format": "prettier --write .",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,json}\"",
+    "format:check": "prettier --check .",
     "validate:schema": "node scripts/validate-schema.js",
     "seed:alpha-staging": "ts-node scripts/seed-alpha-staging.ts",
     "teardown:alpha-staging": "ts-node scripts/teardown-alpha-staging.ts",

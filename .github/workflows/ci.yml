@@ -31,16 +31,12 @@ jobs:
 
       - name: Restricted path detection (fail-closed)
         if: github.event_name == 'pull_request'
+        env:
+          RESTRICTED_PATH_REGEX: '^(src/(ledger|wallets|consent)/|.*\\bpii\\b.*)'
         run: |
           set -euo pipefail
           git fetch --no-tags origin "${{ github.base_ref }}:refs/remotes/origin/${{ github.base_ref }}"
-          changed=$(git diff --name-only "refs/remotes/origin/${{ github.base_ref }}...HEAD" || true)
-          restricted=$(printf "%s\n" "$changed" | grep -E '^(src/(ledger|wallets|consent)/|.*\bpii\b.*)' || true)
-          if [ -n "$restricted" ]; then
-            echo "Restricted paths changed:" && echo "$restricted"
-          else
-            echo "No restricted paths changed."
-          fi
+          CHANGED_FILES="$(git diff --name-only "refs/remotes/origin/${{ github.base_ref }}...HEAD" || true)" node -e "const files=(process.env.CHANGED_FILES||'').split('\\n').filter(Boolean);const rx=new RegExp(process.env.RESTRICTED_PATH_REGEX,'i');const hits=files.filter((f)=>rx.test(f));if(hits.length){console.log('Restricted paths changed:');console.log(hits.join('\\n'));}else{console.log('No restricted paths changed.');}"
 
       - name: Lint CI Gate
         run: npm run lint:ci
@@ -48,6 +44,7 @@ jobs:
       - name: Ship Gate
         env:
           SHIP_GATE_SKIP_LINT: '1'
+          RESTRICTED_PATH_REGEX: '^(src/(ledger|wallets|consent)/|.*\\bpii\\b.*)'
         run: npm run ship-gate
 
       - name: Schema validation
