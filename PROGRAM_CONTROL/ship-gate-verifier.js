@@ -54,13 +54,22 @@ function readText(relativePath) {
   }
 }
 
+function readDirectoryEntries(relativePath) {
+  try {
+    return fs.readdirSync(path.join(REPO_ROOT, relativePath), { withFileTypes: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Unable to scan ${relativePath} for ship-gate language detection: ${message}`);
+  }
+}
+
 function repoHasExtension(dir, extensions) {
   const absoluteDir = path.join(REPO_ROOT, dir);
   if (!fs.existsSync(absoluteDir)) {
     return false;
   }
 
-  for (const entry of fs.readdirSync(absoluteDir, { withFileTypes: true })) {
+  for (const entry of readDirectoryEntries(dir)) {
     if (entry.name.startsWith('.') && !EXTENSION_SCAN_DOTDIRS_ALLOW.has(entry.name)) {
       continue;
     }
@@ -92,6 +101,8 @@ function repoHasExtension(dir, extensions) {
 function lintStagedCovers(patterns, extensions) {
   const normalizedPatterns = patterns
     .join(' ')
+    // Normalize the glob punctuation we intentionally use in package.json:
+    // braces, brackets, wildcards, separators, and punctuation around ext names.
     .replace(/[{}*.,!?()[\]\/\\-]/g, ' ')
     .toLowerCase();
   const coveragePattern = new RegExp(`(^|\\s)(${extensions.join('|')})(\\s|$)`);
