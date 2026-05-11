@@ -214,16 +214,39 @@ not run `tsc --noEmit`. Tracked for fix-up in a Wave C follow-up.
 
 ## 2026-05-09 — Agent Payload Flow Update (concise)
 
-- Added `.github/AGENTS.md` continuous-flow operating guidance for `copilot/*`, `grok/*`, `agent/*`.
-- Added `.github/workflows/copilot-internal.yml` fast-path gate for agent branches.
-- Updated `.github/workflows/auto-merge.yml` to scope auto-enable behavior to valid agent branches while preserving `fiz` / `ceo-gate` protections.
-- Added `npm run ship-gate` in `package.json` as the governance check aggregator used by fast-path.
-- Cross-repo impact: apply equivalent safe fast-path workflow + auto-merge scoping + ship-gate script in other OQMI repositories without weakening branch protections or mandatory security/compliance checks.
+- Added `.github/AGENTS.md` continuous-flow operating guidance for `copilot/*`,
+  `grok/*`, `agent/*`.
+- Added `.github/workflows/copilot-internal.yml` fast-path gate for agent
+  branches.
+- Updated `.github/workflows/auto-merge.yml` to scope auto-enable behavior to
+  valid agent branches while preserving `fiz` / `ceo-gate` protections.
+- Added `npm run ship-gate` in `package.json` as the governance check aggregator
+  used by fast-path.
+- Cross-repo impact: apply equivalent safe fast-path workflow + auto-merge
+  scoping + ship-gate script in other OQMI repositories without weakening branch
+  protections or mandatory security/compliance checks.
+
+## 2026-05-11 — Phase 0.6 lint standardization alignment
+
+- Migrating back to legacy ESLint v8 `.eslintrc.js` as canonical source and
+  adding `.github/linters/.eslintrc.json` fallback.
+- Standardizing package lint scripts (`lint`, `lint:ci`, `lint:fix`, `format`)
+  plus expanded lint-staged coverage for `*.ts`, `*.js`, `*.json`, `*.md`,
+  `*.yml`, `*.yaml`.
+- Adding `PROGRAM_CONTROL/ship-gate-verifier.js` as the ship-gate aggregator
+  with required governance checks and optional/advisory Super-Linter gate.
+- Aligning CI to run `npm run lint:ci` and `npm run ship-gate` as mandatory
+  gates before build/test.
 
 ## HANDOFF
 
-- Built: agent fast-path instruction/workflow plumbing with preserved governance labels and existing CI gates.
-- Incomplete: branch protection/ruleset policy updates for branch-pattern-specific required checks are not configurable via repository files in this PR and require admin settings change.
-- Next agent first task: implement org/repo-level branch protection/ruleset updates in GitHub settings to require `copilot-internal / fast-gate` for agent branches while retaining all current mandatory governance/security checks.
+- Built: agent fast-path instruction/workflow plumbing with preserved governance
+  labels and existing CI gates.
+- Incomplete: branch protection/ruleset policy updates for
+  branch-pattern-specific required checks are not configurable via repository
+  files in this PR and require admin settings change.
+- Next agent first task: implement org/repo-level branch protection/ruleset
+  updates in GitHub settings to require `copilot-internal / fast-gate` for agent
+  branches while retaining all current mandatory governance/security checks.
 
 _END OQMI SYSTEM STATE — RedRoomRewards_

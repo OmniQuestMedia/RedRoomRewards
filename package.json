@@ -12,17 +12,17 @@
     "test:coverage": "jest --coverage",
     "test:verbose": "jest --verbose",
     "test:ci": "jest --ci --coverage --maxWorkers=2",
-    "lint": "eslint .",
-    "lint:ci": "eslint . --max-warnings=0 && prettier --check \"src/**/*.{ts,tsx,js,json}\" && npm run type-check",
-    "lint:fix": "eslint . --fix && prettier --write \"src/**/*.{ts,tsx,js,json}\"",
-    "format": "prettier --write \"src/**/*.{ts,tsx,js,json}\"",
+    "lint": "eslint . --max-warnings=0",
+    "lint:ci": "eslint . --max-warnings=0 && prettier --check . && tsc --noEmit",
+    "lint:fix": "eslint . --fix && prettier --write .",
+    "format": "prettier --write .",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,json}\"",
     "validate:schema": "node scripts/validate-schema.js",
     "seed:alpha-staging": "ts-node scripts/seed-alpha-staging.ts",
     "teardown:alpha-staging": "ts-node scripts/teardown-alpha-staging.ts",
     "reconcile": "ts-node scripts/reconcile.ts",
     "type-check": "tsc --noEmit",
-    "ship-gate": "node scripts/ci/charter-integrity-check.js && node scripts/ci/no-hardcoded-balance.js && node scripts/ci/tenant-id-scope-check.js && node scripts/ci/seed-fixture-alignment-check.js && node scripts/ci/log-secret-leak-check.js && node scripts/ci/openapi-freeze-check.js",
+    "ship-gate": "node PROGRAM_CONTROL/ship-gate-verifier.js",
     "prepare": "husky"
   },
   "keywords": [
@@ -57,7 +57,7 @@
     "@typescript-eslint/parser": "^8.59.3",
     "ajv": "^8.18.0",
     "ajv-formats": "^3.0.1",
-    "eslint": "^10.3.0",
+    "eslint": "^8.57.1",
     "husky": "^9.1.7",
     "jest": "^30.4.2",
     "lint-staged": "^17.0.4",
@@ -70,7 +70,7 @@
     "node": ">=22.0.0"
   },
   "lint-staged": {
-    "*.ts": [
+    "*.{ts,js}": [
       "eslint --fix",
       "prettier --write"
     ],
