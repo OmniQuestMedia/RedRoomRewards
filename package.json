@@ -13,7 +13,7 @@
     "test:verbose": "jest --verbose",
     "test:ci": "jest --ci --coverage --maxWorkers=2",
     "lint": "eslint . --max-warnings=0",
-    "lint:ci-python": "node -e \"console.log('No Python sources detected — skipping Python lint gate.')\"",
+    "lint:ci-python": "node -e \"console.log('No Python lint gate configured in this npm-only repository.')\"",
     "lint:ci-js": "eslint . --max-warnings=0 && prettier --check . && tsc --noEmit",
     "lint:ci": "npm run lint:ci-python && npm run lint:ci-js",
     "lint:fix": "eslint . --fix && prettier --write .",

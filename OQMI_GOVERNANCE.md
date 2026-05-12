@@ -245,7 +245,8 @@ code:
 Each repo declares its package manager in its root `README.md`. Default for
 OmniQuest Media Inc. repos is **Yarn**. Repositories that explicitly authorize
 `npm` in their repo docs may use npm as their sole package manager. Do not mix
-package managers in a single repo.
+package managers in a single repo. **RedRoomRewards explicitly authorizes npm**
+in its root docs and therefore uses npm as its governed package manager.
 
 ### 5.4 Domain separation
 
@@ -353,7 +354,7 @@ Every commit must be:
 
 Commits touching financial-integrity paths require this four-line format:
 
-```
+```text
 FIZ: <change summary>
 REASON: <why the change is required>
 IMPACT: <what financial surfaces are affected>
