@@ -117,6 +117,10 @@ tmp/
 temp/
 *.tmp
 *.temp
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
 # ── Documentation Build ─────────────────────────────────────────────────────
 docs/.vitepress/cache

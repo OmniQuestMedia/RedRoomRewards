@@ -22,8 +22,10 @@ import { v4 as uuidv4 } from 'uuid';
 import { LedgerService } from '../ledger/ledger.service';
 import { WalletModel } from '../db/models/wallet.model';
 import { EscrowItemModel } from '../db/models/escrow-item.model';
-import { TierCapConfigModel } from '../db/models/tier-cap-config.model';
+import { TierCapConfigModel, type ITierCapConfig } from '../db/models/tier-cap-config.model';
 import { TransactionType, TransactionReason } from '../wallets/types';
+
+type TierName = ITierCapConfig['tier_name'];
 
 /** Allowed reason codes for Screen 07 that may appear as escrow annotations */
 export const MERCHANT_REDEMPTION_FEATURE_TYPE = 'merchant_order' as const;
@@ -51,7 +53,7 @@ export interface CreateRedemptionRequest {
   /** Tracing ID */
   requestId: string;
   /** Member's current loyalty tier (PLATINUM | GOLD | SILVER | MEMBER | GUEST) */
-  tierName: 'PLATINUM' | 'GOLD' | 'SILVER' | 'MEMBER' | 'GUEST';
+  tierName: TierName;
 }
 
 export interface CreateRedemptionResponse {
@@ -73,7 +75,7 @@ export interface GetEligibleRequest {
   tenantId: string;
   /** Order value for cap calculation */
   transactionValue: number;
-  tierName: 'PLATINUM' | 'GOLD' | 'SILVER' | 'MEMBER' | 'GUEST';
+  tierName: TierName;
 }
 
 export interface GetEligibleResponse {
@@ -308,7 +310,7 @@ export class RedemptionService {
   private async validateTierCap(
     tenantId: string,
     merchantId: string,
-    tierName: string,
+    tierName: TierName,
     transactionValue: number,
     redemptionAmount: number,
   ): Promise<void> {
