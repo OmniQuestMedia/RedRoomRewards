@@ -10,9 +10,9 @@
 
 - [x] **Add Sovereign Infrastructure & Security Policy** (Critical —
       Non-negotiable)  
-      `OQMI_INFRASTRUCTURE_AND_SECURITY_POLICY.md` created at **repo root**
+       `OQMI_INFRASTRUCTURE_AND_SECURITY_POLICY.md` created at **repo root**
       (v1.0, effective 2026-05-06).  
-      `README.md` and `SECURITY.md` updated to reference it as **authoritative
+       `README.md` and `SECURITY.md` updated to reference it as **authoritative
       sovereign document**.
 
 - [x] **Create / Overwrite WORK-ORDER.md** with this full document
@@ -41,15 +41,14 @@
   templates.
 - Cyrano: Note Mongo → Postgres migration impact on ledger sync.
 
-## Phase 0.6: Linting Standardization (per OQMI_LINT_STANDARD_v1.0)
+## Phase 0.5: MaxZoneGPT Ship-Gate Completion (PR #31)
 
-- [ ] Copy canonical configs from ChatNowZone--BUILD (or stabilized
-      RedRoomRewards).
-- [ ] Update ship-gate-verifier to include language-specific + Super-Linter
-      invariants.
-- [ ] Resolve MaxZoneGPT PR #31 conflicts (add JS/TS coverage if mixed repo).
-- [ ] Run full CI matrix; merge only after green ship-gate.
-- [ ] Flag cross-repo: Update auto-merge.yml in all repos.
+- [ ] Apply mixed-language fixes to ship-gate-verifier.ts and package.json
+      (above).
+- [ ] Correct OQMI_SYSTEM_STATE.md template drift.
+- [ ] Add Super-Linter workflow (canonical from RedRoomRewards/ChatNowZone).
+- [ ] Run full `npm install && npm run ship-gate` + CI matrix.
+- [ ] Merge only after green + human review (CEO on governance paths).
 
 ## Phase 1: Foundation & Compliance (Ready After Phase 0 Sign-off)
 
