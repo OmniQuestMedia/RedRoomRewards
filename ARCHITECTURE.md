@@ -1,8 +1,23 @@
 # Architecture
 
 **Repository**: RedRoomRewards  
-**Last Updated**: 2026-01-04  
+**Last Updated**: 2026-05-12  
 **Status**: Authoritative
+
+---
+
+## Governance Equalization Inventory (`rule_applied_id: GOVERNANCE-EQ-v1`)
+
+| Component                                      | Status      | Evidence                                                                                                                                  |
+| ---------------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Bounded-context ownership (loyalty-only scope) | Finished    | Domain boundaries documented in §§1 and 3; prohibited non-loyalty domains explicitly listed                                               |
+| Shared libraries extraction                    | Queued      | No `packages/` or shared-lib workspace yet; integration contracts documented but extraction backlog remains                               |
+| IaC / Terraform baseline                       | Missing     | `infra/` exists, but no Terraform files are present in this repository                                                                    |
+| Ship-Gate verifier                             | Finished    | `PROGRAM_CONTROL/ship-gate-verifier.ts` and `npm run ship-gate` gate are wired in CI                                                      |
+| Immutable audit trail controls                 | Finished    | Ledger/audit invariants documented and enforced as append-only in architecture/governance docs                                            |
+| Encrypted reference pattern                    | In Progress | Policy requires encrypted references; implementation evidence exists in security docs but no centralized architecture control section yet |
+| Canada `ca-central-1` residency pattern        | Finished    | Data residency requirements are documented in policy + deployment docs                                                                    |
+| Zero-trust / least-privilege controls          | In Progress | Declared in policy and runbooks; repository-level enforcement is partial across workflows and configs                                     |
 
 ---
 

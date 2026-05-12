@@ -67,7 +67,7 @@ All complaints will be reviewed and investigated promptly and fairly.
 2. **Add Upstream Remote**
 
    ```bash
-   git remote add upstream https://github.com/OmniQuestMedia/RedRoomRewards.git
+   git remote add upstream https://github.com/OmniQuestMediaInc/RedRoomRewards.git
    ```
 
 3. **Install Dependencies** (when package.json exists)
@@ -95,10 +95,22 @@ Before contributing, please read:
 
 - **[.github/copilot-instructions.md](.github/copilot-instructions.md)** - Core
   development rules (§9 Coding Doctrine)
+- **[OQMI_GOVERNANCE.md](OQMI_GOVERNANCE.md)** - Company governance authority
+- **[OQMI_INFRASTRUCTURE_AND_SECURITY_POLICY.md](OQMI_INFRASTRUCTURE_AND_SECURITY_POLICY.md)** -
+  Sovereign infrastructure and security policy
 - **[docs/UNIVERSAL_ARCHITECTURE.md](docs/UNIVERSAL_ARCHITECTURE.md)** -
   Architectural principles
 - **[SECURITY.md](SECURITY.md)** - Security policy
 - **[api/openapi.yaml](api/openapi.yaml)** - API contract
+
+---
+
+## Corporate boilerplate
+
+- **Legal entity:** OmniQuest Media Inc. (Ontario corporation)
+- **Jurisdiction:** Ontario, Canada
+- **Rule tag for governance refresh changes:**
+  `[rule_applied_id: GOVERNANCE-EQ-v1]`
 
 ---
 

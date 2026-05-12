@@ -54,19 +54,28 @@ for ALP-1..ALP-8 detail.
 
 ## Key docs
 
-| Doc                                                                                | Purpose                                      |
-| ---------------------------------------------------------------------------------- | -------------------------------------------- |
-| [**Infrastructure & Security Policy**](OQMI_INFRASTRUCTURE_AND_SECURITY_POLICY.md) | **Sovereign security & infra policy (v1.0)** |
-| [Program Control directives](PROGRAM_CONTROL/DIRECTIVES/QUEUE/)                    | Active work orders and governance directives |
-| [Architecture](docs/UNIVERSAL_ARCHITECTURE.md)                                     | System design                                |
-| [API spec](api/openapi.yaml)                                                       | Endpoint contracts                           |
-| [Domain glossary](docs/DOMAIN_GLOSSARY.md)                                         | Naming authority                             |
-| [Auth contract](docs/AUTH_CONTRACT.md)                                             | HMAC service-to-service auth                 |
-| [UX integration brief](docs/UX_INTEGRATION_BRIEF.md)                               | Design / front-end binding contract          |
-| [Staging deploy spec](docs/STAGING_DEPLOY_SPEC.md)                                 | Alpha staging topology                       |
-| [Alpha test pack](docs/ALPHA_TEST_PACK.md)                                         | What gets exercised before tag               |
-| [CEO decisions](docs/RRR_CEO_DECISIONS_FINAL_2026-04-17.md)                        | Binding rulings                              |
-| [Coding doctrine](.github/copilot-instructions.md)                                 | AI + human dev rules                         |
+| Doc                                                                                | Purpose                                        |
+| ---------------------------------------------------------------------------------- | ---------------------------------------------- |
+| [**Governance**](OQMI_GOVERNANCE.md)                                               | **Company-wide engineering governance (v1.0)** |
+| [**Infrastructure & Security Policy**](OQMI_INFRASTRUCTURE_AND_SECURITY_POLICY.md) | **Sovereign security & infra policy (v1.0)**   |
+| [Program Control directives](PROGRAM_CONTROL/DIRECTIVES/QUEUE/)                    | Active work orders and governance directives   |
+| [Architecture](docs/UNIVERSAL_ARCHITECTURE.md)                                     | System design                                  |
+| [API spec](api/openapi.yaml)                                                       | Endpoint contracts                             |
+| [Domain glossary](docs/DOMAIN_GLOSSARY.md)                                         | Naming authority                               |
+| [Auth contract](docs/AUTH_CONTRACT.md)                                             | HMAC service-to-service auth                   |
+| [UX integration brief](docs/UX_INTEGRATION_BRIEF.md)                               | Design / front-end binding contract            |
+| [Staging deploy spec](docs/STAGING_DEPLOY_SPEC.md)                                 | Alpha staging topology                         |
+| [Alpha test pack](docs/ALPHA_TEST_PACK.md)                                         | What gets exercised before tag                 |
+| [CEO decisions](docs/RRR_CEO_DECISIONS_FINAL_2026-04-17.md)                        | Binding rulings                                |
+| [Coding doctrine](.github/copilot-instructions.md)                                 | AI + human dev rules                           |
+
+## Corporate boilerplate
+
+- **Legal entity:** OmniQuest Media Inc. (Ontario corporation)
+- **Jurisdiction:** Ontario, Canada
+- **Infrastructure residency standard:** Canada-only production data residency
+  (`ca-central-1` or equivalent Canadian regions)
+- **Rule tag for this refresh:** `[rule_applied_id: GOVERNANCE-EQ-v1]`
 
 ## Quick start
 
