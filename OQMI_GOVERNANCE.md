@@ -243,9 +243,9 @@ code:
 ### 5.3 Package management
 
 Each repo declares its package manager in its root `README.md`. Default for
-OmniQuest Media Inc. repos is **Yarn**. Do not introduce `npm` or `pnpm` unless
-the repo's README explicitly authorizes it. Do not mix package managers in a
-single repo.
+OmniQuest Media Inc. repos is **Yarn**. Repositories that explicitly authorize
+`npm` in their repo docs may use npm as their sole package manager. Do not mix
+package managers in a single repo.
 
 ### 5.4 Domain separation
 
@@ -354,5 +354,8 @@ Every commit must be:
 Commits touching financial-integrity paths require this four-line format:
 
 ```
-
+FIZ: <change summary>
+REASON: <why the change is required>
+IMPACT: <what financial surfaces are affected>
+CORRELATION_ID: <traceable identifier>
 ```
