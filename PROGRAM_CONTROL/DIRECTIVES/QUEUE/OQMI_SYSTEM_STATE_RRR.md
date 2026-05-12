@@ -1,12 +1,12 @@
 # OQMI SYSTEM STATE — RedRoomRewards
 
 **Document:** `PROGRAM_CONTROL/DIRECTIVES/QUEUE/OQMI_SYSTEM_STATE_RRR.md`
-**Repo:** OmniQuestMediaInc/RedRoomRewards **Version:** v3.0 (B-CLEAN — Wave B
-closed, Wave C open) **Last Updated:** 2026-04-25 **Owner:** Kevin B. Hartley,
-CEO — OmniQuest Media Inc. **Active Charter:** `.github/PRODUCTION_SCHEDULE.md`
-(waveform schedule, parsed by CI) **Governance Companion:**
-`PROGRAM_CONTROL/DIRECTIVES/QUEUE/RRR-GOV-002.md` **Agent Instructions:**
-`.github/copilot-instructions.md`
+**Repo:** OmniQuestMediaInc/RedRoomRewards **Version:** v3.1 (Phase 0.6 lint
+standardization alignment) **Last Updated:** 2026-05-11 **Owner:** Kevin B.
+Hartley, CEO — OmniQuest Media Inc. **Active Charter:**
+`.github/PRODUCTION_SCHEDULE.md` (waveform schedule, parsed by CI) **Governance
+Companion:** `PROGRAM_CONTROL/DIRECTIVES/QUEUE/RRR-GOV-002.md` **Agent
+Instructions:** `.github/copilot-instructions.md`
 
 > Living tracker. Rewritten on every PR that materially changes state. Disjoint
 > from `OQMI_SYSTEM_STATE.md` (ChatNowZone–BUILD scope) — do not read across.
@@ -214,16 +214,74 @@ not run `tsc --noEmit`. Tracked for fix-up in a Wave C follow-up.
 
 ## 2026-05-09 — Agent Payload Flow Update (concise)
 
-- Added `.github/AGENTS.md` continuous-flow operating guidance for `copilot/*`, `grok/*`, `agent/*`.
-- Added `.github/workflows/copilot-internal.yml` fast-path gate for agent branches.
-- Updated `.github/workflows/auto-merge.yml` to scope auto-enable behavior to valid agent branches while preserving `fiz` / `ceo-gate` protections.
-- Added `npm run ship-gate` in `package.json` as the governance check aggregator used by fast-path.
-- Cross-repo impact: apply equivalent safe fast-path workflow + auto-merge scoping + ship-gate script in other OQMI repositories without weakening branch protections or mandatory security/compliance checks.
+- Added `.github/AGENTS.md` continuous-flow operating guidance for `copilot/*`,
+  `grok/*`, `agent/*`.
+- Added `.github/workflows/copilot-internal.yml` fast-path gate for agent
+  branches.
+- Updated `.github/workflows/auto-merge.yml` to scope auto-enable behavior to
+  valid agent branches while preserving `fiz` / `ceo-gate` protections.
+- Added `npm run ship-gate` in `package.json` as the governance check aggregator
+  used by fast-path.
+- Cross-repo impact: apply equivalent safe fast-path workflow + auto-merge
+  scoping + ship-gate script in other OQMI repositories without weakening branch
+  protections or mandatory security/compliance checks.
+
+## 2026-05-11 — Phase 0.5 lint parity updates
+
+| Date       | Change                                                                                                        | PR  | Owner   | Outcome                                                     |
+| :--------- | :------------------------------------------------------------------------------------------------------------ | :-- | :------ | :---------------------------------------------------------- |
+| 2026-05-11 | Phase 0.5 lint parity — MaxZoneGPT-specific `PROGRAM_CONTROL/ship-gate-verifier.ts` + mixed Python/JS scripts | #31 | copilot | lint-clean invariant enforced; Python primary + JS advisory |
+
+- Migrating back to legacy ESLint v8 `.eslintrc.js` as canonical source and
+  adding `.github/linters/.eslintrc.json` fallback.
+- Standardizing package lint scripts (`lint`, `lint:ci`, `lint:fix`, `format`)
+  plus expanded lint-staged coverage for `*.ts`, `*.js`, `*.json`, `*.md`,
+  `*.yml`, `*.yaml`.
+- Converting ship-gate to `PROGRAM_CONTROL/ship-gate-verifier.ts` (mixed-pattern
+  parity baseline from MaxZoneGPT) with required governance checks plus the
+  `cross-repo-lint-parity` invariant for cross-repo lint standardization.
+- Replacing `.github/workflows/lint.yml` with the canonical
+  `.github/workflows/super-linter.yml` entrypoint and standardizing the
+  markdownlint config filename at `.github/linters/.markdown-lint.yml`.
+- Aligning CI to run `npm run lint:ci` and `npm run ship-gate` as mandatory
+  gates before build/test, with Super-Linter scoped to `.github/`, `docs/`,
+  `PROGRAM_CONTROL/`, and root governance/config files.
+- Propagation status: RedRoomRewards Phase 0.6 cross-repo linting + ship-gate
+  template adoption completed on this branch;
+  Cyrano/Marketplace-Build/eCommsZone remain for parallel PR propagation.
+
+---
+
+## §9 — UPDATE PROTOCOL
+
+This file remains a same-PR living record. Any merge that changes §2 inventory,
+§3 DONE, §4 WIP, §5 OUTSTANDING, §6 BLOCKERS, §7 RETIRED, or the current
+governance/CI posture in this repo must update this file in the same PR.
+
+Rules:
+
+1. **Same-PR update.** State changes land with the work they describe; no
+   follow-up sync PRs.
+2. **Authority order.** If this file disagrees with
+   `.github/PRODUCTION_SCHEDULE.md`, the schedule wins and this file must be
+   corrected. If it disagrees with `.github/copilot-instructions.md` on
+   doctrine, the doctrine file wins.
+3. **Header stamp.** Bump **Last Updated** whenever any substantive section
+   changes.
+4. **RRR-only scope.** Do not copy CNZ-scoped state into this file or reuse this
+   file as a template without re-scoping the repo metadata first.
+5. **Retirements are append-only.** §7 records permanent decisions. Removing a
+   retirement entry requires a charter/governance amendment.
 
 ## HANDOFF
 
-- Built: agent fast-path instruction/workflow plumbing with preserved governance labels and existing CI gates.
-- Incomplete: branch protection/ruleset policy updates for branch-pattern-specific required checks are not configurable via repository files in this PR and require admin settings change.
-- Next agent first task: implement org/repo-level branch protection/ruleset updates in GitHub settings to require `copilot-internal / fast-gate` for agent branches while retaining all current mandatory governance/security checks.
+- Built: agent fast-path instruction/workflow plumbing with preserved governance
+  labels and existing CI gates.
+- Incomplete: branch protection/ruleset policy updates for
+  branch-pattern-specific required checks are not configurable via repository
+  files in this PR and require admin settings change.
+- Next agent first task: implement org/repo-level branch protection/ruleset
+  updates in GitHub settings to require `copilot-internal / fast-gate` for agent
+  branches while retaining all current mandatory governance/security checks.
 
 _END OQMI SYSTEM STATE — RedRoomRewards_

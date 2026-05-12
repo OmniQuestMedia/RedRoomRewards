@@ -12,7 +12,7 @@
 
 import { IWalletService } from './types';
 import { EscrowHoldRequest, TransactionReason } from '../wallets/types';
-import { TierCapConfigModel } from '../db/models/tier-cap-config.model';
+import { TierCapConfigModel, type ITierCapConfig } from '../db/models/tier-cap-config.model';
 
 /**
  * Request to redeem points for a feature
@@ -280,7 +280,7 @@ export class PointRedemptionService {
   async validateTierCap(
     tenantId: string,
     merchantId: string,
-    tierName: string,
+    tierName: ITierCapConfig['tier_name'],
     transactionValue: number,
     redemptionAmount: number,
   ): Promise<void> {
