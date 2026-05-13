@@ -1,4 +1,4 @@
-name: Copilot Internal Fast-Path
+name: Copilot Internal Fast-Path (Ship-Gate)
 
 on:
   pull_request:

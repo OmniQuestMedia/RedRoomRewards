@@ -48,7 +48,7 @@ All complaints will be reviewed and investigated promptly and fairly.
 
 ### Prerequisites
 
-- **Node.js**: Version 18 or higher
+- **Node.js**: Version 22 or higher
 - **npm**: Version 9 or higher
 - **MongoDB**: Version 6 or higher (for local development)
 - **Git**: For version control
@@ -118,7 +118,8 @@ Before contributing, please read:
 
 ### 1. Choose an Issue
 
-- Browse [open issues](https://github.com/OmniQuestMedia/RedRoomRewards/issues)
+- Browse
+  [open issues](https://github.com/OmniQuestMediaInc/RedRoomRewards/issues)
 - Look for issues tagged `good first issue` if you're new
 - Comment on the issue to claim it and avoid duplicate work
 
@@ -180,10 +181,9 @@ Follow these principles:
 **Run Tests**:
 
 ```bash
-npm test                    # Run all tests
-npm run test:unit          # Unit tests only
-npm run test:integration   # Integration tests
-npm run test:coverage      # With coverage report
+npm test               # Run all tests
+npm run test:ci        # CI-equivalent suite + coverage
+npm run test:coverage  # Coverage report
 ```
 
 **Financial Logic Testing**:
@@ -202,6 +202,21 @@ If your changes affect ledger, wallets, earn, or redeem:
 npm run lint               # Check linting
 npm run lint:fix          # Auto-fix issues
 npm run format            # Format code
+npm run format:check      # Formatting verification
+npm run ship-gate         # Required governance gate
+```
+
+### Fast-path checks for agent branches
+
+Agent branches (`copilot/*`, `grok/*`, `agent/*`) run
+`.github/workflows/copilot-internal.yml` with the required fast-path sequence:
+
+```bash
+npm run type-check
+npm run lint
+npm run format:check
+npm run test:ci
+npm run ship-gate
 ```
 
 ### 6. Commit Your Changes

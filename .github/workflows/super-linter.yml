@@ -1,5 +1,5 @@
 ---
-name: Lint (Super-Linter)
+name: Lint (Super-Linter Advisory Gate)
 
 on: # yamllint disable-line rule:truthy
   pull_request:
