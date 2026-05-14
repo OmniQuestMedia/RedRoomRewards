@@ -9,6 +9,8 @@
 [![Program Control](https://img.shields.io/badge/Program_Control-DIRECTIVES-blue?style=flat-square)](PROGRAM_CONTROL/DIRECTIVES/QUEUE/)
 [![Production Schedule](https://img.shields.io/badge/Production_Schedule-ACTIVE-green?style=flat-square)](.github/PRODUCTION_SCHEDULE.md)
 [![CI](https://github.com/OmniQuestMediaInc/RedRoomRewards/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
+[![Fast-Path](https://img.shields.io/badge/Fast--Path-Copilot_Internal-blueviolet?style=flat-square)](.github/workflows/copilot-internal.yml)
+[![Ship-Gate](https://img.shields.io/badge/Ship--Gate-Required-black?style=flat-square)](PROGRAM_CONTROL/ship-gate-verifier.ts)
 
 ## Purpose
 
@@ -105,6 +107,16 @@ npm run type-check
 
 > The pre-commit hook runs `lint-staged` automatically on staged files. Run
 > `npm run lint:fix` manually after a fresh clone to ensure a clean baseline.
+
+### CI fast-path + ship-gate
+
+- `copilot/*`, `grok/*`, and `agent/*` branches run the fast-path workflow:
+  `.github/workflows/copilot-internal.yml`
+- Main CI executes `npm run ship-gate` via
+  `PROGRAM_CONTROL/ship-gate-verifier.ts`
+- Advisory lint governance runs in `.github/workflows/super-linter.yml`
+- Non-financial PRs target auto-merge when required checks are green/gray per
+  governance labels and branch protection
 
 ### With Docker (local dev services)
 
