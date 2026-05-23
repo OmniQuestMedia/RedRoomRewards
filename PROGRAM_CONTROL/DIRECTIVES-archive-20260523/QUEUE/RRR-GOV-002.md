@@ -144,11 +144,8 @@ HARD_STOPs and reports.
 5. **No hardcoded balance values in production code paths.** No
    `previousBalance = 100`, no `balance = 1000`, no test fixtures leaking into
    `src/`. CI guard enforces (Task B-003).
-6. **FIZ commit format — 4 lines exactly:**
-   FIZ: \<subject\>
-   REASON: \<why\>
-   IMPACT: \<what changes financially\>
-   CORRELATION_ID: \<id\>  
+6. **FIZ commit format — 4 lines exactly:** FIZ: \<subject\> REASON: \<why\>
+   IMPACT: \<what changes financially\> CORRELATION_ID: \<id\>
 
 7. **No backdoors, master passwords, settlement bypasses, or unauthorized
    adjustment paths.** Ever. Under any framing.
