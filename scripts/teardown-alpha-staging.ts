@@ -89,13 +89,6 @@ function parseArgs(argv: string[]): Args {
   }
   return {
     dryRun: argv.includes('--dry-run'),
-  includeLedger: boolean;
-}
-
-function parseArgs(argv: string[]): Args {
-  return {
-    dryRun: argv.includes('--dry-run'),
-    includeLedger: argv.includes('--include-ledger'),
   };
 }
 

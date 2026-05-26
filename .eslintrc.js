@@ -20,7 +20,7 @@ module.exports = {
   ],
   overrides: [
     {
-      files: ['src/**/*.ts', 'src/**/*.tsx', 'api/**/*.ts', 'api/**/*.tsx'],
+      files: ['src/**/*.ts', 'src/**/*.tsx', 'api/**/*.ts', 'api/**/*.tsx', 'scripts/**/*.ts'],
       parser: '@typescript-eslint/parser',
       parserOptions: {
         ecmaVersion: 2022,
