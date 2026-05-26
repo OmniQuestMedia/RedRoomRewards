@@ -1,8 +1,12 @@
 # `docs/ux/` — Wireframe Specs
 
-These are **textual wireframes** that bind one screen to the real RRR API surface. They're the source-of-truth that creative agencies (or Grok-driven design tooling) skin into visual UI. They are **not** visual mockups; visual design happens outside the repo and is informed by these.
+These are **textual wireframes** that bind one screen to the real RRR API
+surface. They're the source-of-truth that creative agencies (or Grok-driven
+design tooling) skin into visual UI. They are **not** visual mockups; visual
+design happens outside the repo and is informed by these.
 
-**Read first:** `docs/UX_INTEGRATION_BRIEF.md` — that's the contract this directory implements.
+**Read first:** `docs/UX_INTEGRATION_BRIEF.md` — that's the contract this
+directory implements.
 
 ---
 
@@ -10,21 +14,25 @@ These are **textual wireframes** that bind one screen to the real RRR API surfac
 
 - They diff cleanly in git.
 - They survive design tool churn (Figma, Sketch, whatever comes next).
-- They make endpoint binding explicit — no screen exists in this directory unless every interactive element maps to a real endpoint or is explicitly tagged `[v2 stub]`.
-- A reviewer can verify in 60 seconds whether a given screen will actually work against the live API.
+- They make endpoint binding explicit — no screen exists in this directory
+  unless every interactive element maps to a real endpoint or is explicitly
+  tagged `[v2 stub]`.
+- A reviewer can verify in 60 seconds whether a given screen will actually work
+  against the live API.
 
 ---
 
 ## Spec format
 
-Every screen lives in a single markdown file: `NN-screen-name.md` where `NN` is a stable two-digit number for ordering. Each file follows this template:
+Every screen lives in a single markdown file: `NN-screen-name.md` where `NN` is
+a stable two-digit number for ordering. Each file follows this template:
 
 ```markdown
 # NN — Screen Name
 
-**Role:** [Member | Model | Merchant Admin | OQMI Operator]
-**Purpose:** one sentence. What does the user accomplish here?
-**Status:** [draft | reviewed | frozen]
+**Role:** [Member | Model | Merchant Admin | OQMI Operator] **Purpose:** one
+sentence. What does the user accomplish here? **Status:** [draft | reviewed |
+frozen]
 
 ## API binding
 
@@ -34,9 +42,11 @@ Every screen lives in a single markdown file: `NN-screen-name.md` where `NN` is 
 ## States
 
 - **Loading:** what the user sees while the data is in flight
-- **Empty:** what the user sees when the data exists but is empty (zero balance, no history, etc.)
+- **Empty:** what the user sees when the data exists but is empty (zero balance,
+  no history, etc.)
 - **Success:** the normal happy-path render
-- **Error states:** named error codes from §7 of the integration brief, each with its own UI state
+- **Error states:** named error codes from §7 of the integration brief, each
+  with its own UI state
 
 ## Layout intent
 
@@ -69,30 +79,38 @@ with a `[v2 stub]` tag and a brief note.
 ## Authorship workflow
 
 1. Author drafts a spec in this directory as `NN-name.md`, status `draft`.
-2. Reviewer (engineering side) checks every API binding against `api/openapi.yaml`. Files PR comments on any binding that doesn't match a real endpoint.
+2. Reviewer (engineering side) checks every API binding against
+   `api/openapi.yaml`. Files PR comments on any binding that doesn't match a
+   real endpoint.
 3. Author addresses, flips status to `reviewed`.
-4. Once Alpha test signs off, status flips to `frozen`. Frozen specs require a CHORE ticket to amend.
+4. Once Alpha test signs off, status flips to `frozen`. Frozen specs require a
+   CHORE ticket to amend.
 
 ---
 
 ## Index
 
-| #             | Screen                          | Role                                    | Status   |
-| ------------- | ------------------------------- | --------------------------------------- | -------- |
-| 00            | [Shared / cross-stack components](./00-shared-components.md) | All            | reviewed |
-| 01            | [Member balance](./01-member-balance.md)                     | Member         | draft    |
-| 01-onboarding | [GateGuard + Step-Up Auth Flow](./01-onboarding-gateflows.md) | Guest → Member / Model / Operator (all) | draft |
-| 02            | [Redeem flow](./02-redeem-flow.md)                           | Member         | draft    |
-| 03            | [Merchant admin overview](./03-merchant-admin-overview.md)   | Merchant Admin | draft    |
-| 04            | [Ledger / transaction history](./04-ledger-transaction-history.md) | Member   | draft    |
-| 05            | [Escrow detail](./05-escrow-detail.md)                       | Member         | draft    |
-| 06            | [Redemption flow (model gifting)](./06-redemption-flow.md)   | Model          | draft    |
-| 07            | [Merchant admin awarding wallet](./07-merchant-admin-awarding.md) | Merchant Admin / OQMI Operator | draft |
-| 08            | [Reporting dashboard](./08-reporting-dashboard.md)           | Merchant Admin (cross-tenant variant for OQMI Operator) | draft |
+| #             | Screen                                                             | Role                                                    | Status   |
+| ------------- | ------------------------------------------------------------------ | ------------------------------------------------------- | -------- |
+| 00            | [Shared / cross-stack components](./00-shared-components.md)       | All                                                     | reviewed |
+| 01            | [Member balance](./01-member-balance.md)                           | Member                                                  | draft    |
+| 01-onboarding | [GateGuard + Step-Up Auth Flow](./01-onboarding-gateflows.md)      | Guest → Member / Model / Operator (all)                 | draft    |
+| 02            | [Redeem flow](./02-redeem-flow.md)                                 | Member                                                  | draft    |
+| 03            | [Merchant admin overview](./03-merchant-admin-overview.md)         | Merchant Admin                                          | draft    |
+| 04            | [Ledger / transaction history](./04-ledger-transaction-history.md) | Member                                                  | draft    |
+| 05            | [Escrow detail](./05-escrow-detail.md)                             | Member                                                  | draft    |
+| 06            | [Redemption flow (model gifting)](./06-redemption-flow.md)         | Model                                                   | draft    |
+| 07            | [Merchant admin awarding wallet](./07-merchant-admin-awarding.md)  | Merchant Admin / OQMI Operator                          | draft    |
+| 08            | [Reporting dashboard](./08-reporting-dashboard.md)                 | Merchant Admin (cross-tenant variant for OQMI Operator) | draft    |
 
 Recommended next batch (deferred / covered elsewhere):
-- 09 — Sign-in / sign-up — covered by [01-onboarding](./01-onboarding-gateflows.md); no separate screen needed for Alpha.
-- 10 — Tier badge component — already specified in [00-shared-components.md](./00-shared-components.md); no separate screen needed.
+
+- 09 — Sign-in / sign-up — covered by
+  [01-onboarding](./01-onboarding-gateflows.md); no separate screen needed for
+  Alpha.
+- 10 — Tier badge component — already specified in
+  [00-shared-components.md](./00-shared-components.md); no separate screen
+  needed.
 
 ---
 

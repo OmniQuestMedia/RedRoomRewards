@@ -431,7 +431,7 @@ export class IngestWorker {
       });
     } catch (error) {
       // Ignore duplicate key errors (race condition)
-      if ((error as any).code !== 11000) {
+      if ((error as unknown as { code: number }).code !== 11000) {
         throw error;
       }
     }

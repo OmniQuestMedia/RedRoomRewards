@@ -104,23 +104,23 @@ merchant tenants. The full contract lives in
 `src/middleware/auth.middleware.ts` for the JWT (user-bound) leg and
 `src/webhooks/webhook-receive.service.ts` for the live HMAC receive path.
 
-| Term                  | Definition                                                                       | Code identifier                          |
-| --------------------- | -------------------------------------------------------------------------------- | ---------------------------------------- |
-| HMAC envelope         | Per-tenant HMAC-SHA256 signing scheme for service-to-service requests            | hmac, X-RRR-Signature                    |
-| `tenant_id`           | Public per-merchant identifier; appears in headers and webhook payloads          | tenant_id, X-RRR-Tenant                  |
-| `api_key_id`          | Public identifier for the active per-tenant key being used to sign               | api_key_id, X-RRR-Key-Id                 |
-| `api_secret`          | 256-bit per-tenant secret; never logged, never echoed                            | api_secret                               |
-| Replay window         | ±5 minute timestamp drift allowance (target spec; enforced post-Alpha)           | replay_window                            |
-| Nonce                 | Per-request opaque UUIDv4; (tenant, nonce) tuple is single-use within window     | nonce, X-RRR-Nonce                       |
-| Canonical signing string | 5-line target: `METHOD\nPATH\nTIMESTAMP\nNONCE\nSHA256_HEX(body)`              | canonical, signing_string                |
-| Idempotency key       | Per-tenant UUID that makes a state-changing call safe to retry                   | idempotency_key, X-Idempotency-Key       |
-| Request ID            | Per-request opaque trace identifier; safe to surface to integrators              | request_id, X-Request-ID                 |
-| Step-up auth          | Operator-only authentication tier required for awarding-wallet admin paths       | step_up, step_up_required                |
-| Bearer JWT            | Keycloak-issued user-bound token consumed by `AuthMiddleware`                    | bearer, jwt, jsonwebtoken                |
-| `AUTH_REQUIRED`       | 401 reason code: a required auth header is missing                               | AUTH_REQUIRED                            |
-| `AUTH_INVALID`        | 401 reason code: signature, timestamp, nonce, or key was rejected                | AUTH_INVALID                             |
-| `IDEMPOTENCY_KEY_MISMATCH` | 400 reason code: same idempotency key reused with a different payload      | IDEMPOTENCY_KEY_MISMATCH                 |
-| `TENANT_SCOPE_VIOLATION` | 403 reason code: cross-tenant resource access attempted                       | TENANT_SCOPE_VIOLATION                   |
+| Term                       | Definition                                                                   | Code identifier                    |
+| -------------------------- | ---------------------------------------------------------------------------- | ---------------------------------- |
+| HMAC envelope              | Per-tenant HMAC-SHA256 signing scheme for service-to-service requests        | hmac, X-RRR-Signature              |
+| `tenant_id`                | Public per-merchant identifier; appears in headers and webhook payloads      | tenant_id, X-RRR-Tenant            |
+| `api_key_id`               | Public identifier for the active per-tenant key being used to sign           | api_key_id, X-RRR-Key-Id           |
+| `api_secret`               | 256-bit per-tenant secret; never logged, never echoed                        | api_secret                         |
+| Replay window              | ±5 minute timestamp drift allowance (target spec; enforced post-Alpha)       | replay_window                      |
+| Nonce                      | Per-request opaque UUIDv4; (tenant, nonce) tuple is single-use within window | nonce, X-RRR-Nonce                 |
+| Canonical signing string   | 5-line target: `METHOD\nPATH\nTIMESTAMP\nNONCE\nSHA256_HEX(body)`            | canonical, signing_string          |
+| Idempotency key            | Per-tenant UUID that makes a state-changing call safe to retry               | idempotency_key, X-Idempotency-Key |
+| Request ID                 | Per-request opaque trace identifier; safe to surface to integrators          | request_id, X-Request-ID           |
+| Step-up auth               | Operator-only authentication tier required for awarding-wallet admin paths   | step_up, step_up_required          |
+| Bearer JWT                 | Keycloak-issued user-bound token consumed by `AuthMiddleware`                | bearer, jwt, jsonwebtoken          |
+| `AUTH_REQUIRED`            | 401 reason code: a required auth header is missing                           | AUTH_REQUIRED                      |
+| `AUTH_INVALID`             | 401 reason code: signature, timestamp, nonce, or key was rejected            | AUTH_INVALID                       |
+| `IDEMPOTENCY_KEY_MISMATCH` | 400 reason code: same idempotency key reused with a different payload        | IDEMPOTENCY_KEY_MISMATCH           |
+| `TENANT_SCOPE_VIOLATION`   | 403 reason code: cross-tenant resource access attempted                      | TENANT_SCOPE_VIOLATION             |
 
 ---
 

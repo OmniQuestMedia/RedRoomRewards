@@ -157,7 +157,9 @@ function selfTest() {
 
   const okIds = compare(extractIds(testPackOk, ID_RE), extractIds(seedOk, SEED_ID_RE));
   if (okIds.length !== 0) {
-    console.error(`SELF-TEST FAIL: aligned fixtures should report no errors; got: ${JSON.stringify(okIds)}`);
+    console.error(
+      `SELF-TEST FAIL: aligned fixtures should report no errors; got: ${JSON.stringify(okIds)}`,
+    );
     return false;
   }
 
@@ -179,7 +181,9 @@ function selfTest() {
     extractIds(seedDriftOperator, SEED_ID_RE),
   );
   if (!operatorErrors.some((e) => /operators are auth-side/.test(e))) {
-    console.error(`SELF-TEST FAIL: seeded-operator should be flagged; got: ${JSON.stringify(operatorErrors)}`);
+    console.error(
+      `SELF-TEST FAIL: seeded-operator should be flagged; got: ${JSON.stringify(operatorErrors)}`,
+    );
     return false;
   }
 

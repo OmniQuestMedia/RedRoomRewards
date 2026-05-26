@@ -113,7 +113,8 @@ describe('Ledger Entry Immutability', () => {
 
     it('should prevent duplicate entry creation via unique indexes', async () => {
       // Simulate duplicate key error
-      const duplicateError: any = new Error('Duplicate key error');
+      const duplicateError: Error & { code?: number; keyPattern?: { idempotencyKey: number } } =
+        new Error('Duplicate key error');
       duplicateError.code = 11000;
       duplicateError.keyPattern = { idempotencyKey: 1 };
 

@@ -109,9 +109,10 @@
 
 ## Wave D Continuation (Payload #23 — D-002, D-003, D-006)
 
-| ID | Category | Description | Default Used | CEO Action |
-|----|----------|-------------|--------------|------------|
-| F-034 | Wave D | D-002 OpenAPI drift check added as stub. D-003 Reservation E2E added using WalletService mocks (holdInEscrow/settleEscrow/refundEscrow); full DB-backed E2E deferred to B-006. D-006 RateLimitMiddleware created but not yet wired into AppModule — route scope confirmation pending. | Yes | Review |
+| ID    | Category | Description                                                                                                                                                                                                                                                                           | Default Used | CEO Action |
+| ----- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ---------- |
+| F-034 | Wave D   | D-002 OpenAPI drift check added as stub. D-003 Reservation E2E added using WalletService mocks (holdInEscrow/settleEscrow/refundEscrow); full DB-backed E2E deferred to B-006. D-006 RateLimitMiddleware created but not yet wired into AppModule — route scope confirmation pending. | Yes          | Review     |
+
 ## Wave C Final (Payload #21 — C-012 + C-CLEAN)
 
 | ID    | Category     | Description                                                                                                                                                                                          | Default Used | CEO Action                                                                                                 |

@@ -62,13 +62,13 @@
       "type": "number",
       "description": "Total transaction amount before any deductions (in base currency units)",
       "minimum": 0,
-      "examples": [99.99, 50.00, 19.95]
+      "examples": [99.99, 50.0, 19.95]
     },
     "net_amount": {
       "type": "number",
       "description": "Net transaction amount after deductions (in base currency units)",
       "minimum": 0,
-      "examples": [89.99, 45.00, 17.96]
+      "examples": [89.99, 45.0, 17.96]
     },
     "currency": {
       "type": "string",
@@ -150,8 +150,8 @@
       "description": "Additional context data (no PII)",
       "additionalProperties": true,
       "examples": [
-        {"campaign": "spring2024", "referrer": "email"},
-        {"support_ticket": "TICKET-12345"}
+        { "campaign": "spring2024", "referrer": "email" },
+        { "support_ticket": "TICKET-12345" }
       ]
     },
     "idempotency_key": {
@@ -172,7 +172,7 @@
     {
       "if": {
         "properties": {
-          "event_type": {"const": "token_purchase"}
+          "event_type": { "const": "token_purchase" }
         }
       },
       "then": {
@@ -192,11 +192,15 @@
     {
       "if": {
         "properties": {
-          "event_type": {"const": "membership_purchase"}
+          "event_type": { "const": "membership_purchase" }
         }
       },
       "then": {
-        "required": ["gross_amount", "membership_tier", "membership_duration_days"],
+        "required": [
+          "gross_amount",
+          "membership_tier",
+          "membership_duration_days"
+        ],
         "properties": {
           "membership_tier": {
             "type": "string"
@@ -215,7 +219,7 @@
     {
       "if": {
         "properties": {
-          "event_type": {"const": "adjustment"}
+          "event_type": { "const": "adjustment" }
         }
       },
       "then": {
@@ -226,7 +230,7 @@
           },
           "adjustment_amount": {
             "type": "integer",
-            "not": {"const": 0}
+            "not": { "const": 0 }
           }
         }
       }
@@ -234,7 +238,7 @@
     {
       "if": {
         "properties": {
-          "event_type": {"const": "reversal"}
+          "event_type": { "const": "reversal" }
         }
       },
       "then": {

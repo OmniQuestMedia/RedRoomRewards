@@ -22,9 +22,9 @@ export class AwardingWalletService {
           rows[i].expiryDays,
         );
         result.successCount++;
-      } catch (e: any) {
+      } catch (e: unknown) {
         result.failedCount++;
-        result.errors.push({ row: i + 1, error: e.message });
+        result.errors.push({ row: i + 1, error: (e as Error).message });
       }
     }
     return result;

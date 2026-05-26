@@ -41,7 +41,6 @@ jobs:
       !contains(github.event.pull_request.labels.*.name, 'fiz') &&
       !contains(github.event.pull_request.labels.*.name, 'ceo-gate')
     runs-on: ubuntu-24.04
-
     steps:
       - name: Enable auto-merge for PR
         env:
@@ -66,7 +65,6 @@ jobs:
        (contains(github.event.pull_request.labels.*.name, 'fiz') ||
         contains(github.event.pull_request.labels.*.name, 'ceo-gate')))
     runs-on: ubuntu-24.04
-
     steps:
       - name: Log skip reason
         run: |

@@ -101,17 +101,17 @@ paths:
       description: |
         Submit an event for asynchronous processing by the ingest worker.
         This endpoint implements idempotency to prevent duplicate event processing.
-        
+
         **Use Cases**:
         - External systems submit events for processing
         - User actions that trigger loyalty operations
         - Integration events from third-party systems
-        
+
         **Idempotency**:
         - All requests require an idempotency key
         - Duplicate requests (same idempotency key) return cached response
         - Prevents duplicate processing of events
-        
+
         **Processing**:
         - Events are queued for asynchronous processing
         - Processing is handled by the ingest worker
@@ -132,20 +132,20 @@ paths:
               user_signup:
                 summary: User signup event
                 value:
-                  eventType: "user.signup"
+                  eventType: 'user.signup'
                   payload:
-                    userId: "user-123"
-                    email: "user@example.com"
-                    signupDate: "2026-01-03T12:00:00Z"
+                    userId: 'user-123'
+                    email: 'user@example.com'
+                    signupDate: '2026-01-03T12:00:00Z'
                   replayable: true
               referral:
                 summary: Referral event
                 value:
-                  eventType: "user.referral"
+                  eventType: 'user.referral'
                   payload:
-                    referrerId: "user-123"
-                    referredId: "user-456"
-                    referralCode: "REF2026"
+                    referrerId: 'user-123'
+                    referredId: 'user-456'
+                    referralCode: 'REF2026'
                   replayable: true
       responses:
         '201':
@@ -158,11 +158,11 @@ paths:
                 success:
                   summary: Event queued for processing
                   value:
-                    eventId: "evt_a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-                    status: "queued"
-                    message: "Event queued for processing"
+                    eventId: 'evt_a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+                    status: 'queued'
+                    message: 'Event queued for processing'
                     queuePosition: 15
-                    requestId: "req-xyz789"
+                    requestId: 'req-xyz789'
         '200':
           description: Duplicate request - event already queued or processed
           content:
@@ -173,10 +173,10 @@ paths:
                 duplicate:
                   summary: Duplicate idempotency key
                   value:
-                    eventId: "evt_a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-                    status: "duplicate"
-                    message: "Event already processed or queued"
-                    requestId: "req-xyz789"
+                    eventId: 'evt_a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+                    status: 'duplicate'
+                    message: 'Event already processed or queued'
+                    requestId: 'req-xyz789'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -575,28 +575,28 @@ paths:
               signup_bonus:
                 summary: Signup bonus award
                 value:
-                  userId: "user-123"
+                  userId: 'user-123'
                   amount: 100
-                  reason: "user_signup_bonus"
+                  reason: 'user_signup_bonus'
                   metadata:
-                    campaign: "new_user_2026"
+                    campaign: 'new_user_2026'
               referral:
                 summary: Referral bonus
                 value:
-                  userId: "user-456"
+                  userId: 'user-456'
                   amount: 50
-                  reason: "referral_bonus"
+                  reason: 'referral_bonus'
                   metadata:
-                    referredBy: "user-123"
+                    referredBy: 'user-123'
               promotional:
                 summary: Promotional points with expiration
                 value:
-                  userId: "user-789"
+                  userId: 'user-789'
                   amount: 500
-                  reason: "promotional_campaign"
+                  reason: 'promotional_campaign'
                   metadata:
-                    campaign: "holiday_2026"
-                    expiresAt: "2026-12-31T23:59:59Z"
+                    campaign: 'holiday_2026'
+                    expiresAt: '2026-12-31T23:59:59Z'
       responses:
         '201':
           description: Points awarded successfully
@@ -609,22 +609,22 @@ paths:
                   summary: Successful point award
                   value:
                     transaction:
-                      id: "txn-abc123"
-                      userId: "user-123"
+                      id: 'txn-abc123'
+                      userId: 'user-123'
                       amount: 100
-                      type: "credit"
-                      reason: "user_signup_bonus"
-                      timestamp: "2026-01-03T12:00:00Z"
-                      idempotencyKey: "idem-key-123"
+                      type: 'credit'
+                      reason: 'user_signup_bonus'
+                      timestamp: '2026-01-03T12:00:00Z'
+                      idempotencyKey: 'idem-key-123'
                       previousBalance: 0
                       newBalance: 100
-                      requestId: "req-xyz789"
+                      requestId: 'req-xyz789'
                     wallet:
-                      userId: "user-123"
+                      userId: 'user-123'
                       availableBalance: 100
                       escrowBalance: 0
                       totalBalance: 100
-                      currency: "points"
+                      currency: 'points'
                       version: 1
         '200':
           description: Duplicate request - returning cached result
@@ -665,14 +665,14 @@ paths:
               chip_menu:
                 summary: Chip menu action redemption
                 value:
-                  userId: "user-123"
+                  userId: 'user-123'
                   amount: 100
-                  reason: "chip_menu_purchase"
+                  reason: 'chip_menu_purchase'
                   metadata:
-                    featureType: "chip_menu"
-                    queueItemId: "queue-abc123"
-                    modelId: "model-456"
-                    action: "dance"
+                    featureType: 'chip_menu'
+                    queueItemId: 'queue-abc123'
+                    modelId: 'model-456'
+                    action: 'dance'
       responses:
         '201':
           description: Points redeemed successfully
@@ -685,22 +685,22 @@ paths:
                   summary: Successful redemption (escrow hold)
                   value:
                     transaction:
-                      id: "txn-def456"
-                      userId: "user-123"
+                      id: 'txn-def456'
+                      userId: 'user-123'
                       amount: -100
-                      type: "debit"
-                      reason: "chip_menu_purchase"
-                      timestamp: "2026-01-03T12:05:00Z"
-                      idempotencyKey: "idem-key-456"
+                      type: 'debit'
+                      reason: 'chip_menu_purchase'
+                      timestamp: '2026-01-03T12:05:00Z'
+                      idempotencyKey: 'idem-key-456'
                       previousBalance: 500
                       newBalance: 400
-                      requestId: "req-abc123"
+                      requestId: 'req-abc123'
                     wallet:
-                      userId: "user-123"
+                      userId: 'user-123'
                       availableBalance: 400
                       escrowBalance: 100
                       totalBalance: 500
-                      currency: "points"
+                      currency: 'points'
                       version: 5
         '200':
           description: Duplicate request - returning cached result
@@ -722,12 +722,12 @@ paths:
                 insufficient_balance:
                   summary: User has insufficient balance
                   value:
-                    error: "INSUFFICIENT_BALANCE"
-                    message: "User has insufficient available balance for this redemption"
+                    error: 'INSUFFICIENT_BALANCE'
+                    message: 'User has insufficient available balance for this redemption'
                     details:
                       required: 100
                       available: 50
-                    requestId: "req-abc123"
+                    requestId: 'req-abc123'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
 
@@ -764,12 +764,12 @@ paths:
               merchant_order:
                 summary: Apply 500 points to a merchant order
                 value:
-                  merchantId: "merchant-abc"
-                  orderId: "order-xyz-789"
+                  merchantId: 'merchant-abc'
+                  orderId: 'order-xyz-789'
                   transactionValue: 5000
                   redemptionAmount: 500
-                  tierName: "GOLD"
-                  idempotencyKey: "idem-redeem-001"
+                  tierName: 'GOLD'
+                  idempotencyKey: 'idem-redeem-001'
       responses:
         '201':
           description: Redemption created — points moved to escrow
@@ -781,15 +781,15 @@ paths:
                 success:
                   summary: Successful redemption (escrow hold)
                   value:
-                    redemptionId: "rdm-abc123"
-                    escrowId: "esc-def456"
-                    userId: "user-123"
-                    orderId: "order-xyz-789"
+                    redemptionId: 'rdm-abc123'
+                    escrowId: 'esc-def456'
+                    userId: 'user-123'
+                    orderId: 'order-xyz-789'
                     redemptionAmount: 500
                     newAvailableBalance: 1500
                     escrowBalance: 500
-                    escrowExpiry: "2026-05-01T12:00:00Z"
-                    status: "pending"
+                    escrowExpiry: '2026-05-01T12:00:00Z'
+                    status: 'pending'
         '200':
           description: Idempotency replay — returning cached result (IDEMPOTENCY_REPLAY)
           content:
@@ -809,8 +809,8 @@ paths:
               examples:
                 insufficient_balance:
                   value:
-                    error: "INSUFFICIENT_BALANCE"
-                    message: "Insufficient balance: required 500, available 200"
+                    error: 'INSUFFICIENT_BALANCE'
+                    message: 'Insufficient balance: required 500, available 200'
                     details:
                       required: 500
                       available: 200
@@ -823,8 +823,8 @@ paths:
               examples:
                 tier_cap_exceeded:
                   value:
-                    error: "TIER_CAP_EXCEEDED"
-                    message: "Redemption amount 500 exceeds tier cap of 35% (max 350)"
+                    error: 'TIER_CAP_EXCEEDED'
+                    message: 'Redemption amount 500 exceeds tier cap of 35% (max 350)'
                     details:
                       allowed: 350
                       requested: 500
@@ -884,19 +884,19 @@ paths:
                   value:
                     eligible: true
                     availableBalance: 2000
-                    tierName: "GOLD"
+                    tierName: 'GOLD'
                     tierCapPct: 35
                     maxRedeemableAmount: 350
-                    tierCapLabel: "35% max redemption"
+                    tierCapLabel: '35% max redemption'
                 ineligible:
                   summary: Member has no balance
                   value:
                     eligible: false
                     availableBalance: 0
-                    tierName: "SILVER"
+                    tierName: 'SILVER'
                     tierCapPct: 20
                     maxRedeemableAmount: 0
-                    tierCapLabel: "20% max redemption"
+                    tierCapLabel: '20% max redemption'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -1321,21 +1321,21 @@ paths:
               promo_bonus:
                 summary: Award promotional bonus to a member
                 value:
-                  recipientId: "user-456"
-                  recipientType: "member"
+                  recipientId: 'user-456'
+                  recipientType: 'member'
                   amount: 1000
-                  reasonCode: "PROMO_BONUS"
-                  walletBucket: "promotional_bonus"
-                  merchantId: "merchant-abc"
+                  reasonCode: 'PROMO_BONUS'
+                  walletBucket: 'promotional_bonus'
+                  merchantId: 'merchant-abc'
               model_gift:
                 summary: Gift points to a model
                 value:
-                  recipientId: "model-789"
-                  recipientType: "model"
+                  recipientId: 'model-789'
+                  recipientType: 'model'
                   amount: 500
-                  reasonCode: "MODEL_GIFT"
-                  walletBucket: "promotional_bonus"
-                  merchantId: "merchant-abc"
+                  reasonCode: 'MODEL_GIFT'
+                  walletBucket: 'promotional_bonus'
+                  merchantId: 'merchant-abc'
       responses:
         '201':
           description: Points awarded successfully
@@ -1346,15 +1346,15 @@ paths:
               examples:
                 success:
                   value:
-                    transactionId: "txn-earn-001"
-                    auditId: "aud-001"
-                    recipientId: "user-456"
-                    recipientType: "member"
+                    transactionId: 'txn-earn-001'
+                    auditId: 'aud-001'
+                    recipientId: 'user-456'
+                    recipientType: 'member'
                     amount: 1000
-                    reasonCode: "PROMO_BONUS"
-                    walletBucket: "promotional_bonus"
-                    merchantId: "merchant-abc"
-                    timestamp: "2026-04-28T17:00:00Z"
+                    reasonCode: 'PROMO_BONUS'
+                    walletBucket: 'promotional_bonus'
+                    merchantId: 'merchant-abc'
+                    timestamp: '2026-04-28T17:00:00Z'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -1368,8 +1368,8 @@ paths:
               examples:
                 step_up_required:
                   value:
-                    error: "STEP_UP_REQUIRED"
-                    message: "Step-up authentication is required for this operation"
+                    error: 'STEP_UP_REQUIRED'
+                    message: 'Step-up authentication is required for this operation'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
 
@@ -1775,7 +1775,6 @@ components:
           type: string
         currency:
           type: string
-
 
     EarnRequest:
       type: object

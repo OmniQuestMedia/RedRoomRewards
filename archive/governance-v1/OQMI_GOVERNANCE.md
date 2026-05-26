@@ -263,11 +263,11 @@ CONTRIBUTING.md) Commits touching financial-integrity paths require this
 four-line format:
 
 <SCOPE>: <short description> REASON: <why this change is necessary> IMPACT:
-<what balances or flows are affected> CORRELATION_ID: <uuid> The
+<what balances or flows are affected> CORRELATION*ID: <uuid> The
 financial-integrity path list is repo-specific and declared in the repo's
 OQMI_SYSTEM_STATE.md or equivalent state file. Default OmniQuest Media Inc.
-financial paths are: finance/**, any services/_/ledger_, governance/**, and any
-schema migration touching §2.2 columns.
+financial paths are: finance/\*\*, any services/*/ledger\_, governance/\*\*, and
+any schema migration touching §2.2 columns.
 
 9. AGENT HANDOFF PROTOCOL
 
