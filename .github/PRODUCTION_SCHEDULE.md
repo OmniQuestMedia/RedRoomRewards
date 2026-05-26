@@ -47,7 +47,9 @@
 
 ## WAVE B — FIZ Wiring + Data Layer (open after A-CLEAN)
 
-_Wave B closed by B-CLEAN (`9788b3b`). Individual rows below landed across PRs #289–#297; SHA shown is the wave-close commit by which all Wave B work was confirmed merged. C and D waves built on top of these._
+_Wave B closed by B-CLEAN (`9788b3b`). Individual rows below landed across PRs
+#289–#297; SHA shown is the wave-close commit by which all Wave B work was
+confirmed merged. C and D waves built on top of these._
 
 | ID      | Task                                                                                                                                                                                                                                                                    | Status | Merge SHA |
 | :------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----- | :-------- |
@@ -90,13 +92,13 @@ _Wave B closed by B-CLEAN (`9788b3b`). Individual rows below landed across PRs #
 
 ## WAVE D — Observability + Final Production Hardening
 
-| ID      | Task                                                                                                                                         | Status | Merge SHA |
-| :------ | :------------------------------------------------------------------------------------------------------------------------------------------- | :----- | :-------- |
-| D-001   | Structured logging — replace ad-hoc `console.*` with `pino` logger; `src/lib/logger.ts`; wired into app bootstrap                           | DONE   | 954bc1c   |
-| D-002   | Rate-limit middleware — `express-rate-limit` ^8; per-tenant configurable; wired into `AppModule`                                             | DONE   | 954bc1c   |
-| D-003   | Tenant-scope CI guard — `scripts/ci/tenant-id-scope-check.js`; allowlist at `scripts/ci/tenant-id-allowlist.json`; wired into `ci.yml`      | DONE   | 954bc1c   |
-| D-005   | Health check enhancement — `/health` returns DB connectivity + version; liveness + readiness probes                                          | DONE   | 954bc1c   |
-| D-006   | FraudSignalService + WebhookEmitService — final Wave C deliverables landed; Wave C closed                                                   | DONE   | 6018f1d   |
+| ID      | Task                                                                                                                                                                   | Status | Merge SHA |
+| :------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----- | :-------- |
+| D-001   | Structured logging — replace ad-hoc `console.*` with `pino` logger; `src/lib/logger.ts`; wired into app bootstrap                                                      | DONE   | 954bc1c   |
+| D-002   | Rate-limit middleware — `express-rate-limit` ^8; per-tenant configurable; wired into `AppModule`                                                                       | DONE   | 954bc1c   |
+| D-003   | Tenant-scope CI guard — `scripts/ci/tenant-id-scope-check.js`; allowlist at `scripts/ci/tenant-id-allowlist.json`; wired into `ci.yml`                                 | DONE   | 954bc1c   |
+| D-005   | Health check enhancement — `/health` returns DB connectivity + version; liveness + readiness probes                                                                    | DONE   | 954bc1c   |
+| D-006   | FraudSignalService + WebhookEmitService — final Wave C deliverables landed; Wave C closed                                                                              | DONE   | 6018f1d   |
 | D-FINAL | Payload #26 — FINAL PRODUCTION DEPLOYMENT: fix garbled `webhook-emit.service.ts`; exclude example file from tsc; `npm run build` clean; 449 tests / 46 suites all pass | DONE   | 55384c9   |
 
 ---
@@ -136,35 +138,38 @@ _Wave B closed by B-CLEAN (`9788b3b`). Individual rows below landed across PRs #
 
 ## POST-WAVE-D — Wiring Audit + Alpha-prep Hardening
 
-_Landed after D-FINAL during pre-Alpha tightening. Each row links to its merge PR._
+_Landed after D-FINAL during pre-Alpha tightening. Each row links to its merge
+PR._
 
-| ID  | Task                                                                                                  | Status | Merge SHA / PR |
-| :-- | :---------------------------------------------------------------------------------------------------- | :----- | :------------- |
-| W-1 | Wiring audit — 8 unprotected routes identified                                                        | DONE   | #311           |
-| W-2 | Fail-closed middleware globals + startup env validation                                               | DONE   | #312           |
-| W-3 | Explicit public-route allowlist                                                                       | DONE   | #313           |
-| W-4 | Route-policy + AppModule.configure() + 13 integration tests                                           | DONE   | #314           |
-| W-5 | LEGACY_CONFIGS/ removed (OQMI authorized)                                                             | DONE   | #315           |
-| W-6 | RISK-002 — stricter rate limit on signup endpoint                                                     | DONE   | #316           |
-| W-7 | Gate OpenAPI docs behind `NODE_ENV` in production                                                     | DONE   | #319           |
-| W-8 | Follow-ups: archive README citation fix; remove CodeQL workflow                                       | DONE   | #320           |
-| W-9 | Tier earning multipliers + gift redemption (in-scope for Alpha test)                                  | DONE   | #321           |
+| ID  | Task                                                                 | Status | Merge SHA / PR |
+| :-- | :------------------------------------------------------------------- | :----- | :------------- |
+| W-1 | Wiring audit — 8 unprotected routes identified                       | DONE   | #311           |
+| W-2 | Fail-closed middleware globals + startup env validation              | DONE   | #312           |
+| W-3 | Explicit public-route allowlist                                      | DONE   | #313           |
+| W-4 | Route-policy + AppModule.configure() + 13 integration tests          | DONE   | #314           |
+| W-5 | LEGACY_CONFIGS/ removed (OQMI authorized)                            | DONE   | #315           |
+| W-6 | RISK-002 — stricter rate limit on signup endpoint                    | DONE   | #316           |
+| W-7 | Gate OpenAPI docs behind `NODE_ENV` in production                    | DONE   | #319           |
+| W-8 | Follow-ups: archive README citation fix; remove CodeQL workflow      | DONE   | #320           |
+| W-9 | Tier earning multipliers + gift redemption (in-scope for Alpha test) | DONE   | #321           |
 
 ---
 
 ## ALPHA TEST PREP — landing
 
-_Goal: cut `v0.1.0-alpha.1` and run a focused test pack against staging with the Phase-1 merchants (RedRoomPleasures, Cyrano) integrating as third-party tenants over signed API + webhooks._
+_Goal: cut `v0.1.0-alpha.1` and run a focused test pack against staging with the
+Phase-1 merchants (RedRoomPleasures, Cyrano) integrating as third-party tenants
+over signed API + webhooks._
 
-| ID    | Task                                                                                                                                | Status | Merge SHA / PR |
-| :---- | :---------------------------------------------------------------------------------------------------------------------------------- | :----- | :------------- |
-| ALP-1 | Housekeeping commit — production schedule cleanup + checklist refresh + README status                                                | DONE   | 2a6deb2        |
-| ALP-2 | `docs/AUTH_CONTRACT.md` — HMAC service-to-service spec for merchant integrations (per-tenant key, replay window, signing canonical)   | DONE   | bb6c30e (#322) → 4090300 (live divergence audit) |
-| ALP-3 | `docs/UX_INTEGRATION_BRIEF.md` — auth/rate-limit/idempotency/error-code one-pagers for front-end                                      | DONE   | bb6c30e (#322) → 4090300 (DOMAIN_GLOSSARY AUTH section + cross-refs) |
-| ALP-4 | Staging deploy spec — hosting target + Atlas replica set + secrets posture (DigitalOcean TOR1, MongoDB Atlas TOR replica set)         | DONE   | bb6c30e (#322); production deploy spec landed in 3a5fc7c (#332); health-probe split + `.env.example` replica-set note in 5331cde. |
-| ALP-5 | Alpha test pack — financial invariants + tenant/auth boundary + operational                                                          | DONE   | 0c2f919 (#330); reconciliation + HMAC canonical roundtrip + coverage ratchet in 9173883. |
-| ALP-6 | First wireframe specs in `docs/ux/` — member onboarding, balance view, ledger/history, redeem, tier badge, ops consoles               | DONE   | 6a272eb (#323) → ffe8c5a (#328) → 6fc3fc1 (#329) → 8eb9490 (#331); 9 specs (00–08) now landed |
-| ALP-7 | Phase-1 merchant integration packets — WordPress (RedRoomPleasures) + Cyrano server-to-server                                         | DONE   | 0c2f919 (#330); WP plugin scaffold landed in 40987a8 (#333); outbound webhook delivery samples in 9449596. |
-| CI    | CI workflow polish — wire build, type-check, lint, format:check, test:ci into ci.yml; coverage artifact upload                       | DONE   | 3f033b9        |
-| HARD  | Final hardening sweep — pino migration for the last ad-hoc `console.*` callers; CLEANUP.md follow-up tracked for the metrics loggers  | DONE   | 4ff718e        |
-| ALP-8 | Cut `v0.1.0-alpha.1` tag once ALP-1..ALP-7 + CI + HARD land                                                                          | OPEN   |                |
+| ID    | Task                                                                                                                                 | Status | Merge SHA / PR                                                                                                                    |
+| :---- | :----------------------------------------------------------------------------------------------------------------------------------- | :----- | :-------------------------------------------------------------------------------------------------------------------------------- |
+| ALP-1 | Housekeeping commit — production schedule cleanup + checklist refresh + README status                                                | DONE   | 2a6deb2                                                                                                                           |
+| ALP-2 | `docs/AUTH_CONTRACT.md` — HMAC service-to-service spec for merchant integrations (per-tenant key, replay window, signing canonical)  | DONE   | bb6c30e (#322) → 4090300 (live divergence audit)                                                                                  |
+| ALP-3 | `docs/UX_INTEGRATION_BRIEF.md` — auth/rate-limit/idempotency/error-code one-pagers for front-end                                     | DONE   | bb6c30e (#322) → 4090300 (DOMAIN_GLOSSARY AUTH section + cross-refs)                                                              |
+| ALP-4 | Staging deploy spec — hosting target + Atlas replica set + secrets posture (DigitalOcean TOR1, MongoDB Atlas TOR replica set)        | DONE   | bb6c30e (#322); production deploy spec landed in 3a5fc7c (#332); health-probe split + `.env.example` replica-set note in 5331cde. |
+| ALP-5 | Alpha test pack — financial invariants + tenant/auth boundary + operational                                                          | DONE   | 0c2f919 (#330); reconciliation + HMAC canonical roundtrip + coverage ratchet in 9173883.                                          |
+| ALP-6 | First wireframe specs in `docs/ux/` — member onboarding, balance view, ledger/history, redeem, tier badge, ops consoles              | DONE   | 6a272eb (#323) → ffe8c5a (#328) → 6fc3fc1 (#329) → 8eb9490 (#331); 9 specs (00–08) now landed                                     |
+| ALP-7 | Phase-1 merchant integration packets — WordPress (RedRoomPleasures) + Cyrano server-to-server                                        | DONE   | 0c2f919 (#330); WP plugin scaffold landed in 40987a8 (#333); outbound webhook delivery samples in 9449596.                        |
+| CI    | CI workflow polish — wire build, type-check, lint, format:check, test:ci into ci.yml; coverage artifact upload                       | DONE   | 3f033b9                                                                                                                           |
+| HARD  | Final hardening sweep — pino migration for the last ad-hoc `console.*` callers; CLEANUP.md follow-up tracked for the metrics loggers | DONE   | 4ff718e                                                                                                                           |
+| ALP-8 | Cut `v0.1.0-alpha.1` tag once ALP-1..ALP-7 + CI + HARD land                                                                          | OPEN   |                                                                                                                                   |

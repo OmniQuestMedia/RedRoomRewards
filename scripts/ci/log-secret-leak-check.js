@@ -78,7 +78,8 @@ const SUSPECT_NAME_RE = new RegExp(
 // wouldn't pass, but `const log = pino()` would, and the latter is a constructor
 // call without any logged value to leak). The codebase logs through `logger.info`
 // etc.; if a new logger entrypoint is added, extend the regex.
-const LOG_CALL_RE = /(?:^|[^A-Za-z0-9_])(?:console\.(?:log|info|warn|error|debug)|logger\.(?:info|warn|error|debug|trace)|pinoLogger\.(?:info|warn|error|debug|trace))\s*\(/;
+const LOG_CALL_RE =
+  /(?:^|[^A-Za-z0-9_])(?:console\.(?:log|info|warn|error|debug)|logger\.(?:info|warn|error|debug|trace)|pinoLogger\.(?:info|warn|error|debug|trace))\s*\(/;
 
 function isExcluded(rel) {
   return (
@@ -142,9 +143,9 @@ function selfTest() {
   // Suspect cases — should each produce one violation.
   const cases = [
     "logger.info('auth:', token, apiSecret);",
-    "logger.warn(`signature: ${signature}`);",
-    "console.log({ jwtSecret });",
-    "logger.error(`auth header was ${authorizationHeader}`);",
+    'logger.warn(`signature: ${signature}`);',
+    'console.log({ jwtSecret });',
+    'logger.error(`auth header was ${authorizationHeader}`);',
   ];
   for (const line of cases) {
     if (!scanLine(line)) {
@@ -155,7 +156,7 @@ function selfTest() {
 
   // Clean cases — should not be flagged.
   const cleanCases = [
-    "logger.info(`request_id=${requestId} verdict=${verdict}`);",
+    'logger.info(`request_id=${requestId} verdict=${verdict}`);',
     "logger.error('reconcile mismatch', { tenant_id, account_id });",
     "console.log('plain message with no secrets');",
     `logger.info('auth:', token, apiSecret); ${ALLOW_COMMENT}`, // allow comment

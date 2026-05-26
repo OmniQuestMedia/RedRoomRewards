@@ -54,10 +54,26 @@ const TENANTS: SeedTenant[] = [
 ];
 
 const MEMBER_WALLETS: SeedMemberWallet[] = [
-  { userId: 'test-member-gold-001', availableBalance: 5000, notes: 'GOLD tier; canonical happy-path fixture' },
-  { userId: 'test-member-plat-001', availableBalance: 10000, notes: 'PLATINUM tier; high-value redemption coverage' },
-  { userId: 'test-member-diamond-001', availableBalance: 0, notes: 'Diamond Concierge; earn must be blocked (CEO D3)' },
-  { userId: 'test-member-empty-001', availableBalance: 0, notes: 'Zero-balance; insufficient-balance coverage' },
+  {
+    userId: 'test-member-gold-001',
+    availableBalance: 5000,
+    notes: 'GOLD tier; canonical happy-path fixture',
+  },
+  {
+    userId: 'test-member-plat-001',
+    availableBalance: 10000,
+    notes: 'PLATINUM tier; high-value redemption coverage',
+  },
+  {
+    userId: 'test-member-diamond-001',
+    availableBalance: 0,
+    notes: 'Diamond Concierge; earn must be blocked (CEO D3)',
+  },
+  {
+    userId: 'test-member-empty-001',
+    availableBalance: 0,
+    notes: 'Zero-balance; insufficient-balance coverage',
+  },
 ];
 
 const MODEL_WALLETS: SeedModelWallet[] = [
@@ -100,7 +116,10 @@ function refuseIfProd(): void {
   }
 }
 
-async function upsertTenant(t: SeedTenant, dryRun: boolean): Promise<'created' | 'updated' | 'unchanged'> {
+async function upsertTenant(
+  t: SeedTenant,
+  dryRun: boolean,
+): Promise<'created' | 'updated' | 'unchanged'> {
   const existing = await TenantModel.findOne({ tenant_id: t.tenant_id }).lean();
   if (!existing) {
     if (!dryRun) {
@@ -130,7 +149,10 @@ async function upsertTenant(t: SeedTenant, dryRun: boolean): Promise<'created' |
   return 'unchanged';
 }
 
-async function upsertMemberWallet(w: SeedMemberWallet, dryRun: boolean): Promise<'created' | 'reset' | 'unchanged'> {
+async function upsertMemberWallet(
+  w: SeedMemberWallet,
+  dryRun: boolean,
+): Promise<'created' | 'reset' | 'unchanged'> {
   const existing = await WalletModel.findOne({ userId: w.userId }).lean();
   if (!existing) {
     if (!dryRun) {
@@ -144,8 +166,7 @@ async function upsertMemberWallet(w: SeedMemberWallet, dryRun: boolean): Promise
     }
     return 'created';
   }
-  const drifted =
-    existing.availableBalance !== w.availableBalance || existing.escrowBalance !== 0;
+  const drifted = existing.availableBalance !== w.availableBalance || existing.escrowBalance !== 0;
   if (drifted) {
     if (!dryRun) {
       await WalletModel.updateOne(
@@ -158,7 +179,10 @@ async function upsertMemberWallet(w: SeedMemberWallet, dryRun: boolean): Promise
   return 'unchanged';
 }
 
-async function upsertModelWallet(m: SeedModelWallet, dryRun: boolean): Promise<'created' | 'reset' | 'unchanged'> {
+async function upsertModelWallet(
+  m: SeedModelWallet,
+  dryRun: boolean,
+): Promise<'created' | 'reset' | 'unchanged'> {
   const existing = await ModelWalletModel.findOne({ modelId: m.modelId }).lean();
   if (!existing) {
     if (!dryRun) {

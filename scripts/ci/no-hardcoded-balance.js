@@ -116,22 +116,15 @@ function selfTest() {
     );
     fs.writeFileSync(
       cleanFile,
-      [
-        'export const wallet = {',
-        '  availableBalance: 0,',
-        '  escrowBalance: 0,',
-        '};',
-        '',
-      ].join('\n'),
+      ['export const wallet = {', '  availableBalance: 0,', '  escrowBalance: 0,', '};', ''].join(
+        '\n',
+      ),
     );
     fs.writeFileSync(
       allowedFile,
-      [
-        'export const wallet = {',
-        `  availableBalance: 12450, ${ALLOW_COMMENT}`,
-        '};',
-        '',
-      ].join('\n'),
+      ['export const wallet = {', `  availableBalance: 12450, ${ALLOW_COMMENT}`, '};', ''].join(
+        '\n',
+      ),
     );
 
     const v = findViolations(tmpSrc);

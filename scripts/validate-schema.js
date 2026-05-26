@@ -16,10 +16,10 @@ const schemaPath = path.join(REPO_ROOT, 'docs/contracts/xxx-events.schema.json')
 const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf8'));
 
 // Initialize AJV with strict mode
-const ajv = new Ajv({ 
+const ajv = new Ajv({
   strict: true,
   allErrors: true,
-  verbose: true
+  verbose: true,
 });
 addFormats(ajv);
 
@@ -31,20 +31,20 @@ const examples = [
   'docs/contracts/examples/token_purchase.json',
   'docs/contracts/examples/membership_purchase.json',
   'docs/contracts/examples/adjustment_cs_award.json',
-  'docs/contracts/examples/reversal_chargeback.json'
+  'docs/contracts/examples/reversal_chargeback.json',
 ];
 
 let allValid = true;
 
 console.log('=== JSON Schema Validation ===\n');
 
-examples.forEach(examplePath => {
+examples.forEach((examplePath) => {
   const fullPath = path.join(REPO_ROOT, examplePath);
   const example = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
   const valid = validate(example);
-  
+
   const fileName = path.basename(examplePath);
-  
+
   if (valid) {
     console.log(`✅ ${fileName}: VALID`);
   } else {

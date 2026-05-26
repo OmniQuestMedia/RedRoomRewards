@@ -142,9 +142,7 @@ function main() {
   // CI mode (read-only).
   const freeze = loadFreeze();
   if (!freeze) {
-    console.error(
-      `openapi-freeze: ${path.relative(REPO_ROOT, FREEZE)} is missing or invalid.`,
-    );
+    console.error(`openapi-freeze: ${path.relative(REPO_ROOT, FREEZE)} is missing or invalid.`);
     console.error('');
     console.error(
       'CI mode never writes the freeze file (silent heal would defeat the check).\n' +

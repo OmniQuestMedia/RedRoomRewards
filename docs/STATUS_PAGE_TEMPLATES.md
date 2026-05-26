@@ -1,12 +1,17 @@
 # Status Page Incident Templates
 
-**Audience:** OQMI ops / on-call when an incident is being communicated externally.
+**Audience:** OQMI ops / on-call when an incident is being communicated
+externally.
 
-**Purpose:** drop-in copy for status-page posts during an incident. Every template is short by design — the goal is to deliver information, not prose.
+**Purpose:** drop-in copy for status-page posts during an incident. Every
+template is short by design — the goal is to deliver information, not prose.
 
-**Status:** drafts. Refine after the first real incident teaches us what reads off.
+**Status:** drafts. Refine after the first real incident teaches us what reads
+off.
 
-**Authority:** defers to `docs/OPERATIONAL_RUNBOOK.md` §1 (severity classification), `docs/DISASTER_RECOVERY_RUNBOOK.md` §14 (DR communication rules). On any conflict, those win.
+**Authority:** defers to `docs/OPERATIONAL_RUNBOOK.md` §1 (severity
+classification), `docs/DISASTER_RECOVERY_RUNBOOK.md` §14 (DR communication
+rules). On any conflict, those win.
 
 ---
 
@@ -14,13 +19,22 @@
 
 These are the rules that don't change between incidents:
 
-1. **Be specific.** Vague "we're investigating" updates burn trust. Say what you know, what you don't, and your next checkpoint time.
-2. **Don't speculate on cause.** Speculation creates corrections that look worse than silence. Stick to observed effects.
-3. **Acknowledge user impact in user terms.** "Members are unable to redeem points" beats "service degraded."
-4. **Set the next-update time explicitly.** If you say "in 30 minutes," post in 30 minutes — even if it's just "still investigating, next update in 30 minutes."
-5. **Resolution post is not optional.** Even if the incident self-resolved, post a resolution. Followed within 7 days by a post-incident summary if user-visible.
-6. **Don't apologize twice.** A single brief acknowledgement of impact is professional. Repeated apologies read defensive.
-7. **No internal jargon.** No `RECON_MISMATCH`, no `tenant_id`, no SHA hashes in user-facing copy.
+1. **Be specific.** Vague "we're investigating" updates burn trust. Say what you
+   know, what you don't, and your next checkpoint time.
+2. **Don't speculate on cause.** Speculation creates corrections that look worse
+   than silence. Stick to observed effects.
+3. **Acknowledge user impact in user terms.** "Members are unable to redeem
+   points" beats "service degraded."
+4. **Set the next-update time explicitly.** If you say "in 30 minutes," post in
+   30 minutes — even if it's just "still investigating, next update in 30
+   minutes."
+5. **Resolution post is not optional.** Even if the incident self-resolved, post
+   a resolution. Followed within 7 days by a post-incident summary if
+   user-visible.
+6. **Don't apologize twice.** A single brief acknowledgement of impact is
+   professional. Repeated apologies read defensive.
+7. **No internal jargon.** No `RECON_MISMATCH`, no `tenant_id`, no SHA hashes in
+   user-facing copy.
 
 ---
 
@@ -39,7 +53,8 @@ Every incident has the same shape, regardless of severity:
 - **Investigating** — we know there's a problem; we don't yet know what.
 - **Identified** — we know the cause; we're working on the fix.
 - **Monitoring** — we've deployed the fix; verifying that it sticks.
-- **Resolved** — verified clean for the duration threshold (15 min for P0/P1; 5 min for P2).
+- **Resolved** — verified clean for the duration threshold (15 min for P0/P1; 5
+  min for P2).
 
 Each phase has a template below. Pick the one that matches your current state.
 
@@ -115,7 +130,9 @@ minutes. Post-incident summary within 7 days.
 
 ### 3.3 P2 — degraded / cosmetic
 
-P2 incidents are typically not posted to a public status page unless they affect a meaningful user experience. Internal-comms only is the default; promote to public if user-impact extends past 30 minutes.
+P2 incidents are typically not posted to a public status page unless they affect
+a meaningful user experience. Internal-comms only is the default; promote to
+public if user-impact extends past 30 minutes.
 
 **Public investigating (only if promoted):**
 
@@ -161,7 +178,9 @@ minutes].
 
 ## 4. Specific scenarios
 
-These are pre-written for the failure modes documented in `DISASTER_RECOVERY_RUNBOOK.md` §2. Edit times and specifics; the structure is intentional.
+These are pre-written for the failure modes documented in
+`DISASTER_RECOVERY_RUNBOOK.md` §2. Edit times and specifics; the structure is
+intentional.
 
 ### 4.1 DR-2 — App Platform outage (DigitalOcean-side)
 
@@ -200,7 +219,11 @@ implementing a workaround. Next update in 15 minutes.
 
 ### 4.4 DR-8 — Suspected secret leak (key rotation)
 
-This one is **NOT publicly posted unless customer data is affected**. Key rotation is a routine operational event; posting it on the status page invites speculation about what happened. Communicate directly with affected integrators; only post publicly if there's user-visible impact (e.g. their integration goes 401 for hours).
+This one is **NOT publicly posted unless customer data is affected**. Key
+rotation is a routine operational event; posting it on the status page invites
+speculation about what happened. Communicate directly with affected integrators;
+only post publicly if there's user-visible impact (e.g. their integration goes
+401 for hours).
 
 If publicly posted:
 
@@ -213,7 +236,8 @@ affected. Next update in 30 minutes.
 
 ### 4.5 DR-9 — Data discrepancy investigation (RECON_MISMATCH at scale)
 
-This one walks a careful line — be specific enough not to look evasive, vague enough not to invite social-engineering / fraud:
+This one walks a careful line — be specific enough not to look evasive, vague
+enough not to invite social-engineering / fraud:
 
 ```
 [time] We've detected a discrepancy in some loyalty point records and
@@ -224,10 +248,13 @@ scope is understood. Next update in 1 hour.
 ```
 
 Key word choices in that template — copy them exactly:
+
 - **"a discrepancy in some records"** (specific count comes later, not now).
-- **"temporarily paused certain operations"** (don't enumerate which until you know).
+- **"temporarily paused certain operations"** (don't enumerate which until you
+  know).
 - **"never auto-correct"** (signals the system worked as designed by halting).
-- **"scope is understood"** (commits to a future scope statement; doesn't lock you to a number you haven't measured).
+- **"scope is understood"** (commits to a future scope statement; doesn't lock
+  you to a number you haven't measured).
 
 ---
 
@@ -254,21 +281,26 @@ We're sorry for the disruption. If you have questions, contact
 ```
 
 Rules for this:
-- **One concrete cause, one concrete mitigation.** A litany of "contributing factors" reads defensive.
-- **Don't promise things you can't ship.** "We've added monitoring for X" is concrete; "We'll never let this happen again" is unkeepable.
-- **Direct outreach if individual records affected.** Don't make affected members find their own story in a public summary.
-- **No SHAs, no commit links, no Jira IDs in the public summary.** Internal artifacts go in the internal post-mortem, not the public one.
+
+- **One concrete cause, one concrete mitigation.** A litany of "contributing
+  factors" reads defensive.
+- **Don't promise things you can't ship.** "We've added monitoring for X" is
+  concrete; "We'll never let this happen again" is unkeepable.
+- **Direct outreach if individual records affected.** Don't make affected
+  members find their own story in a public summary.
+- **No SHAs, no commit links, no Jira IDs in the public summary.** Internal
+  artifacts go in the internal post-mortem, not the public one.
 
 ---
 
 ## 6. Channels
 
-| Channel                                              | Use for                                                           |
-| ---------------------------------------------------- | ----------------------------------------------------------------- |
-| Status page (`status.redroomrewards.com`)            | All public incident comms. Single source of truth for users.      |
-| Direct email to integrators                          | P0/P1 events affecting their tenant. Copy from `INTEGRATOR_HANDOFF_EMAILS.md` style. |
-| Internal channel (TBD — Slack / Linear / etc.)       | Operator coordination during the incident. Never customer-facing. |
-| Twitter / public social                              | Only at declaration of P0 (if user-visible) and at resolution.    |
+| Channel                                        | Use for                                                                              |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Status page (`status.redroomrewards.com`)      | All public incident comms. Single source of truth for users.                         |
+| Direct email to integrators                    | P0/P1 events affecting their tenant. Copy from `INTEGRATOR_HANDOFF_EMAILS.md` style. |
+| Internal channel (TBD — Slack / Linear / etc.) | Operator coordination during the incident. Never customer-facing.                    |
+| Twitter / public social                        | Only at declaration of P0 (if user-visible) and at resolution.                       |
 
 The status page is the primary surface. Everything else points to it.
 
@@ -285,8 +317,12 @@ Within 7 days of any P0 / P1, an internal post-mortem covers:
 - What worked. What didn't. (Plain language; this isn't a performance review.)
 - Action items with owners and target dates.
 
-Internal post-mortems live in `docs/history/` per `OPERATIONAL_RUNBOOK.md` §3. Public summary derives from the internal one but never copies internal language verbatim.
+Internal post-mortems live in `docs/history/` per `OPERATIONAL_RUNBOOK.md` §3.
+Public summary derives from the internal one but never copies internal language
+verbatim.
 
 ---
 
-_Updates require a CHORE: commit. Every real incident is an opportunity to refine these templates — append to §4 with new scenario templates as they're earned._
+_Updates require a CHORE: commit. Every real incident is an opportunity to
+refine these templates — append to §4 with new scenario templates as they're
+earned._
