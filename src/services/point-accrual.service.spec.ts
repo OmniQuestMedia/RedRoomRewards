@@ -29,7 +29,7 @@ describe('PointAccrualService', () => {
       getAuditTrail: jest.fn(),
       checkIdempotency: jest.fn().mockResolvedValue(false),
       storeIdempotencyResult: jest.fn(),
-    } as any;
+    } as unknown as LedgerService;
 
     service = new PointAccrualService(mockLedgerService);
 
@@ -74,7 +74,7 @@ describe('PointAccrualService', () => {
         balanceAfter: amount,
         timestamp: new Date(),
         currency: 'points',
-      } as any);
+      } as unknown);
 
       // Act
       const result = await service.awardPoints({

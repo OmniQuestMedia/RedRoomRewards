@@ -112,6 +112,7 @@ describe('PointExpirationService - Comprehensive Tests', () => {
     it('should respect grace period', async () => {
       const gracePeriodDays = 3;
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expirationService = new PointExpirationService(mockLedgerService as any, {
         gracePeriodDays,
       });

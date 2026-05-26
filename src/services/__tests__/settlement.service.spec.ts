@@ -3,7 +3,7 @@
  */
 
 import { SettlementService } from '../settlement.service';
-import { SettlementRecordModel } from '../../db/models/settlement-record.model';
+import { SettlementRecordModel as _SettlementRecordModel } from '../../db/models/settlement-record.model';
 
 jest.mock('../../db/models/settlement-record.model', () => {
   const saveMock = jest.fn().mockResolvedValue(undefined);

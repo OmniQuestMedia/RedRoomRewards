@@ -413,7 +413,7 @@ export class AdminOpsService {
    * @param userId User ID
    * @returns List of admin operations
    */
-  async getAdminOperationHistory(userId: string): Promise<any[]> {
+  async getAdminOperationHistory(userId: string): Promise<unknown[]> {
     const filter = {
       accountId: userId,
       accountType: 'user' as const,

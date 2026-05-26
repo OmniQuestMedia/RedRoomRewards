@@ -42,7 +42,7 @@ describe('setupSwagger — production gate', () => {
 
   it('does NOT mount Swagger when NODE_ENV=production', () => {
     process.env.NODE_ENV = 'production';
-    const app = {} as any;
+    const app = {} as unknown;
 
     setupSwagger(app);
 
@@ -52,7 +52,7 @@ describe('setupSwagger — production gate', () => {
 
   it('mounts Swagger when NODE_ENV=development', () => {
     process.env.NODE_ENV = 'development';
-    const app = {} as any;
+    const app = {} as unknown;
 
     setupSwagger(app);
 
@@ -63,7 +63,7 @@ describe('setupSwagger — production gate', () => {
 
   it('mounts Swagger when NODE_ENV=test', () => {
     process.env.NODE_ENV = 'test';
-    const app = {} as any;
+    const app = {} as unknown;
 
     setupSwagger(app);
 
@@ -72,7 +72,7 @@ describe('setupSwagger — production gate', () => {
 
   it('mounts Swagger when NODE_ENV is unset', () => {
     delete process.env.NODE_ENV;
-    const app = {} as any;
+    const app = {} as unknown;
 
     setupSwagger(app);
 
@@ -81,7 +81,7 @@ describe('setupSwagger — production gate', () => {
 
   it('mounts Swagger when NODE_ENV is an unknown value (fail-open for dev safety)', () => {
     process.env.NODE_ENV = 'staging';
-    const app = {} as any;
+    const app = {} as unknown;
 
     setupSwagger(app);
 

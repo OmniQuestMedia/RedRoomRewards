@@ -258,7 +258,11 @@ describe('AuthService', () => {
       );
 
       expect(() => {
-        service.validateSettlementAuthorization(authorization as any, 'queue-123', 'escrow-456');
+        service.validateSettlementAuthorization(
+          authorization as unknown,
+          'queue-123',
+          'escrow-456',
+        );
       }).toThrow('Invalid authorization type');
     });
   });

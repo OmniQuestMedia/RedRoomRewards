@@ -34,7 +34,7 @@ describe('SignupRateLimitMiddleware', () => {
         middleware.onModuleInit();
       }).not.toThrow();
 
-      expect((middleware as any).limiter).toBeDefined();
+      expect((middleware as unknown as { limiter: unknown }).limiter).toBeDefined();
     });
 
     it('should read SIGNUP_RATE_LIMIT_PER_MINUTE from env var', () => {
@@ -44,7 +44,7 @@ describe('SignupRateLimitMiddleware', () => {
         middleware.onModuleInit();
       }).not.toThrow();
 
-      expect((middleware as any).limiter).toBeDefined();
+      expect((middleware as unknown as { limiter: unknown }).limiter).toBeDefined();
     });
 
     it('should accept minimum valid value of 1', () => {
@@ -95,13 +95,13 @@ describe('SignupRateLimitMiddleware', () => {
     });
 
     it('should have limiter function defined after initialization', () => {
-      expect((middleware as any).limiter).toBeDefined();
-      expect(typeof (middleware as any).limiter).toBe('function');
+      expect((middleware as unknown as { limiter: unknown }).limiter).toBeDefined();
+      expect(typeof (middleware as unknown as { limiter: unknown }).limiter).toBe('function');
     });
 
     it('should delegate to express-rate-limit limiter', () => {
-      const mockReq = {} as any;
-      const mockRes = {} as any;
+      const mockReq = {} as unknown;
+      const mockRes = {} as unknown;
       const mockNext = jest.fn();
 
       expect(() => {

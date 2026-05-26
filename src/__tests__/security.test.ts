@@ -155,7 +155,7 @@ describe('Security Tests', () => {
 });
 
 // Helper validation functions
-function validateUserId(userId: any): void {
+function validateUserId(userId: unknown): void {
   if (typeof userId !== 'string') {
     throw new Error('Invalid user ID format');
   }
@@ -179,7 +179,7 @@ function sanitizeMetadata(metadata: Record<string, unknown>): Record<string, unk
   return sanitized;
 }
 
-function validateAmount(amount: any): void {
+function validateAmount(amount: unknown): void {
   if (typeof amount !== 'number') {
     throw new Error('Amount must be a number');
   }
@@ -191,7 +191,7 @@ function validateAmount(amount: any): void {
   }
 }
 
-function redactSensitiveData(data: any): any {
+function redactSensitiveData(data: unknown): unknown {
   const redacted = { ...data };
   const sensitiveFields = ['password', 'creditCard', 'ssn', 'apiKey', 'token'];
   sensitiveFields.forEach((field) => {

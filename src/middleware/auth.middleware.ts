@@ -67,7 +67,7 @@ export class AuthMiddleware implements NestMiddleware, OnModuleInit {
       }
 
       next();
-    } catch (err) {
+    } catch {
       res.status(401).json({ error: 'invalid or expired token' });
       return;
     }

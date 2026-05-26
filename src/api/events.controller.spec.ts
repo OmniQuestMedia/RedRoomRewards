@@ -217,7 +217,7 @@ describe('EventsController', () => {
         eventType: 'user.signup',
         payload: ['not', 'an', 'object'],
         idempotencyKey: 'idem-123',
-      } as any;
+      } as unknown;
 
       await expect(controller.postEvent(invalidRequest)).rejects.toThrow('Validation failed');
     });
@@ -228,7 +228,7 @@ describe('EventsController', () => {
         payload: { userId: 'user-123' },
         idempotencyKey: 'idem-123',
         replayable: 'yes',
-      } as any;
+      } as unknown;
 
       await expect(controller.postEvent(invalidRequest)).rejects.toThrow('Validation failed');
     });
@@ -262,7 +262,7 @@ describe('EventsController', () => {
         expect((err.validationErrors as unknown[]).length).toBeGreaterThan(0);
 
         // Check structure of validation errors
-        const validationError = (err.validationErrors as any[])[0];
+        const validationError = (err.validationErrors as unknown[])[0];
         expect(validationError).toHaveProperty('field');
         expect(validationError).toHaveProperty('message');
         expect(validationError).toHaveProperty('code');
@@ -301,7 +301,7 @@ describe('EventsController', () => {
 
       // Simulate duplicate key error (race condition)
       const duplicateKeyError = new Error('Duplicate key');
-      (duplicateKeyError as any).code = 11000;
+      (duplicateKeyError as unknown as { code: number }).code = 11000;
       (IdempotencyRecordModel.create as jest.Mock).mockRejectedValue(duplicateKeyError);
 
       (IngestEventModel.create as jest.Mock).mockResolvedValue({

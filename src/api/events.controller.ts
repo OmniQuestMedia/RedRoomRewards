@@ -337,7 +337,7 @@ export class EventsController {
 
     if (errors.length > 0) {
       const error = new Error('Validation failed');
-      (error as any).validationErrors = errors;
+      (error as unknown as { validationErrors: unknown[] }).validationErrors = errors;
       throw error;
     }
   }
@@ -373,7 +373,7 @@ export class EventsController {
       });
     } catch (error) {
       // Ignore duplicate key errors (race condition)
-      if ((error as any).code !== 11000) {
+      if ((error as unknown as { code: number }).code !== 11000) {
         throw error;
       }
     }

@@ -32,7 +32,7 @@ function makeMockEscrowDoc(overrides: Record<string, unknown> = {}) {
 
 describe('EscrowDetailController', () => {
   let controller: EscrowDetailController;
-  let mockFindOne: jest.Mock;
+  let _mockFindOne: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();

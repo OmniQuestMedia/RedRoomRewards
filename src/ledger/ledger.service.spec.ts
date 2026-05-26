@@ -94,7 +94,8 @@ describe('LedgerService', () => {
       };
 
       // Simulate duplicate key error
-      const duplicateError: any = new Error('Duplicate key');
+      const duplicateError: Error & { code?: number; keyPattern?: { idempotencyKey: number } } =
+        new Error('Duplicate key');
       duplicateError.code = 11000;
       duplicateError.keyPattern = { idempotencyKey: 1 };
 
