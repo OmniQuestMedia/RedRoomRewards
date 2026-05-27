@@ -370,7 +370,9 @@ describe('AdminOpsService (B-013)', () => {
       expect(result).toHaveLength(3);
       expect(
         result.every((e) =>
-          ['admin_credit', 'admin_debit', 'admin_refund'].includes(e.reason as string),
+          ['admin_credit', 'admin_debit', 'admin_refund'].includes(
+            (e as { reason: string }).reason,
+          ),
         ),
       ).toBe(true);
     });

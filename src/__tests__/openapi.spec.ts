@@ -8,6 +8,7 @@
 
 import { setupSwagger } from '../openapi';
 import { SwaggerModule } from '@nestjs/swagger';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 jest.mock('@nestjs/swagger', () => ({
   DocumentBuilder: jest.fn().mockImplementation(() => ({
@@ -42,7 +43,7 @@ describe('setupSwagger — production gate', () => {
 
   it('does NOT mount Swagger when NODE_ENV=production', () => {
     process.env.NODE_ENV = 'production';
-    const app = {} as unknown;
+    const app = {} as unknown as NestExpressApplication;
 
     setupSwagger(app);
 
@@ -52,7 +53,7 @@ describe('setupSwagger — production gate', () => {
 
   it('mounts Swagger when NODE_ENV=development', () => {
     process.env.NODE_ENV = 'development';
-    const app = {} as unknown;
+    const app = {} as unknown as NestExpressApplication;
 
     setupSwagger(app);
 
@@ -63,7 +64,7 @@ describe('setupSwagger — production gate', () => {
 
   it('mounts Swagger when NODE_ENV=test', () => {
     process.env.NODE_ENV = 'test';
-    const app = {} as unknown;
+    const app = {} as unknown as NestExpressApplication;
 
     setupSwagger(app);
 
@@ -72,7 +73,7 @@ describe('setupSwagger — production gate', () => {
 
   it('mounts Swagger when NODE_ENV is unset', () => {
     delete process.env.NODE_ENV;
-    const app = {} as unknown;
+    const app = {} as unknown as NestExpressApplication;
 
     setupSwagger(app);
 
@@ -81,7 +82,7 @@ describe('setupSwagger — production gate', () => {
 
   it('mounts Swagger when NODE_ENV is an unknown value (fail-open for dev safety)', () => {
     process.env.NODE_ENV = 'staging';
-    const app = {} as unknown;
+    const app = {} as unknown as NestExpressApplication;
 
     setupSwagger(app);
 

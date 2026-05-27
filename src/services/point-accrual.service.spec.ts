@@ -6,7 +6,7 @@
  */
 
 import { PointAccrualService } from './point-accrual.service';
-import { ILedgerService } from '../ledger/types';
+import { ILedgerService, LedgerEntry } from '../ledger/types';
 import { TransactionReason } from '../wallets/types';
 import { WalletModel } from '../db/models/wallet.model';
 
@@ -29,7 +29,7 @@ describe('PointAccrualService', () => {
       getAuditTrail: jest.fn(),
       checkIdempotency: jest.fn().mockResolvedValue(false),
       storeIdempotencyResult: jest.fn(),
-    } as unknown as LedgerService;
+    } as unknown as jest.Mocked<ILedgerService>;
 
     service = new PointAccrualService(mockLedgerService);
 
@@ -74,7 +74,7 @@ describe('PointAccrualService', () => {
         balanceAfter: amount,
         timestamp: new Date(),
         currency: 'points',
-      } as unknown);
+      } as LedgerEntry);
 
       // Act
       const result = await service.awardPoints({

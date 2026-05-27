@@ -25,7 +25,7 @@ describe('PointRedemptionService', () => {
       partialSettleEscrow: jest.fn(),
       getUserBalance: jest.fn(),
       getModelBalance: jest.fn(),
-    } as unknown as WalletService;
+    } as unknown as jest.Mocked<IWalletService>;
 
     service = new PointRedemptionService(mockWalletService);
 

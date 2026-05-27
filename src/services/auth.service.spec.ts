@@ -259,7 +259,8 @@ describe('AuthService', () => {
 
       expect(() => {
         service.validateSettlementAuthorization(
-          authorization as unknown,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          authorization as any,
           'queue-123',
           'escrow-456',
         );

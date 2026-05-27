@@ -217,7 +217,8 @@ describe('EventsController', () => {
         eventType: 'user.signup',
         payload: ['not', 'an', 'object'],
         idempotencyKey: 'idem-123',
-      } as unknown;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any;
 
       await expect(controller.postEvent(invalidRequest)).rejects.toThrow('Validation failed');
     });
@@ -228,7 +229,8 @@ describe('EventsController', () => {
         payload: { userId: 'user-123' },
         idempotencyKey: 'idem-123',
         replayable: 'yes',
-      } as unknown;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any;
 
       await expect(controller.postEvent(invalidRequest)).rejects.toThrow('Validation failed');
     });
