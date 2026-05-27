@@ -38,7 +38,7 @@ describe('EscrowDetailController', () => {
     jest.clearAllMocks();
     controller = new EscrowDetailController();
 
-    mockFindOne = jest.fn();
+    _mockFindOne = jest.fn();
     (EscrowItemModel.findOne as jest.Mock).mockReturnValue({
       lean: () => ({ exec: () => Promise.resolve(null) }),
     });

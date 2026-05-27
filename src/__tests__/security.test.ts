@@ -135,7 +135,7 @@ describe('Security Tests', () => {
         ssn: '123-45-6789',
       };
 
-      const logSafe = redactSensitiveData(transactionData);
+      const logSafe = redactSensitiveData(transactionData) as Record<string, unknown>;
 
       expect(logSafe.creditCard).toBeUndefined();
       expect(logSafe.ssn).toBeUndefined();
@@ -148,7 +148,7 @@ describe('Security Tests', () => {
         action: 'signup',
       };
 
-      const logSafe = redactSensitiveData(data);
+      const logSafe = redactSensitiveData(data) as Record<string, unknown>;
       expect(logSafe.user).toBe('[REDACTED_EMAIL]');
     });
   });
@@ -192,7 +192,8 @@ function validateAmount(amount: unknown): void {
 }
 
 function redactSensitiveData(data: unknown): unknown {
-  const redacted = { ...data };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const redacted = { ...(data as any) };
   const sensitiveFields = ['password', 'creditCard', 'ssn', 'apiKey', 'token'];
   sensitiveFields.forEach((field) => {
     if (redacted[field]) {
