@@ -42,7 +42,7 @@
     "@nestjs/platform-express": "^11.1.19",
     "@nestjs/swagger": "^11.4.2",
     "@types/jsonwebtoken": "^9.0.10",
-    "express-rate-limit": "^8.5.1",
+    "express-rate-limit": "^8.5.2",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.6.2",
     "pino": "^10.3.1",
