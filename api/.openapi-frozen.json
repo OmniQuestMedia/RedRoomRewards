@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/base.json",
   "_comment": "OpenAPI freeze. The hash below pins api/openapi.yaml so that unintended changes are caught in CI. To update after a deliberate spec change: `node scripts/ci/openapi-freeze-check.js --update`. Spec changes require a CHORE/API ticket.",
-  "sha256": "b3c9fddf21e748f7ce30431a62d1fe21ad8cb4d80a35d99a304dccc45753fba6",
+  "sha256": "018b105b4d3a1b9dafda015b179b788f31672a67088f9b0ff49f9a43beb4ee64",
   "spec_version": "0.2.0",
-  "frozen_at": "2026-05-02T19:36:28.413Z"
+  "frozen_at": "2026-06-06T09:40:53.703Z"
 }
