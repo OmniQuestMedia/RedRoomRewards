@@ -17,6 +17,7 @@ module.exports = {
     'scripts/**/*.js',
     '*.mjs',
     '*.cjs',
+    'apps/**',
   ],
   overrides: [
     {
