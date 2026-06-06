@@ -246,6 +246,27 @@
       "line": 842,
       "model": "ModelWalletModel",
       "method": "findOne"
+    },
+    {
+      "file": "src/services/burn-catalogue.service.ts",
+      "line": 86,
+      "model": "BurnCatalogueItemModel",
+      "method": "find",
+      "_note": "tenant_id: { $eq: tenantId } is set on the `query` variable built immediately above; checker cannot follow variable references"
+    },
+    {
+      "file": "src/services/burn-catalogue.service.ts",
+      "line": 87,
+      "model": "BurnCatalogueItemModel",
+      "method": "countDocuments",
+      "_note": "Same query variable as line 86 — tenant_id scoped via query object"
+    },
+    {
+      "file": "src/services/burn-catalogue.service.ts",
+      "line": 209,
+      "model": "BurnRedemptionModel",
+      "method": "findOne",
+      "_note": "fulfillRedemption is an ops-only endpoint; redemption_id is a globally-unique UUID primary key — tenant scoping is not applicable here"
     }
   ]
 }
