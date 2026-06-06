@@ -38,6 +38,7 @@ module.exports = {
     '!src/**/*.d.ts',
     '!src/**/*.spec.ts',
     '!src/**/*.test.ts',
+
     '!src/test-setup.ts',
   ],
   coverageDirectory: 'coverage',

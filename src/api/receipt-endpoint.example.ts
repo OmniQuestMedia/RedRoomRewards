@@ -138,7 +138,7 @@ export async function handleReceiptRequestFunctional(
     async () => config.controller.getEventReceipt(merchantId, idempotencyKey),
   );
 
-  if (!result.authorized) {
+  if (result.authorized === false) {
     res.status(401).json({
       error: 'UNAUTHORIZED',
       message: result.error,
