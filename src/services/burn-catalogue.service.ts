@@ -68,7 +68,7 @@ export class BurnCatalogueService {
   ): Promise<PaginatedCatalogueResult> {
     const now = new Date();
     const query: Record<string, unknown> = {
-      tenant_id: tenantId,
+      tenant_id: { $eq: tenantId },
       is_active: true,
       $or: [{ valid_from: null }, { valid_from: { $lte: now } }],
       $and: [{ $or: [{ valid_until: null }, { valid_until: { $gte: now } }] }],
@@ -150,7 +150,7 @@ export class BurnCatalogueService {
     // Decrement inventory if finite
     if (item.inventory_count !== null && item.inventory_count !== undefined) {
       await BurnCatalogueItemModel.updateOne(
-        { item_id: { $eq: itemId } },
+        { item_id: { $eq: itemId }, tenant_id: { $eq: tenantId } },
         { $inc: { inventory_count: -1 } },
       ).exec();
     }
