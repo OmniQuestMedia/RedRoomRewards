@@ -43,11 +43,6 @@ const BurnRedemptionSchema = new Schema<IBurnRedemption>(
   },
 );
 
-// Append-only: disable update and remove to prevent mutation
-BurnRedemptionSchema.pre('findOneAndUpdate', function () {
-  throw new Error('BurnRedemption records are append-only — use status transitions instead');
-});
-
 export const BurnRedemptionModel = mongoose.model<IBurnRedemption>(
   'BurnRedemption',
   BurnRedemptionSchema,

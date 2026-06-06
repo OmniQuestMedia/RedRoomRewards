@@ -54,7 +54,7 @@ describe('BurnCatalogueService', () => {
     service = new BurnCatalogueService(ledger);
   });
 
-  describe('calculatePointsForOrder (via WooCommerceService — not in scope here)', () => {
+  describe('listCatalogueItems (smoke)', () => {
     it('exists as a service instance', () => {
       expect(service).toBeDefined();
     });
@@ -73,6 +73,8 @@ describe('BurnCatalogueService', () => {
       mockFindOne.mockReturnValue({
         exec: () => Promise.resolve({ ...mockItemBase, inventory_count: 0 }),
       });
+      // Atomic decrement finds no document matching inventory_count > 0
+      mockFindOneAndUpdate.mockReturnValue({ exec: () => Promise.resolve(null) });
 
       await expect(service.redeemItem('member-1', 'item-001', 'redroompleasures')).rejects.toThrow(
         BadRequestException,

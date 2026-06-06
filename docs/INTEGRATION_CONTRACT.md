@@ -326,9 +326,12 @@ Content-Type: application/json
 }
 ```
 
-**Supported topics:** | Topic | Action | |-------|--------| | `order.completed`
-| Earn 1 pt / $1 CAD (after shipping deducted) | | `order.refunded` | Reverse
-earn — append offsetting debit |
+**Supported topics:**
+
+| Topic             | Action                                       |
+| ----------------- | -------------------------------------------- |
+| `order.completed` | Earn 1 pt / $1 CAD (after shipping deducted) |
+| `order.refunded`  | Reverse earn — append offsetting debit       |
 
 **Point calculation:**
 

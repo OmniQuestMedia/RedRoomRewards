@@ -105,7 +105,12 @@ export class BurnCatalogueService {
     return item as unknown as IBurnCatalogueItem;
   }
 
-  async redeemItem(memberId: string, itemId: string, tenantId: string): Promise<RedeemItemResult> {
+  async redeemItem(
+    memberId: string,
+    itemId: string,
+    tenantId: string,
+    idempotencyKey?: string,
+  ): Promise<RedeemItemResult> {
     const item = await BurnCatalogueItemModel.findOne({
       item_id: { $eq: itemId },
       tenant_id: { $eq: tenantId },
@@ -133,27 +138,27 @@ export class BurnCatalogueService {
     const correlationId = randomUUID();
     const redemptionCode = `RRR-${tenantId.toUpperCase().slice(0, 4)}-${randomUUID().replace(/-/g, '').toUpperCase().slice(0, 12)}`;
     const redemptionId = randomUUID();
+    const deductKey = idempotencyKey ?? `redeem-${memberId}-${itemId}-${redemptionId}`;
 
-    // Deduct points — append-only debit record; throws on insufficient balance
-    const ok = await this.ledger.deductPoints(
+    // Atomically decrement inventory (only if finite and still available)
+    if (item.inventory_count !== null && item.inventory_count !== undefined) {
+      const updated = await BurnCatalogueItemModel.findOneAndUpdate(
+        { item_id: { $eq: itemId }, tenant_id: { $eq: tenantId }, inventory_count: { $gt: 0 } },
+        { $inc: { inventory_count: -1 } },
+      ).exec();
+      if (!updated) {
+        throw new BadRequestException('Catalogue item is out of stock');
+      }
+    }
+
+    // Deduct points — append-only debit; throws BadRequestException on insufficient balance
+    await this.ledger.deductPoints(
       memberId,
       item.points_cost,
       'CATALOGUE_REDEEM',
       `Redeem: ${item.title} (item: ${itemId})`,
-      `redeem-${redemptionId}`,
+      deductKey,
     );
-
-    if (!ok) {
-      throw new BadRequestException('Insufficient points balance');
-    }
-
-    // Decrement inventory if finite
-    if (item.inventory_count !== null && item.inventory_count !== undefined) {
-      await BurnCatalogueItemModel.updateOne(
-        { item_id: { $eq: itemId }, tenant_id: { $eq: tenantId } },
-        { $inc: { inventory_count: -1 } },
-      ).exec();
-    }
 
     // Create append-only redemption record
     await BurnRedemptionModel.create({

@@ -49,7 +49,12 @@ export class CatalogueController {
       filters.redemption_type = redemptionType as RedemptionType;
     }
     if (maxPointsCost) {
-      filters.max_points_cost = parseInt(maxPointsCost, 10);
+      const parsed = parseInt(maxPointsCost, 10);
+      if (isNaN(parsed)) {
+        res.status(HttpStatus.BAD_REQUEST).json({ error: 'max_points_cost must be an integer' });
+        return;
+      }
+      filters.max_points_cost = parsed;
     }
 
     const result = await this.catalogueService.listCatalogueItems(
@@ -96,7 +101,7 @@ export class CatalogueController {
   /** POST /api/v1/catalogue/redeem — redeem item (auth required) */
   @Post('redeem')
   async redeem(
-    @Body() body: { itemId: string },
+    @Body() body: { itemId: string; idempotencyKey?: string },
     @Req() req: AuthedRequest,
     @Res() res: Response,
   ): Promise<void> {
@@ -112,7 +117,12 @@ export class CatalogueController {
       return;
     }
 
-    const result = await this.catalogueService.redeemItem(memberId, body.itemId, tenantId);
+    const result = await this.catalogueService.redeemItem(
+      memberId,
+      body.itemId,
+      tenantId,
+      body.idempotencyKey,
+    );
     res.status(HttpStatus.CREATED).json(result);
   }
 }

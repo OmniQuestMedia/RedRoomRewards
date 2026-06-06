@@ -7,12 +7,13 @@ import {
   HttpStatus,
   Logger,
   BadRequestException,
+  Req,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { createHmac, timingSafeEqual } from 'crypto';
 import { WooCommerceService, WooCommerceOrderPayload } from './woocommerce.service';
 
 interface WooCommerceWebhookBody {
-  /** WooCommerce sends the topic in the body as meta, but we also accept it here */
   topic?: string;
   [key: string]: unknown;
 }
@@ -29,18 +30,21 @@ export class WooCommerceWebhookController {
    * Receives WooCommerce order webhooks. Responds 200 immediately and
    * processes the order asynchronously to avoid WooCommerce retry storms.
    *
-   * Signature: HMAC-SHA256 of raw body using WOOCOMMERCE_WEBHOOK_SECRET,
+   * Signature: HMAC-SHA256 of the raw request body using WOOCOMMERCE_WEBHOOK_SECRET,
    * delivered in the `x-wc-webhook-signature` header (base64-encoded).
+   * Uses req.rawBody (buffered by NestFactory rawBody:true) to match the exact
+   * bytes WooCommerce signed — JSON.stringify would differ in whitespace/key order.
    */
   @Post('webhook')
   @HttpCode(HttpStatus.OK)
   async receive(
     @Body() body: WooCommerceWebhookBody,
+    @Req() req: Request & { rawBody?: Buffer },
     @Headers('x-wc-webhook-topic') topic: string,
     @Headers('x-wc-webhook-signature') signature: string,
     @Headers('x-wc-webhook-delivery-id') deliveryId: string,
   ): Promise<{ received: boolean }> {
-    this.verifySignature(body, signature);
+    this.verifySignature(req.rawBody, signature);
 
     const eventTopic = topic ?? body.topic ?? '';
     this.logger.log({ topic: eventTopic, deliveryId }, 'WooCommerce webhook received');
@@ -56,7 +60,7 @@ export class WooCommerceWebhookController {
     return { received: true };
   }
 
-  private verifySignature(body: unknown, signature: string): void {
+  private verifySignature(rawBody: Buffer | undefined, signature: string): void {
     const secret = process.env.WOOCOMMERCE_WEBHOOK_SECRET;
     if (!secret) {
       this.logger.warn('WOOCOMMERCE_WEBHOOK_SECRET not set — skipping signature verification'); // ci-allow: log-secret — logs a config-missing notice, no secret value is present
@@ -67,8 +71,8 @@ export class WooCommerceWebhookController {
       throw new BadRequestException('Missing x-wc-webhook-signature header');
     }
 
-    const payload = JSON.stringify(body);
-    const expected = createHmac('sha256', secret).update(payload, 'utf8').digest('base64');
+    const payload = rawBody ?? Buffer.alloc(0);
+    const expected = createHmac('sha256', secret).update(payload).digest('base64');
 
     let sigBuf: Buffer;
     let expectedBuf: Buffer;

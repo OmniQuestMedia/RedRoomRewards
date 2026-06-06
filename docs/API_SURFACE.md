@@ -10,13 +10,14 @@
 
 ### Public (no auth required)
 
-| Method | Path                       | Description                                                                  |
-| ------ | -------------------------- | ---------------------------------------------------------------------------- |
-| GET    | `/health`                  | Combined health summary — DB state + version                                 |
-| GET    | `/health/live`             | Liveness probe (always 200 if process is up)                                 |
-| GET    | `/health/ready`            | Readiness probe — 200 if DB connected, 503 otherwise                         |
-| POST   | `/api/v1/members/signup`   | Member signup with mandatory GateGuard 18+ AV; issues 1,000-pt welcome bonus |
-| POST   | `/api/v1/webhooks/receive` | Inbound webhook receiver — HMAC-SHA256 verified via `RRR_WEBHOOK_SECRET`     |
+| Method | Path                                       | Description                                                                                 |
+| ------ | ------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| GET    | `/health`                                  | Combined health summary — DB state + version                                                |
+| GET    | `/health/live`                             | Liveness probe (always 200 if process is up)                                                |
+| GET    | `/health/ready`                            | Readiness probe — 200 if DB connected, 503 otherwise                                        |
+| POST   | `/api/v1/members/signup`                   | Member signup with mandatory GateGuard 18+ AV; issues 1,000-pt welcome bonus                |
+| POST   | `/api/v1/webhooks/receive`                 | Inbound webhook receiver — HMAC-SHA256 verified via `RRR_WEBHOOK_SECRET`                    |
+| POST   | `/api/v1/integrations/woocommerce/webhook` | WooCommerce order webhook — HMAC-SHA256 via `WOOCOMMERCE_WEBHOOK_SECRET`; async earn/refund |
 
 ### Auth + Tenant Scoped (JWT required + `tenant_id` claim)
 
@@ -32,6 +33,10 @@
 | GET    | `/api/v1/creator/gifting-panel/state`          | Get creator's gifting panel state (promotional balance + recent promos) |
 | POST   | `/api/v1/redemptions`                          | Member redeems RRR points against a merchant order (idempotent)         |
 | GET    | `/api/v1/redemptions/eligible`                 | Returns available balance + tier-cap metadata for the redemption slider |
+| GET    | `/api/v1/catalogue`                            | List active burn-catalogue items (paginated, filterable)                |
+| GET    | `/api/v1/catalogue/:id`                        | Single catalogue item detail                                            |
+| POST   | `/api/v1/catalogue/redeem`                     | Redeem a catalogue item; deducts points and creates redemption record   |
+| GET    | `/api/v1/catalogue/my-redemptions`             | Member's catalogue redemption history                                   |
 
 ### Auth Only (JWT required, no tenant scope)
 
@@ -42,6 +47,9 @@
 | GET    | `/api/v1/ledger/transactions`              | Paginated ledger transaction history; filterable by date/reason_code           |
 | GET    | `/api/v1/ledger/transactions/:entryId`     | Full audit detail for a single ledger entry                                    |
 | GET    | `/api/v1/wallets/:userId/escrow/:escrowId` | Single escrow item detail                                                      |
+| POST   | `/api/v1/admin/catalogue`                  | Create a new burn-catalogue item (admin)                                       |
+| PUT    | `/api/v1/admin/catalogue/:id`              | Update an existing burn-catalogue item (admin)                                 |
+| POST   | `/api/v1/admin/catalogue/:id/fulfill`      | Fulfill a PENDING redemption — transitions status to FULFILLED (admin/ops)     |
 
 ---
 
@@ -145,6 +153,7 @@ deleted or modified.
 | `JWT_SECRET`                   | **REQUIRED** | JWT signing secret (min 32 chars)                                 |
 | `QUEUE_AUTH_SECRET`            | **REQUIRED** | Queue/settlement auth token secret (min 32 chars)                 |
 | `RRR_WEBHOOK_SECRET`           | **REQUIRED** | Inbound webhook HMAC verification secret (min 32 chars)           |
+| `WOOCOMMERCE_WEBHOOK_SECRET`   | No           | WooCommerce webhook HMAC secret; verification skipped if unset    |
 | `PORT`                         | No           | Service port (default: 3000)                                      |
 | `TOKEN_EXPIRY_SECONDS`         | No           | JWT expiry in seconds (default: 900)                              |
 | `LOG_LEVEL`                    | No           | `debug` \| `info` \| `warn` \| `error` (default: info)            |

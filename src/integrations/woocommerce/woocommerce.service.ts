@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { randomUUID } from 'crypto';
+import { createHash, randomUUID } from 'crypto';
 import { LedgerService } from '../../ledger/ledger.service';
 import { LoyaltyAccountModel } from '../../db/models/loyalty-account.model';
 
@@ -107,10 +107,15 @@ export class WooCommerceService {
     );
   }
 
+  private emailToUserId(email: string): string {
+    return `wc-${createHash('sha256').update(email.toLowerCase()).digest('hex').slice(0, 32)}`;
+  }
+
   private async findOrCreateMember(email: string): Promise<string> {
+    const userId = this.emailToUserId(email);
     const existing = await LoyaltyAccountModel.findOne({
       tenant_id: { $eq: TENANT_ID },
-      'meta.email': { $eq: email },
+      user_id: { $eq: userId },
     })
       .lean()
       .exec();
@@ -123,7 +128,7 @@ export class WooCommerceService {
     await LoyaltyAccountModel.create({
       account_id: memberId,
       tenant_id: TENANT_ID,
-      user_id: memberId,
+      user_id: userId,
       status: 'active',
       rrr_member_tier: null,
       enrolled_at: new Date(),
