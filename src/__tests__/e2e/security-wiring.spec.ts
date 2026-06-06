@@ -71,8 +71,8 @@ function mockReqRes(): {
 // ---------------------------------------------------------------------------
 
 describe('Security Wiring — PUBLIC_ROUTES policy', () => {
-  it('should contain exactly 5 routes (3 health + signup + webhook receive)', () => {
-    expect(PUBLIC_ROUTES).toHaveLength(5);
+  it('should contain exactly 6 routes (3 health + signup + webhook receive + woocommerce webhook)', () => {
+    expect(PUBLIC_ROUTES).toHaveLength(6);
   });
 
   it('should include GET /health as combined health summary', () => {
@@ -101,6 +101,12 @@ describe('Security Wiring — PUBLIC_ROUTES policy', () => {
 
   it('should include POST /api/v1/webhooks/receive as HMAC-authenticated surface', () => {
     const route = PUBLIC_ROUTES.find((r) => r.path === 'api/v1/webhooks/receive');
+    expect(route).toBeDefined();
+    expect(route!.method).toBe(RequestMethod.POST);
+  });
+
+  it('should include POST /api/v1/integrations/woocommerce/webhook as HMAC-authenticated surface', () => {
+    const route = PUBLIC_ROUTES.find((r) => r.path === 'api/v1/integrations/woocommerce/webhook');
     expect(route).toBeDefined();
     expect(route!.method).toBe(RequestMethod.POST);
   });

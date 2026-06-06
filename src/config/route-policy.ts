@@ -54,6 +54,8 @@ export const PUBLIC_ROUTES: RouteInfo[] = [
   { path: 'health/ready', method: RequestMethod.GET },
   { path: 'api/v1/members/signup', method: RequestMethod.POST },
   { path: 'api/v1/webhooks/receive', method: RequestMethod.POST },
+  // WooCommerce webhook — HMAC-SHA256 verified in handler, not by Bearer JWT
+  { path: 'api/v1/integrations/woocommerce/webhook', method: RequestMethod.POST },
 ];
 
 /**
