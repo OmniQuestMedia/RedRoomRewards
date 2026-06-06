@@ -1420,6 +1420,291 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  # ===== WooCommerce Integration =====
+  /integrations/woocommerce/webhook:
+    post:
+      summary: WooCommerce order webhook
+      description: |
+        Receives WooCommerce order webhooks verified by HMAC-SHA256 using
+        `WOOCOMMERCE_WEBHOOK_SECRET`. Responds 200 immediately and processes
+        the order asynchronously.
+
+        Supported topics (via `x-wc-webhook-topic` header):
+        - `order.completed` — earn 1 pt per $1 CAD (shipping deducted)
+        - `order.refunded` — reverse earn by appending offsetting debit
+      operationId: woocommerceWebhook
+      tags:
+        - integrations
+      security: []
+      parameters:
+        - in: header
+          name: x-wc-webhook-topic
+          required: true
+          schema:
+            type: string
+            example: order.completed
+        - in: header
+          name: x-wc-webhook-signature
+          required: true
+          schema:
+            type: string
+            description: Base64-encoded HMAC-SHA256 of the raw request body
+        - in: header
+          name: x-wc-webhook-delivery-id
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                number:
+                  type: string
+                status:
+                  type: string
+                total:
+                  type: string
+                shipping_total:
+                  type: string
+                billing:
+                  type: object
+                  properties:
+                    email:
+                      type: string
+                    first_name:
+                      type: string
+                    last_name:
+                      type: string
+      responses:
+        '200':
+          description: Webhook received (processing is asynchronous)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  received:
+                    type: boolean
+                    example: true
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  # ===== Burn Catalogue (member) =====
+  /catalogue:
+    get:
+      summary: List active burn-catalogue items
+      description: Returns paginated, filterable list of active catalogue items for the tenant.
+      operationId: listCatalogueItems
+      tags:
+        - catalogue
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - in: query
+          name: redemption_type
+          schema:
+            type: string
+            enum: [DISCOUNT_CODE, FREE_PRODUCT, EXCLUSIVE_ACCESS]
+        - in: query
+          name: max_points_cost
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Paginated catalogue items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CatalogueItem'
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /catalogue/{itemId}:
+    get:
+      summary: Get catalogue item detail
+      operationId: getCatalogueItem
+      tags:
+        - catalogue
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: itemId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Catalogue item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogueItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /catalogue/redeem:
+    post:
+      summary: Redeem a catalogue item
+      description: |
+        Deducts `points_cost` from the member's balance and creates a PENDING
+        redemption record. Returns the redemption code immediately.
+        Requires a caller-supplied `idempotencyKey` to prevent double-spend on retry.
+      operationId: redeemCatalogueItem
+      tags:
+        - catalogue
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [itemId, idempotencyKey]
+              properties:
+                itemId:
+                  type: string
+                idempotencyKey:
+                  type: string
+      responses:
+        '201':
+          description: Redemption created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  redemptionId:
+                    type: string
+                  redemptionCode:
+                    type: string
+                    example: RRR-REDR-ABCDEF123456
+                  pointsSpent:
+                    type: integer
+                  itemTitle:
+                    type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /catalogue/my-redemptions:
+    get:
+      summary: Member redemption history
+      operationId: getMyRedemptions
+      tags:
+        - catalogue
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of redemptions for the authenticated member
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  redemptions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BurnRedemption'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ===== Burn Catalogue (admin) =====
+  /admin/catalogue:
+    post:
+      summary: Create a catalogue item (admin)
+      operationId: createCatalogueItem
+      tags:
+        - catalogue-admin
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCatalogueItemRequest'
+      responses:
+        '201':
+          description: Catalogue item created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogueItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /admin/catalogue/{itemId}:
+    put:
+      summary: Update a catalogue item (admin)
+      operationId: updateCatalogueItem
+      tags:
+        - catalogue-admin
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: itemId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCatalogueItemRequest'
+      responses:
+        '200':
+          description: Catalogue item updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogueItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
 components:
   # ===== Parameters =====
   parameters:
@@ -2708,6 +2993,133 @@ components:
         timestamp:
           type: string
           format: date-time
+
+    # ===== Burn Catalogue Schemas =====
+    CatalogueItem:
+      type: object
+      properties:
+        item_id:
+          type: string
+        tenant_id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        image_url:
+          type: string
+        points_cost:
+          type: integer
+        inventory_count:
+          type: integer
+          nullable: true
+        is_active:
+          type: boolean
+        valid_from:
+          type: string
+          format: date-time
+          nullable: true
+        valid_until:
+          type: string
+          format: date-time
+          nullable: true
+        redemption_type:
+          type: string
+          enum: [DISCOUNT_CODE, FREE_PRODUCT, EXCLUSIVE_ACCESS]
+        redemption_value:
+          type: object
+
+    BurnRedemption:
+      type: object
+      properties:
+        redemption_id:
+          type: string
+        member_id:
+          type: string
+        catalogue_item_id:
+          type: string
+        tenant_id:
+          type: string
+        points_spent:
+          type: integer
+        redemption_code:
+          type: string
+        status:
+          type: string
+          enum: [PENDING, FULFILLED, EXPIRED, REVERSED]
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateCatalogueItemRequest:
+      type: object
+      required: [tenant_id, title, description, points_cost, redemption_type, redemption_value]
+      properties:
+        tenant_id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        image_url:
+          type: string
+        points_cost:
+          type: integer
+          minimum: 1
+        inventory_count:
+          type: integer
+          minimum: 0
+          nullable: true
+        is_active:
+          type: boolean
+        valid_from:
+          type: string
+          format: date-time
+          nullable: true
+        valid_until:
+          type: string
+          format: date-time
+          nullable: true
+        redemption_type:
+          type: string
+          enum: [DISCOUNT_CODE, FREE_PRODUCT, EXCLUSIVE_ACCESS]
+        redemption_value:
+          type: object
+
+    UpdateCatalogueItemRequest:
+      type: object
+      properties:
+        tenant_id:
+          type: string
+          description: Required when called from AUTH_ONLY context (no tenant middleware)
+        title:
+          type: string
+        description:
+          type: string
+        image_url:
+          type: string
+        points_cost:
+          type: integer
+          minimum: 1
+        inventory_count:
+          type: integer
+          minimum: 0
+          nullable: true
+        is_active:
+          type: boolean
+        valid_from:
+          type: string
+          format: date-time
+          nullable: true
+        valid_until:
+          type: string
+          format: date-time
+          nullable: true
+        redemption_type:
+          type: string
+          enum: [DISCOUNT_CODE, FREE_PRODUCT, EXCLUSIVE_ACCESS]
+        redemption_value:
+          type: object
 
   # ===== Responses =====
   responses:
