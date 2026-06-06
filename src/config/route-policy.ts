@@ -103,7 +103,7 @@ export const AUTH_ONLY_ROUTES: RouteInfo[] = [
   { path: 'api/v1/ledger/transactions', method: RequestMethod.GET },
   { path: 'api/v1/ledger/transactions/:entryId', method: RequestMethod.GET },
   { path: 'api/v1/wallets/:userId/escrow/:escrowId', method: RequestMethod.GET },
-  // Burn Catalogue — admin management (auth-only, step-up enforced at service level)
+  // Burn Catalogue — admin management (auth-only; tenant_id must be provided in request body)
   { path: 'api/v1/admin/catalogue', method: RequestMethod.POST },
   { path: 'api/v1/admin/catalogue/:id', method: RequestMethod.PUT },
 ];

@@ -49,7 +49,6 @@
 | GET    | `/api/v1/wallets/:userId/escrow/:escrowId` | Single escrow item detail                                                      |
 | POST   | `/api/v1/admin/catalogue`                  | Create a new burn-catalogue item (admin)                                       |
 | PUT    | `/api/v1/admin/catalogue/:id`              | Update an existing burn-catalogue item (admin)                                 |
-| POST   | `/api/v1/admin/catalogue/:id/fulfill`      | Fulfill a PENDING redemption — transitions status to FULFILLED (admin/ops)     |
 
 ---
 

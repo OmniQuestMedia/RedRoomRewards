@@ -4,6 +4,9 @@ import { LedgerService } from '../../ledger/ledger.service';
 jest.mock('../../db/models/loyalty-account.model', () => ({
   LoyaltyAccountModel: {
     findOne: jest.fn().mockReturnValue({ lean: () => ({ exec: () => Promise.resolve(null) }) }),
+    findOneAndUpdate: jest
+      .fn()
+      .mockReturnValue({ lean: () => ({ exec: () => Promise.resolve(null) }) }),
     create: jest.fn().mockResolvedValue({}),
   },
 }));

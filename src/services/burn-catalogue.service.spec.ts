@@ -65,7 +65,7 @@ describe('BurnCatalogueService', () => {
       mockFindOne.mockReturnValue({ exec: () => Promise.resolve(null) });
 
       await expect(
-        service.redeemItem('member-1', 'item-missing', 'redroompleasures'),
+        service.redeemItem('member-1', 'item-missing', 'redroompleasures', 'idem-key-1'),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -76,9 +76,9 @@ describe('BurnCatalogueService', () => {
       // Atomic decrement finds no document matching inventory_count > 0
       mockFindOneAndUpdate.mockReturnValue({ exec: () => Promise.resolve(null) });
 
-      await expect(service.redeemItem('member-1', 'item-001', 'redroompleasures')).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.redeemItem('member-1', 'item-001', 'redroompleasures', 'idem-key-1'),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('credits ledger deduction and creates redemption record on success', async () => {
@@ -88,14 +88,19 @@ describe('BurnCatalogueService', () => {
       mockUpdateOne.mockReturnValue({ exec: () => Promise.resolve({}) });
       mockCreate.mockResolvedValue({});
 
-      const result = await service.redeemItem('member-1', 'item-001', 'redroompleasures');
+      const result = await service.redeemItem(
+        'member-1',
+        'item-001',
+        'redroompleasures',
+        'idem-key-1',
+      );
 
       expect(ledger.deductPoints).toHaveBeenCalledWith(
         'member-1',
         500,
         'CATALOGUE_REDEEM',
         expect.stringContaining('item-001'),
-        expect.stringContaining('redeem-'),
+        'idem-key-1',
       );
       expect(result.pointsSpent).toBe(500);
       expect(result.redemptionCode).toMatch(/^RRR-/);
@@ -108,9 +113,9 @@ describe('BurnCatalogueService', () => {
         exec: () => Promise.resolve({ ...mockItemBase, valid_until: expired }),
       });
 
-      await expect(service.redeemItem('member-1', 'item-001', 'redroompleasures')).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.redeemItem('member-1', 'item-001', 'redroompleasures', 'idem-key-1'),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 

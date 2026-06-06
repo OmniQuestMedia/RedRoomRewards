@@ -44,6 +44,19 @@ export class CatalogueController {
       return;
     }
 
+    const pageNum = page ? parseInt(page, 10) : 1;
+    const limitNum = limit ? parseInt(limit, 10) : 20;
+    if (isNaN(pageNum) || pageNum < 1) {
+      res.status(HttpStatus.BAD_REQUEST).json({ error: 'page must be a positive integer' });
+      return;
+    }
+    if (isNaN(limitNum) || limitNum < 1 || limitNum > 100) {
+      res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ error: 'limit must be an integer between 1 and 100' });
+      return;
+    }
+
     const filters: CatalogueFilters = {};
     if (redemptionType) {
       filters.redemption_type = redemptionType as RedemptionType;
@@ -60,8 +73,8 @@ export class CatalogueController {
     const result = await this.catalogueService.listCatalogueItems(
       tenantId,
       filters,
-      page ? parseInt(page, 10) : 1,
-      limit ? parseInt(limit, 10) : 20,
+      pageNum,
+      limitNum,
     );
 
     res.status(HttpStatus.OK).json(result);
@@ -101,7 +114,7 @@ export class CatalogueController {
   /** POST /api/v1/catalogue/redeem — redeem item (auth required) */
   @Post('redeem')
   async redeem(
-    @Body() body: { itemId: string; idempotencyKey?: string },
+    @Body() body: { itemId: string; idempotencyKey: string },
     @Req() req: AuthedRequest,
     @Res() res: Response,
   ): Promise<void> {
@@ -114,6 +127,10 @@ export class CatalogueController {
     }
     if (!body.itemId?.trim()) {
       res.status(HttpStatus.BAD_REQUEST).json({ error: 'itemId is required' });
+      return;
+    }
+    if (!body.idempotencyKey?.trim()) {
+      res.status(HttpStatus.BAD_REQUEST).json({ error: 'idempotencyKey is required' });
       return;
     }
 
@@ -152,13 +169,13 @@ export class AdminCatalogueController {
   @Put(':id')
   async update(
     @Param('id') id: string,
-    @Body() body: UpdateCatalogueItemInput,
+    @Body() body: UpdateCatalogueItemInput & { tenant_id?: string },
     @Req() req: AuthedRequest,
     @Res() res: Response,
   ): Promise<void> {
-    const tenantId = req.tenantId ?? '';
+    const tenantId = req.tenantId ?? body.tenant_id ?? '';
     if (!tenantId) {
-      res.status(HttpStatus.BAD_REQUEST).json({ error: 'tenantId is required' });
+      res.status(HttpStatus.BAD_REQUEST).json({ error: 'tenant_id is required' });
       return;
     }
 

@@ -48,6 +48,13 @@ export class WooCommerceService {
 
     const orderTotal = parseFloat(payload.total ?? '0');
     const shippingCost = parseFloat(payload.shipping_total ?? '0');
+    if (!Number.isFinite(orderTotal) || !Number.isFinite(shippingCost)) {
+      this.logger.warn(
+        { orderId: payload.id },
+        'WooCommerce order has non-finite totals — skipped',
+      );
+      return;
+    }
     const points = this.calculatePointsForOrder(orderTotal, shippingCost);
 
     if (points <= 0) {
@@ -84,6 +91,13 @@ export class WooCommerceService {
 
     const orderTotal = parseFloat(payload.total ?? '0');
     const shippingCost = parseFloat(payload.shipping_total ?? '0');
+    if (!Number.isFinite(orderTotal) || !Number.isFinite(shippingCost)) {
+      this.logger.warn(
+        { orderId: payload.id },
+        'WooCommerce refund has non-finite totals — skipped',
+      );
+      return;
+    }
     const points = this.calculatePointsForOrder(orderTotal, shippingCost);
 
     if (points <= 0) {
@@ -113,30 +127,35 @@ export class WooCommerceService {
 
   private async findOrCreateMember(email: string): Promise<string> {
     const userId = this.emailToUserId(email);
-    const existing = await LoyaltyAccountModel.findOne({
-      tenant_id: { $eq: TENANT_ID },
-      user_id: { $eq: userId },
-    })
+
+    // Use findOneAndUpdate upsert to prevent race conditions under concurrent webhooks.
+    // setOnInsert ensures account_id is only written on creation, not on every webhook.
+    const memberId = `rr-wc-${randomUUID()}`;
+    const result = await LoyaltyAccountModel.findOneAndUpdate(
+      { tenant_id: { $eq: TENANT_ID }, user_id: { $eq: userId } },
+      {
+        $setOnInsert: {
+          account_id: memberId,
+          tenant_id: TENANT_ID,
+          user_id: userId,
+          status: 'active',
+          rrr_member_tier: null,
+          enrolled_at: new Date(),
+          default_currency: 'CAD',
+          notes: 'Auto-created from WooCommerce order',
+        },
+      },
+      { upsert: true, new: false },
+    )
       .lean()
       .exec();
 
-    if (existing) {
-      return existing.account_id;
+    if (result) {
+      return result.account_id;
     }
 
-    const memberId = `rr-wc-${randomUUID()}`;
-    await LoyaltyAccountModel.create({
-      account_id: memberId,
-      tenant_id: TENANT_ID,
-      user_id: userId,
-      status: 'active',
-      rrr_member_tier: null,
-      enrolled_at: new Date(),
-      default_currency: 'CAD',
-      notes: `Auto-created from WooCommerce order (email: ${email})`,
-    });
-
-    this.logger.log({ memberId, email: '[redacted]' }, 'WooCommerce member auto-created');
+    // result is null when the document was just inserted (upsert, new:false)
+    this.logger.log({ memberId }, 'WooCommerce member auto-created');
     return memberId;
   }
 }

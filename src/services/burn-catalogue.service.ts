@@ -109,7 +109,7 @@ export class BurnCatalogueService {
     memberId: string,
     itemId: string,
     tenantId: string,
-    idempotencyKey?: string,
+    idempotencyKey: string,
   ): Promise<RedeemItemResult> {
     const item = await BurnCatalogueItemModel.findOne({
       item_id: { $eq: itemId },
@@ -138,27 +138,35 @@ export class BurnCatalogueService {
     const correlationId = randomUUID();
     const redemptionCode = `RRR-${tenantId.toUpperCase().slice(0, 4)}-${randomUUID().replace(/-/g, '').toUpperCase().slice(0, 12)}`;
     const redemptionId = randomUUID();
-    const deductKey = idempotencyKey ?? `redeem-${memberId}-${itemId}-${redemptionId}`;
 
-    // Atomically decrement inventory (only if finite and still available)
+    // Deduct points first — if balance is insufficient this throws before any inventory change
+    try {
+      await this.ledger.deductPoints(
+        memberId,
+        item.points_cost,
+        'CATALOGUE_REDEEM',
+        `Redeem: ${item.title} (item: ${itemId})`,
+        idempotencyKey,
+      );
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      throw new BadRequestException(msg);
+    }
+
+    // Atomically decrement inventory after successful point deduction
     if (item.inventory_count !== null && item.inventory_count !== undefined) {
       const updated = await BurnCatalogueItemModel.findOneAndUpdate(
         { item_id: { $eq: itemId }, tenant_id: { $eq: tenantId }, inventory_count: { $gt: 0 } },
         { $inc: { inventory_count: -1 } },
       ).exec();
       if (!updated) {
-        throw new BadRequestException('Catalogue item is out of stock');
+        // Points were already deducted; log for manual reconciliation
+        this.logger.error(
+          { memberId, itemId, idempotencyKey },
+          'Inventory race: points deducted but inventory exhausted — requires reconciliation',
+        );
       }
     }
-
-    // Deduct points — append-only debit; throws BadRequestException on insufficient balance
-    await this.ledger.deductPoints(
-      memberId,
-      item.points_cost,
-      'CATALOGUE_REDEEM',
-      `Redeem: ${item.title} (item: ${itemId})`,
-      deductKey,
-    );
 
     // Create append-only redemption record
     await BurnRedemptionModel.create({
@@ -223,6 +231,13 @@ export class BurnCatalogueService {
     if (!Number.isInteger(input.points_cost) || input.points_cost < 1) {
       throw new BadRequestException('points_cost must be a positive integer');
     }
+    if (
+      input.inventory_count !== null &&
+      input.inventory_count !== undefined &&
+      (!Number.isInteger(input.inventory_count) || input.inventory_count < 0)
+    ) {
+      throw new BadRequestException('inventory_count must be a non-negative integer');
+    }
 
     const item = await BurnCatalogueItemModel.create({
       item_id: randomUUID(),
@@ -252,6 +267,13 @@ export class BurnCatalogueService {
       if (!Number.isInteger(updates.points_cost) || updates.points_cost < 1) {
         throw new BadRequestException('points_cost must be a positive integer');
       }
+    }
+    if (
+      updates.inventory_count !== null &&
+      updates.inventory_count !== undefined &&
+      (!Number.isInteger(updates.inventory_count) || updates.inventory_count < 0)
+    ) {
+      throw new BadRequestException('inventory_count must be a non-negative integer');
     }
 
     const item = await BurnCatalogueItemModel.findOneAndUpdate(
