@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [main]
+    branches: [main, feature/**, feat/**]
 
 permissions:
   contents: read
@@ -41,6 +41,9 @@ jobs:
       - name: Lint CI Gate
         continue-on-error: true
         run: npm run lint:ci
+
+      - name: Type Check
+        run: npm run type-check
 
       - name: Ship Gate
         env:
