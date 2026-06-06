@@ -71,8 +71,8 @@ function mockReqRes(): {
 // ---------------------------------------------------------------------------
 
 describe('Security Wiring — PUBLIC_ROUTES policy', () => {
-  it('should contain exactly 5 routes (3 health + signup + webhook receive)', () => {
-    expect(PUBLIC_ROUTES).toHaveLength(5);
+  it('should contain exactly 6 routes (3 health + signup + webhook receive + woocommerce webhook)', () => {
+    expect(PUBLIC_ROUTES).toHaveLength(6);
   });
 
   it('should include GET /health as combined health summary', () => {
@@ -105,6 +105,12 @@ describe('Security Wiring — PUBLIC_ROUTES policy', () => {
     expect(route!.method).toBe(RequestMethod.POST);
   });
 
+  it('should include POST /api/v1/integrations/woocommerce/webhook as HMAC-authenticated surface', () => {
+    const route = PUBLIC_ROUTES.find((r) => r.path === 'api/v1/integrations/woocommerce/webhook');
+    expect(route).toBeDefined();
+    expect(route!.method).toBe(RequestMethod.POST);
+  });
+
   it('should contain no financial route patterns', () => {
     const financialPatterns = ['wallet', 'burn', 'redeem', 'credit', 'deduct', 'ledger'];
     const publicPaths = PUBLIC_ROUTES.map((r) => r.path);
@@ -120,12 +126,12 @@ describe('Security Wiring — PUBLIC_ROUTES policy', () => {
 // ---------------------------------------------------------------------------
 
 describe('Security Wiring — protected route classification', () => {
-  it('should classify 9 routes as AUTH-AND-TENANT', () => {
-    expect(TENANT_SCOPED_ROUTES).toHaveLength(9);
+  it('should classify 13 routes as AUTH-AND-TENANT', () => {
+    expect(TENANT_SCOPED_ROUTES).toHaveLength(13);
   });
 
-  it('should classify 5 routes as AUTH-ONLY', () => {
-    expect(AUTH_ONLY_ROUTES).toHaveLength(5);
+  it('should classify 7 routes as AUTH-ONLY', () => {
+    expect(AUTH_ONLY_ROUTES).toHaveLength(7);
   });
 
   it('should include ledger transaction history endpoints in AUTH-ONLY', () => {
