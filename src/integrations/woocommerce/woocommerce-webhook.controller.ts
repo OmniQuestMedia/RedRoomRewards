@@ -59,7 +59,7 @@ export class WooCommerceWebhookController {
   private verifySignature(body: unknown, signature: string): void {
     const secret = process.env.WOOCOMMERCE_WEBHOOK_SECRET;
     if (!secret) {
-      this.logger.warn('WOOCOMMERCE_WEBHOOK_SECRET not set — skipping signature verification');
+      this.logger.warn('WOOCOMMERCE_WEBHOOK_SECRET not set — skipping signature verification'); // ci-allow: log-secret — logs a config-missing notice, no secret value is present
       return;
     }
 
