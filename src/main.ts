@@ -6,7 +6,7 @@ import { setupSwagger } from './openapi';
 import logger from './lib/logger';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { rawBody: true });
 
   app.setGlobalPrefix('api/v1', { exclude: ['health', 'health/live', 'health/ready'] });
   app.enableCors({ origin: true }); // tighten in prod
