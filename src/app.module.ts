@@ -13,6 +13,7 @@ import { WebhookModule } from './webhooks/webhook.module';
 import { RedemptionModule } from './redemption/redemption.module';
 import { AdminModule } from './admin/admin.module';
 import { WooCommerceModule } from './integrations/woocommerce/woocommerce.module';
+import { CatalogueModule } from './catalogue/catalogue.module';
 import { HealthController } from './health/health.controller';
 import productionConfig from './config/production.config';
 import appConfig from './config/app.config';
@@ -40,6 +41,7 @@ const SIGNUP_ROUTE = { path: 'api/v1/members/signup', method: RequestMethod.POST
     RedemptionModule,
     AdminModule,
     WooCommerceModule,
+    CatalogueModule,
   ],
   controllers: [HealthController],
 })

@@ -77,6 +77,11 @@ export const TENANT_SCOPED_ROUTES: RouteInfo[] = [
   // Screen 06 — Redemption Flow (Member)
   { path: 'api/v1/redemptions', method: RequestMethod.POST },
   { path: 'api/v1/redemptions/eligible', method: RequestMethod.GET },
+  // Burn Catalogue — member-facing (tenant-scoped)
+  { path: 'api/v1/catalogue', method: RequestMethod.GET },
+  { path: 'api/v1/catalogue/:id', method: RequestMethod.GET },
+  { path: 'api/v1/catalogue/redeem', method: RequestMethod.POST },
+  { path: 'api/v1/catalogue/my-redemptions', method: RequestMethod.GET },
 ];
 
 /**
@@ -98,4 +103,7 @@ export const AUTH_ONLY_ROUTES: RouteInfo[] = [
   { path: 'api/v1/ledger/transactions', method: RequestMethod.GET },
   { path: 'api/v1/ledger/transactions/:entryId', method: RequestMethod.GET },
   { path: 'api/v1/wallets/:userId/escrow/:escrowId', method: RequestMethod.GET },
+  // Burn Catalogue — admin management (auth-only, step-up enforced at service level)
+  { path: 'api/v1/admin/catalogue', method: RequestMethod.POST },
+  { path: 'api/v1/admin/catalogue/:id', method: RequestMethod.PUT },
 ];
