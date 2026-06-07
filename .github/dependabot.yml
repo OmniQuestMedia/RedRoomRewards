@@ -1,35 +1,35 @@
 version: 2
 updates:
   # Keep npm / Node dependencies up to date
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: 'npm'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "06:00"
-      timezone: "America/Toronto"
+      interval: 'weekly'
+      day: 'monday'
+      time: '06:00'
+      timezone: 'America/Toronto'
     open-pull-requests-limit: 10
-    rebase-strategy: "auto"
+    rebase-strategy: 'auto'
     labels:
-      - "dependencies"
-      - "security"
+      - 'dependencies'
+      - 'security'
     groups:
       nestjs:
-        dependency-type: "production"
+        dependency-type: 'production'
         patterns:
-          - "@nestjs/*"
+          - '@nestjs/*'
       eslint:
-        dependency-type: "development"
+        dependency-type: 'development'
         patterns:
-          - "eslint*"
-          - "@typescript-eslint/*"
+          - 'eslint*'
+          - '@typescript-eslint/*'
 
   # Keep GitHub Actions up to date
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: 'github-actions'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "04:30"
+      interval: 'weekly'
+      day: 'monday'
+      time: '04:30'
     open-pull-requests-limit: 10
-    rebase-strategy: "auto"
+    rebase-strategy: 'auto'
