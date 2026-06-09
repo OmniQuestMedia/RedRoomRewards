@@ -123,9 +123,10 @@ export async function getCatalogue(
 }
 
 export async function redeemItem(itemId: string): Promise<RedeemResponse> {
+  const { randomUUID } = await import('crypto');
   return apiFetch<RedeemResponse>('/catalogue/redeem', {
     method: 'POST',
-    body: JSON.stringify({ itemId }),
+    body: JSON.stringify({ itemId, idempotencyKey: randomUUID() }),
   });
 }
 

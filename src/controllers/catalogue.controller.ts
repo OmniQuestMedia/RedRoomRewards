@@ -179,7 +179,9 @@ export class AdminCatalogueController {
       return;
     }
 
-    const item = await this.catalogueService.updateCatalogueItem(id, tenantId, body);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { tenant_id: _tid, ...safeUpdates } = body;
+    const item = await this.catalogueService.updateCatalogueItem(id, tenantId, safeUpdates);
     res.status(HttpStatus.OK).json(item);
   }
 }

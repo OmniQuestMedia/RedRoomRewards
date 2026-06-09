@@ -50,6 +50,7 @@ describe('BurnCatalogueService', () => {
     jest.clearAllMocks();
     ledger = {
       deductPoints: jest.fn().mockResolvedValue(true),
+      creditPoints: jest.fn().mockResolvedValue(true),
     } as unknown as jest.Mocked<LedgerService>;
     service = new BurnCatalogueService(ledger);
   });
@@ -82,9 +83,10 @@ describe('BurnCatalogueService', () => {
     });
 
     it('credits ledger deduction and creates redemption record on success', async () => {
-      mockFindOne.mockReturnValue({
-        exec: () => Promise.resolve({ ...mockItemBase }),
-      });
+      // First call: item lookup; second call: idempotency check (no existing record)
+      mockFindOne
+        .mockReturnValueOnce({ exec: () => Promise.resolve({ ...mockItemBase }) })
+        .mockReturnValueOnce({ exec: () => Promise.resolve(null) });
       mockUpdateOne.mockReturnValue({ exec: () => Promise.resolve({}) });
       mockCreate.mockResolvedValue({});
 
@@ -116,6 +118,50 @@ describe('BurnCatalogueService', () => {
       await expect(
         service.redeemItem('member-1', 'item-001', 'redroompleasures', 'idem-key-1'),
       ).rejects.toThrow(BadRequestException);
+    });
+
+    it('compensates points and throws when inventory atomic decrement loses a race', async () => {
+      mockFindOne.mockReturnValue({
+        exec: () => Promise.resolve({ ...mockItemBase, inventory_count: 1 }),
+      });
+      // Atomic decrement finds no document (race — another request won)
+      mockFindOneAndUpdate.mockReturnValue({ exec: () => Promise.resolve(null) });
+
+      await expect(
+        service.redeemItem('member-1', 'item-001', 'redroompleasures', 'idem-key-race'),
+      ).rejects.toThrow(BadRequestException);
+
+      expect(ledger.creditPoints).toHaveBeenCalledWith(
+        'member-1',
+        500,
+        'CATALOGUE_REDEEM_REVERSAL',
+        expect.stringContaining('item-001'),
+        'idem-key-race-reversal',
+      );
+    });
+
+    it('returns existing redemption record on idempotent retry', async () => {
+      const existingRedemption = {
+        redemption_id: 'existing-id',
+        redemption_code: 'RRR-REDR-EXISTING',
+        points_spent: 500,
+      };
+      // First findOne returns the item, second returns the existing redemption
+      mockFindOne
+        .mockReturnValueOnce({ exec: () => Promise.resolve({ ...mockItemBase }) })
+        .mockReturnValueOnce({ exec: () => Promise.resolve(existingRedemption) });
+      mockFindOneAndUpdate.mockReturnValue({ exec: () => Promise.resolve({ inventory_count: 1 }) });
+
+      const result = await service.redeemItem(
+        'member-1',
+        'item-001',
+        'redroompleasures',
+        'idem-key-duplicate',
+      );
+
+      expect(result.redemptionId).toBe('existing-id');
+      expect(result.redemptionCode).toBe('RRR-REDR-EXISTING');
+      expect(mockCreate).not.toHaveBeenCalled();
     });
   });
 

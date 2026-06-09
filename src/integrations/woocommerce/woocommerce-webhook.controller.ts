@@ -13,11 +13,6 @@ import { Request } from 'express';
 import { createHmac, timingSafeEqual } from 'crypto';
 import { WooCommerceService, WooCommerceOrderPayload } from './woocommerce.service';
 
-interface WooCommerceWebhookBody {
-  topic?: string;
-  [key: string]: unknown;
-}
-
 @Controller('integrations/woocommerce')
 export class WooCommerceWebhookController {
   private readonly logger = new Logger(WooCommerceWebhookController.name);
@@ -38,7 +33,7 @@ export class WooCommerceWebhookController {
   @Post('webhook')
   @HttpCode(HttpStatus.OK)
   async receive(
-    @Body() body: WooCommerceWebhookBody,
+    @Body() body: WooCommerceOrderPayload,
     @Req() req: Request & { rawBody?: Buffer },
     @Headers('x-wc-webhook-topic') topic: string,
     @Headers('x-wc-webhook-signature') signature: string,
@@ -46,11 +41,11 @@ export class WooCommerceWebhookController {
   ): Promise<{ received: boolean }> {
     this.verifySignature(req.rawBody, signature);
 
-    const eventTopic = topic ?? body.topic ?? '';
+    const eventTopic = topic ?? '';
     this.logger.log({ topic: eventTopic, deliveryId }, 'WooCommerce webhook received');
 
     // Fire-and-forget — respond 200 before processing
-    void this.dispatch(eventTopic, body as unknown as WooCommerceOrderPayload).catch((err) => {
+    void this.dispatch(eventTopic, body).catch((err) => {
       this.logger.error(
         { topic: eventTopic, deliveryId, err: String(err) },
         'WooCommerce webhook processing error',
@@ -63,8 +58,7 @@ export class WooCommerceWebhookController {
   private verifySignature(rawBody: Buffer | undefined, signature: string): void {
     const secret = process.env.WOOCOMMERCE_WEBHOOK_SECRET;
     if (!secret) {
-      this.logger.warn('WOOCOMMERCE_WEBHOOK_SECRET not set — skipping signature verification'); // ci-allow: log-secret — logs a config-missing notice, no secret value is present
-      return;
+      throw new BadRequestException('Webhook integration not configured');
     }
 
     if (!signature) {

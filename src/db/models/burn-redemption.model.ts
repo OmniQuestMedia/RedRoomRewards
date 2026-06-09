@@ -11,6 +11,7 @@ export interface IBurnRedemption extends Document {
   redemption_code: string;
   status: BurnRedemptionStatus;
   correlation_id: string;
+  idempotency_key?: string;
   createdAt: Date;
 }
 
@@ -36,6 +37,7 @@ const BurnRedemptionSchema = new Schema<IBurnRedemption>(
       default: 'PENDING',
     },
     correlation_id: { type: String, required: true, trim: true, maxlength: 128 },
+    idempotency_key: { type: String, required: false, trim: true, maxlength: 256, index: true },
   },
   {
     timestamps: { createdAt: true, updatedAt: false },
