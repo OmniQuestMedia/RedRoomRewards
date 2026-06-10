@@ -42,6 +42,9 @@ export class WooCommerceWebhookController {
     this.verifySignature(req.rawBody, signature);
 
     const eventTopic = topic ?? '';
+    if (!eventTopic) {
+      throw new BadRequestException('x-wc-webhook-topic header is required');
+    }
     this.logger.log({ topic: eventTopic, deliveryId }, 'WooCommerce webhook received');
 
     // Fire-and-forget — respond 200 before processing

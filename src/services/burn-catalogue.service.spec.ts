@@ -178,6 +178,28 @@ describe('BurnCatalogueService', () => {
       expect(ledger.deductPoints).not.toHaveBeenCalled();
     });
 
+    it('throws BadRequestException when E11000 winner has a different catalogue_item_id', async () => {
+      // Winner slot was created for item-999, but this request is for item-001
+      const winnerRecord = {
+        redemption_id: 'winner-id',
+        redemption_code: 'RRR-REDR-WINNER',
+        points_spent: 500,
+        item_title: 'Some Other Item',
+        catalogue_item_id: 'item-999',
+      };
+      mockFindOne
+        .mockReturnValueOnce({ exec: () => Promise.resolve(null) })
+        .mockReturnValueOnce({ exec: () => Promise.resolve({ ...mockItemBase }) })
+        .mockReturnValueOnce({ exec: () => Promise.resolve(winnerRecord) });
+      const dupErr = Object.assign(new Error('E11000'), { code: 11000 });
+      mockCreate.mockRejectedValue(dupErr);
+
+      await expect(
+        service.redeemItem('member-1', 'item-001', 'redroompleasures', 'idem-key-concurrent'),
+      ).rejects.toThrow(BadRequestException);
+      expect(ledger.deductPoints).not.toHaveBeenCalled();
+    });
+
     it('returns existing redemption record on idempotent retry without side effects', async () => {
       const existingRedemption = {
         redemption_id: 'existing-id',

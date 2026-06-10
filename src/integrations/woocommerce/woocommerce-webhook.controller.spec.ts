@@ -55,6 +55,14 @@ describe('WooCommerceWebhookController', () => {
     ).rejects.toThrow(BadRequestException);
   });
 
+  it('throws BadRequestException when x-wc-webhook-topic header is missing', async () => {
+    const req = { rawBody } as unknown as import('express').Request & { rawBody?: Buffer };
+    const sig = makeSignature(rawBody);
+    await expect(controller.receive(ORDER_PAYLOAD, req, '', sig, 'del-topic')).rejects.toThrow(
+      BadRequestException,
+    );
+  });
+
   it('throws BadRequestException when signature is invalid', async () => {
     const req = { rawBody } as unknown as import('express').Request & { rawBody?: Buffer };
     await expect(

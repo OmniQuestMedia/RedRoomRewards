@@ -187,6 +187,11 @@ export class BurnCatalogueService {
           idempotency_key: { $eq: idempotencyKey },
         }).exec();
         if (winner) {
+          if (winner.catalogue_item_id !== itemId) {
+            throw new BadRequestException(
+              'Idempotency key already used for a different catalogue item',
+            );
+          }
           return {
             redemptionId: winner.redemption_id,
             redemptionCode: winner.redemption_code,
