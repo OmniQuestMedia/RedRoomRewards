@@ -4,7 +4,7 @@
  * Tests for event publishing, subscription, idempotency, and concurrency handling.
  */
 
-import { EventBus, resetEventBus } from './event-bus';
+import { EventBus, resetEventBus, getEventBus } from './event-bus';
 import { WalletEventType, EscrowHeldEvent, EventHandler, BaseRewardEvent } from './types';
 
 describe('EventBus', () => {
@@ -416,6 +416,44 @@ describe('EventBus', () => {
       expect(stats.totalSubscribers).toBe(3); // sub-1 counts for 2 event types
       expect(stats.subscriptionsByType[WalletEventType.ESCROW_HELD]).toBe(2);
       expect(stats.subscriptionsByType[WalletEventType.ESCROW_SETTLED]).toBe(1);
+    });
+  });
+
+  describe('destroy', () => {
+    it('clears the cleanup interval and subscriptions', () => {
+      const bus = new EventBus();
+      bus.subscribe({
+        subscriberId: 'sub-destroy',
+        eventTypes: [WalletEventType.ESCROW_HELD],
+        handler: async () => {},
+      });
+      bus.destroy();
+      expect(bus.getStats().totalSubscribers).toBe(0);
+    });
+
+    it('is safe to call destroy twice', () => {
+      const bus = new EventBus();
+      bus.destroy();
+      expect(() => bus.destroy()).not.toThrow();
+    });
+  });
+
+  describe('getEventBus / resetEventBus', () => {
+    afterEach(() => {
+      resetEventBus();
+    });
+
+    it('getEventBus returns the same instance on repeated calls', () => {
+      const a = getEventBus();
+      const b = getEventBus();
+      expect(a).toBe(b);
+    });
+
+    it('resetEventBus clears the singleton so next call creates a fresh instance', () => {
+      const a = getEventBus();
+      resetEventBus();
+      const b = getEventBus();
+      expect(a).not.toBe(b);
     });
   });
 });

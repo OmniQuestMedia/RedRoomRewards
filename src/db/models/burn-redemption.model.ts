@@ -37,12 +37,18 @@ const BurnRedemptionSchema = new Schema<IBurnRedemption>(
       default: 'PENDING',
     },
     correlation_id: { type: String, required: true, trim: true, maxlength: 128 },
-    idempotency_key: { type: String, required: false, trim: true, maxlength: 256, index: true },
+    idempotency_key: { type: String, required: false, trim: true, maxlength: 256 },
   },
   {
     timestamps: { createdAt: true, updatedAt: false },
     collection: 'burn_redemptions',
   },
+);
+
+// Unique compound index so concurrent retries with the same key are rejected at the DB layer
+BurnRedemptionSchema.index(
+  { tenant_id: 1, member_id: 1, idempotency_key: 1 },
+  { unique: true, sparse: true },
 );
 
 export const BurnRedemptionModel = mongoose.model<IBurnRedemption>(

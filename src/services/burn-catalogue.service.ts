@@ -111,6 +111,13 @@ export class BurnCatalogueService {
     tenantId: string,
     idempotencyKey: string,
   ): Promise<RedeemItemResult> {
+    // Idempotency guard first — retries return the original outcome with no side effects
+    const existing = await BurnRedemptionModel.findOne({
+      member_id: { $eq: memberId },
+      tenant_id: { $eq: tenantId },
+      idempotency_key: { $eq: idempotencyKey },
+    }).exec();
+
     const item = await BurnCatalogueItemModel.findOne({
       item_id: { $eq: itemId },
       tenant_id: { $eq: tenantId },
@@ -119,6 +126,15 @@ export class BurnCatalogueService {
 
     if (!item) {
       throw new NotFoundException(`Catalogue item ${itemId} is not available`);
+    }
+
+    if (existing) {
+      return {
+        redemptionId: existing.redemption_id,
+        redemptionCode: existing.redemption_code,
+        pointsSpent: existing.points_spent,
+        itemTitle: item.title,
+      };
     }
 
     const now = new Date();
@@ -161,30 +177,16 @@ export class BurnCatalogueService {
       ).exec();
       if (!updated) {
         // Inventory exhausted in a race — compensate the points deduction and abort
+        const reversalKey = `${idempotencyKey.slice(0, 240)}-reversal`;
         await this.ledger.creditPoints(
           memberId,
           item.points_cost,
           'CATALOGUE_REDEEM_REVERSAL',
           `Reversal: out-of-stock race for item ${itemId}`,
-          `${idempotencyKey}-reversal`,
+          reversalKey,
         );
         throw new BadRequestException('Catalogue item is out of stock');
       }
-    }
-
-    // Idempotency guard: return existing record if this key was already processed
-    const existing = await BurnRedemptionModel.findOne({
-      member_id: { $eq: memberId },
-      tenant_id: { $eq: tenantId },
-      idempotency_key: { $eq: idempotencyKey },
-    }).exec();
-    if (existing) {
-      return {
-        redemptionId: existing.redemption_id,
-        redemptionCode: existing.redemption_code,
-        pointsSpent: existing.points_spent,
-        itemTitle: item.title,
-      };
     }
 
     // Create append-only redemption record

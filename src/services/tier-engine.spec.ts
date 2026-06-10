@@ -61,4 +61,14 @@ describe('TierEngineService (WO-007)', () => {
     expect(result.currentTier).toBe(RedRoomTier.RED_DESIRE);
     expect(result.pointsToNextTier).toBe(5_000);
   });
+
+  describe('getMultiplier', () => {
+    it('returns earningMultiplier for a known tier', () => {
+      expect(service.getMultiplier(RedRoomTier.RED_DESIRE)).toBeGreaterThan(0);
+    });
+
+    it('returns 1.0 for an unknown tier (fallback branch)', () => {
+      expect(service.getMultiplier('UNKNOWN_TIER' as RedRoomTier)).toBe(1.0);
+    });
+  });
 });

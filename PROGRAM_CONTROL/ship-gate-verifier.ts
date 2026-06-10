@@ -136,7 +136,11 @@ function validateCrossRepoLintParity(): void {
   ];
   const eslintConfigPresent = eslintConfigFiles.some((f) => pathExists(f));
   if (!eslintConfigPresent) {
-    failures.push('.eslintrc.js is missing at the repo root.');
+    failures.push(
+      'ESLint config file is missing at the repo root (expected one of: ' +
+        eslintConfigFiles.join(', ') +
+        ').',
+    );
   } else {
     checks.push('.eslintrc.js present at repo root');
   }
