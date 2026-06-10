@@ -127,7 +127,15 @@ function validateCrossRepoLintParity(): void {
     'lint-staged'?: Record<string, unknown>;
   } = {};
 
-  if (!pathExists('.eslintrc.js')) {
+  const eslintConfigFiles = [
+    '.eslintrc.js',
+    '.eslintrc.cjs',
+    'eslint.config.js',
+    'eslint.config.mjs',
+    'eslint.config.cjs',
+  ];
+  const eslintConfigPresent = eslintConfigFiles.some((f) => pathExists(f));
+  if (!eslintConfigPresent) {
     failures.push('.eslintrc.js is missing at the repo root.');
   } else {
     checks.push('.eslintrc.js present at repo root');
