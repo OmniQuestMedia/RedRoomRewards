@@ -111,8 +111,8 @@ export class BurnCatalogueService {
     tenantId: string,
     idempotencyKey: string,
   ): Promise<RedeemItemResult> {
-    // Idempotency guard first — retries return the original outcome with no side effects.
-    // Checked before item lookup so idempotency works even if the item is later deactivated.
+    // Idempotency guard — retries return the original outcome with no side effects.
+    // Checked before item lookup so it works even if the item is later deactivated.
     const existing = await BurnRedemptionModel.findOne({
       member_id: { $eq: memberId },
       tenant_id: { $eq: tenantId },
@@ -129,7 +129,7 @@ export class BurnCatalogueService {
         redemptionId: existing.redemption_id,
         redemptionCode: existing.redemption_code,
         pointsSpent: existing.points_spent,
-        itemTitle: existing.catalogue_item_id,
+        itemTitle: existing.item_title,
       };
     }
 
@@ -161,7 +161,44 @@ export class BurnCatalogueService {
     const redemptionCode = `RRR-${tenantId.toUpperCase().slice(0, 4)}-${randomUUID().replace(/-/g, '').toUpperCase().slice(0, 12)}`;
     const redemptionId = randomUUID();
 
-    // Deduct points first — if balance is insufficient this throws before any inventory change
+    // Create the redemption record first — the unique {tenant_id,member_id,idempotency_key} index
+    // makes this the atomic "single winner" gate. Concurrent requests with the same key will hit a
+    // duplicate-key error here and fall back to returning the winner's record, ensuring only one
+    // request proceeds to deductPoints and inventory mutation.
+    try {
+      await BurnRedemptionModel.create({
+        redemption_id: redemptionId,
+        member_id: memberId,
+        catalogue_item_id: itemId,
+        item_title: item.title,
+        tenant_id: tenantId,
+        points_spent: item.points_cost,
+        redemption_code: redemptionCode,
+        status: 'PENDING',
+        correlation_id: correlationId,
+        idempotency_key: idempotencyKey,
+      });
+    } catch (createErr: unknown) {
+      // Duplicate key = a concurrent request already claimed this idempotency slot
+      if ((createErr as { code?: number }).code === 11000) {
+        const winner = await BurnRedemptionModel.findOne({
+          member_id: { $eq: memberId },
+          tenant_id: { $eq: tenantId },
+          idempotency_key: { $eq: idempotencyKey },
+        }).exec();
+        if (winner) {
+          return {
+            redemptionId: winner.redemption_id,
+            redemptionCode: winner.redemption_code,
+            pointsSpent: winner.points_spent,
+            itemTitle: winner.item_title,
+          };
+        }
+      }
+      throw createErr;
+    }
+
+    // We are the winner — deduct points. On failure, roll back the pending record.
     try {
       await this.ledger.deductPoints(
         memberId,
@@ -171,37 +208,22 @@ export class BurnCatalogueService {
         idempotencyKey,
       );
     } catch (err) {
+      await BurnRedemptionModel.deleteOne({
+        redemption_id: { $eq: redemptionId },
+        tenant_id: { $eq: tenantId },
+      }).exec();
       const msg = err instanceof Error ? err.message : String(err);
       throw new BadRequestException(msg);
     }
 
-    // Re-check idempotency after deductPoints: a concurrent request with the same key may have
-    // completed between our initial guard and the point deduction. Because deductPoints is
-    // idempotent (same key returns the existing ledger entry without double-charging), both
-    // requests charged the same single debit. If the concurrent winner already created the
-    // BurnRedemption, return it now and skip inventory mutation — avoiding a free-item race.
-    const existingAfterDeduct = await BurnRedemptionModel.findOne({
-      member_id: { $eq: memberId },
-      tenant_id: { $eq: tenantId },
-      idempotency_key: { $eq: idempotencyKey },
-    }).exec();
-    if (existingAfterDeduct) {
-      return {
-        redemptionId: existingAfterDeduct.redemption_id,
-        redemptionCode: existingAfterDeduct.redemption_code,
-        pointsSpent: existingAfterDeduct.points_spent,
-        itemTitle: item.title,
-      };
-    }
-
-    // Atomically decrement inventory after successful point deduction
+    // Atomically decrement inventory. We definitively own the debit so reversal here is safe.
     if (item.inventory_count !== null && item.inventory_count !== undefined) {
       const updated = await BurnCatalogueItemModel.findOneAndUpdate(
         { item_id: { $eq: itemId }, tenant_id: { $eq: tenantId }, inventory_count: { $gt: 0 } },
         { $inc: { inventory_count: -1 } },
       ).exec();
       if (!updated) {
-        // Inventory exhausted in a race — compensate the points deduction and abort
+        // Inventory exhausted in a race — compensate our debit and delete the pending record
         const reversalKey = `${idempotencyKey.slice(0, 240)}-reversal`;
         await this.ledger.creditPoints(
           memberId,
@@ -210,22 +232,13 @@ export class BurnCatalogueService {
           `Reversal: out-of-stock race for item ${itemId}`,
           reversalKey,
         );
+        await BurnRedemptionModel.deleteOne({
+          redemption_id: { $eq: redemptionId },
+          tenant_id: { $eq: tenantId },
+        }).exec();
         throw new BadRequestException('Catalogue item is out of stock');
       }
     }
-
-    // Create append-only redemption record
-    await BurnRedemptionModel.create({
-      redemption_id: redemptionId,
-      member_id: memberId,
-      catalogue_item_id: itemId,
-      tenant_id: tenantId,
-      points_spent: item.points_cost,
-      redemption_code: redemptionCode,
-      status: 'PENDING',
-      correlation_id: correlationId,
-      idempotency_key: idempotencyKey,
-    });
 
     this.logger.log(
       { memberId, itemId, redemptionId, points: item.points_cost },

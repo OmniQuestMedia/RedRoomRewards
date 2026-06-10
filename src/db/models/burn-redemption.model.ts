@@ -6,6 +6,7 @@ export interface IBurnRedemption extends Document {
   redemption_id: string;
   member_id: string;
   catalogue_item_id: string;
+  item_title: string;
   tenant_id: string;
   points_spent: number;
   redemption_code: string;
@@ -37,6 +38,7 @@ const BurnRedemptionSchema = new Schema<IBurnRedemption>(
       default: 'PENDING',
     },
     correlation_id: { type: String, required: true, trim: true, maxlength: 128 },
+    item_title: { type: String, required: true, trim: true, maxlength: 256 },
     idempotency_key: { type: String, required: false, trim: true, maxlength: 256 },
   },
   {

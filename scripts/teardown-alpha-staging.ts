@@ -56,14 +56,11 @@ import mongoose from 'mongoose';
 import { TenantModel } from '../src/db/models/tenant.model';
 import { WalletModel } from '../src/db/models/wallet.model';
 import { ModelWalletModel } from '../src/db/models/model-wallet.model';
-import { PointLotModel } from '../src/db/models/point-lot.model';
 import { EscrowItemModel } from '../src/db/models/escrow-item.model';
 // LedgerEntryModel intentionally NOT imported. The append-only ledger
 // invariant (docs/OPERATIONAL_RUNBOOK.md §0) forbids DELETE on ledger rows
 // in any environment.
 import { LedgerEntryModel } from '../src/db/models/ledger-entry.model';
-import { PointLotModel } from '../src/db/models/point-lot.model';
-import { EscrowItemModel } from '../src/db/models/escrow-item.model';
 
 const TEST_USER_PREFIX = 'test-member-';
 const TEST_MODEL_PREFIX = 'test-model-';
@@ -178,17 +175,6 @@ async function teardown(args: Args): Promise<void> {
       totalDeleted += r.deletedCount ?? 0;
     }
     console.log(`  EscrowItem           matched=${matched}  ${args.dryRun ? '(dry)' : 'deleted'}`);
-  }
-
-  // 4. PointLots — wallet_id is the userId on the wallet
-  {
-    const filter = { wallet_id: userPrefixFilter };
-    const matched = await PointLotModel.countDocuments(filter);
-    if (!args.dryRun && matched > 0) {
-      const r = await PointLotModel.deleteMany(filter);
-      totalDeleted += r.deletedCount ?? 0;
-    }
-    console.log(`  PointLot             matched=${matched}  ${args.dryRun ? '(dry)' : 'deleted'}`);
   }
 
   // LedgerEntry is intentionally not deleted by this script — see the file

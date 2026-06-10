@@ -122,10 +122,13 @@ export async function getCatalogue(
   return apiFetch<CatalogueResponse>(`/catalogue${qs ? `?${qs}` : ''}`);
 }
 
-export async function redeemItem(itemId: string): Promise<RedeemResponse> {
+export async function redeemItem(
+  itemId: string,
+  idempotencyKey = crypto.randomUUID(),
+): Promise<RedeemResponse> {
   return apiFetch<RedeemResponse>('/catalogue/redeem', {
     method: 'POST',
-    body: JSON.stringify({ itemId, idempotencyKey: crypto.randomUUID() }),
+    body: JSON.stringify({ itemId, idempotencyKey }),
   });
 }
 
