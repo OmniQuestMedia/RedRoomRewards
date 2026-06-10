@@ -75,11 +75,9 @@ describe('BurnCatalogueService', () => {
 
     it('throws BadRequestException when inventory is 0', async () => {
       // First findOne: idempotency (null); second: item (inventory_count: 0)
-      mockFindOne
-        .mockReturnValueOnce({ exec: () => Promise.resolve(null) })
-        .mockReturnValueOnce({
-          exec: () => Promise.resolve({ ...mockItemBase, inventory_count: 0 }),
-        });
+      mockFindOne.mockReturnValueOnce({ exec: () => Promise.resolve(null) }).mockReturnValueOnce({
+        exec: () => Promise.resolve({ ...mockItemBase, inventory_count: 0 }),
+      });
       mockFindOneAndUpdate.mockReturnValue({ exec: () => Promise.resolve(null) });
 
       await expect(
@@ -88,10 +86,11 @@ describe('BurnCatalogueService', () => {
     });
 
     it('credits ledger deduction and creates redemption record on success', async () => {
-      // First call: idempotency check (null); second: item lookup
+      // 1st: idempotency guard (null); 2nd: item lookup; 3rd: post-deduct re-check (null)
       mockFindOne
         .mockReturnValueOnce({ exec: () => Promise.resolve(null) })
-        .mockReturnValueOnce({ exec: () => Promise.resolve({ ...mockItemBase }) });
+        .mockReturnValueOnce({ exec: () => Promise.resolve({ ...mockItemBase }) })
+        .mockReturnValueOnce({ exec: () => Promise.resolve(null) });
       mockUpdateOne.mockReturnValue({ exec: () => Promise.resolve({}) });
       mockCreate.mockResolvedValue({});
 
@@ -116,11 +115,9 @@ describe('BurnCatalogueService', () => {
 
     it('throws BadRequestException when item has expired', async () => {
       const expired = new Date(Date.now() - 1000);
-      mockFindOne
-        .mockReturnValueOnce({ exec: () => Promise.resolve(null) })
-        .mockReturnValueOnce({
-          exec: () => Promise.resolve({ ...mockItemBase, valid_until: expired }),
-        });
+      mockFindOne.mockReturnValueOnce({ exec: () => Promise.resolve(null) }).mockReturnValueOnce({
+        exec: () => Promise.resolve({ ...mockItemBase, valid_until: expired }),
+      });
 
       await expect(
         service.redeemItem('member-1', 'item-001', 'redroompleasures', 'idem-key-1'),
@@ -128,12 +125,13 @@ describe('BurnCatalogueService', () => {
     });
 
     it('compensates points and throws when inventory atomic decrement loses a race', async () => {
-      // First findOne: idempotency check (no existing record); second: item lookup with inventory
+      // 1st: idempotency guard (null); 2nd: item lookup; 3rd: post-deduct re-check (null = no winner yet)
       mockFindOne
         .mockReturnValueOnce({ exec: () => Promise.resolve(null) })
         .mockReturnValueOnce({
           exec: () => Promise.resolve({ ...mockItemBase, inventory_count: 1 }),
-        });
+        })
+        .mockReturnValueOnce({ exec: () => Promise.resolve(null) });
       // Atomic decrement finds no document (race — another request won)
       mockFindOneAndUpdate.mockReturnValue({ exec: () => Promise.resolve(null) });
 
@@ -155,11 +153,10 @@ describe('BurnCatalogueService', () => {
         redemption_id: 'existing-id',
         redemption_code: 'RRR-REDR-EXISTING',
         points_spent: 500,
+        catalogue_item_id: 'item-001',
       };
-      // Idempotency check (first) returns existing record; item lookup (second) returns item
-      mockFindOne
-        .mockReturnValueOnce({ exec: () => Promise.resolve(existingRedemption) })
-        .mockReturnValueOnce({ exec: () => Promise.resolve({ ...mockItemBase }) });
+      // Idempotency guard returns existing record — no item lookup needed
+      mockFindOne.mockReturnValueOnce({ exec: () => Promise.resolve(existingRedemption) });
 
       const result = await service.redeemItem(
         'member-1',
@@ -173,6 +170,21 @@ describe('BurnCatalogueService', () => {
       // No inventory decrement or new redemption record on retry
       expect(mockFindOneAndUpdate).not.toHaveBeenCalled();
       expect(mockCreate).not.toHaveBeenCalled();
+      expect(ledger.deductPoints).not.toHaveBeenCalled();
+    });
+
+    it('throws BadRequestException when idempotency key reused for a different item', async () => {
+      const existingRedemption = {
+        redemption_id: 'existing-id',
+        redemption_code: 'RRR-REDR-EXISTING',
+        points_spent: 500,
+        catalogue_item_id: 'item-001',
+      };
+      mockFindOne.mockReturnValueOnce({ exec: () => Promise.resolve(existingRedemption) });
+
+      await expect(
+        service.redeemItem('member-1', 'item-999', 'redroompleasures', 'idem-key-duplicate'),
+      ).rejects.toThrow(BadRequestException);
       expect(ledger.deductPoints).not.toHaveBeenCalled();
     });
   });
@@ -302,11 +314,9 @@ describe('BurnCatalogueService', () => {
   describe('redeemItem — not-yet-available', () => {
     it('throws BadRequestException when valid_from is in the future', async () => {
       const future = new Date(Date.now() + 100_000);
-      mockFindOne
-        .mockReturnValueOnce({ exec: () => Promise.resolve(null) })
-        .mockReturnValueOnce({
-          exec: () => Promise.resolve({ ...mockItemBase, valid_from: future }),
-        });
+      mockFindOne.mockReturnValueOnce({ exec: () => Promise.resolve(null) }).mockReturnValueOnce({
+        exec: () => Promise.resolve({ ...mockItemBase, valid_from: future }),
+      });
 
       await expect(
         service.redeemItem('member-1', 'item-001', 'redroompleasures', 'idem-key-future'),

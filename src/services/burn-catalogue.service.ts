@@ -111,12 +111,27 @@ export class BurnCatalogueService {
     tenantId: string,
     idempotencyKey: string,
   ): Promise<RedeemItemResult> {
-    // Idempotency guard first — retries return the original outcome with no side effects
+    // Idempotency guard first — retries return the original outcome with no side effects.
+    // Checked before item lookup so idempotency works even if the item is later deactivated.
     const existing = await BurnRedemptionModel.findOne({
       member_id: { $eq: memberId },
       tenant_id: { $eq: tenantId },
       idempotency_key: { $eq: idempotencyKey },
     }).exec();
+
+    if (existing) {
+      if (existing.catalogue_item_id !== itemId) {
+        throw new BadRequestException(
+          'Idempotency key already used for a different catalogue item',
+        );
+      }
+      return {
+        redemptionId: existing.redemption_id,
+        redemptionCode: existing.redemption_code,
+        pointsSpent: existing.points_spent,
+        itemTitle: existing.catalogue_item_id,
+      };
+    }
 
     const item = await BurnCatalogueItemModel.findOne({
       item_id: { $eq: itemId },
@@ -126,15 +141,6 @@ export class BurnCatalogueService {
 
     if (!item) {
       throw new NotFoundException(`Catalogue item ${itemId} is not available`);
-    }
-
-    if (existing) {
-      return {
-        redemptionId: existing.redemption_id,
-        redemptionCode: existing.redemption_code,
-        pointsSpent: existing.points_spent,
-        itemTitle: item.title,
-      };
     }
 
     const now = new Date();
@@ -167,6 +173,25 @@ export class BurnCatalogueService {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       throw new BadRequestException(msg);
+    }
+
+    // Re-check idempotency after deductPoints: a concurrent request with the same key may have
+    // completed between our initial guard and the point deduction. Because deductPoints is
+    // idempotent (same key returns the existing ledger entry without double-charging), both
+    // requests charged the same single debit. If the concurrent winner already created the
+    // BurnRedemption, return it now and skip inventory mutation — avoiding a free-item race.
+    const existingAfterDeduct = await BurnRedemptionModel.findOne({
+      member_id: { $eq: memberId },
+      tenant_id: { $eq: tenantId },
+      idempotency_key: { $eq: idempotencyKey },
+    }).exec();
+    if (existingAfterDeduct) {
+      return {
+        redemptionId: existingAfterDeduct.redemption_id,
+        redemptionCode: existingAfterDeduct.redemption_code,
+        pointsSpent: existingAfterDeduct.points_spent,
+        itemTitle: item.title,
+      };
     }
 
     // Atomically decrement inventory after successful point deduction
