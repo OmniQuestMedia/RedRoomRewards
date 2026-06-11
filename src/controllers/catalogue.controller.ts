@@ -179,7 +179,8 @@ export class AdminCatalogueController {
       return;
     }
 
-    const item = await this.catalogueService.updateCatalogueItem(id, tenantId, body);
+    const { tenant_id: _tid, ...safeUpdates } = body;
+    const item = await this.catalogueService.updateCatalogueItem(id, tenantId, safeUpdates);
     res.status(HttpStatus.OK).json(item);
   }
 }
