@@ -1,4 +1,10 @@
-import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { LedgerService } from '../ledger/ledger.service';
 import {
@@ -125,6 +131,12 @@ export class BurnCatalogueService {
           'Idempotency key already used for a different catalogue item',
         );
       }
+      if (existing.status === 'RESERVED') {
+        // Another request is mid-flight (or crashed between create and promotion).
+        // Client should retry in a moment; returning a RESERVED record would falsely
+        // signal success before the debit + inventory are confirmed.
+        throw new ConflictException('Redemption in progress — please retry shortly');
+      }
       return {
         redemptionId: existing.redemption_id,
         redemptionCode: existing.redemption_code,
@@ -174,7 +186,8 @@ export class BurnCatalogueService {
         tenant_id: tenantId,
         points_spent: item.points_cost,
         redemption_code: redemptionCode,
-        status: 'PENDING',
+        // RESERVED = slot claimed; promoted to PENDING only after debit + inventory succeed
+        status: 'RESERVED',
         correlation_id: correlationId,
         idempotency_key: idempotencyKey,
       });
@@ -192,6 +205,9 @@ export class BurnCatalogueService {
               'Idempotency key already used for a different catalogue item',
             );
           }
+          if (winner.status === 'RESERVED') {
+            throw new ConflictException('Redemption in progress — please retry shortly');
+          }
           return {
             redemptionId: winner.redemption_id,
             redemptionCode: winner.redemption_code,
@@ -203,7 +219,7 @@ export class BurnCatalogueService {
       throw createErr;
     }
 
-    // We are the winner — deduct points. On failure, roll back the pending record.
+    // We are the winner — deduct points. On failure, delete the RESERVED slot (clean rollback).
     try {
       await this.ledger.deductPoints(
         memberId,
@@ -244,6 +260,12 @@ export class BurnCatalogueService {
         throw new BadRequestException('Catalogue item is out of stock');
       }
     }
+
+    // Promote RESERVED → PENDING: both debit and inventory are now confirmed
+    await BurnRedemptionModel.findOneAndUpdate(
+      { redemption_id: { $eq: redemptionId }, tenant_id: { $eq: tenantId } },
+      { $set: { status: 'PENDING' } },
+    ).exec();
 
     this.logger.log(
       { memberId, itemId, redemptionId, points: item.points_cost },
