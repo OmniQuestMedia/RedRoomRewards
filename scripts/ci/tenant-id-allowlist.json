@@ -264,6 +264,7 @@
     {
       "file": "src/services/burn-catalogue.service.ts",
       "line": 296,
+      "line": 274,
       "model": "BurnRedemptionModel",
       "method": "findOne",
       "_note": "fulfillRedemption is an ops-only endpoint; redemption_id is a globally-unique UUID primary key — tenant scoping is not applicable here"

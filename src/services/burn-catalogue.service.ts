@@ -188,6 +188,7 @@ export class BurnCatalogueService {
         redemption_code: redemptionCode,
         // RESERVED = slot claimed; promoted to PENDING only after debit + inventory succeed
         status: 'RESERVED',
+        status: 'PENDING',
         correlation_id: correlationId,
         idempotency_key: idempotencyKey,
       });
@@ -220,6 +221,7 @@ export class BurnCatalogueService {
     }
 
     // We are the winner — deduct points. On failure, delete the RESERVED slot (clean rollback).
+    // We are the winner — deduct points. On failure, roll back the pending record.
     try {
       await this.ledger.deductPoints(
         memberId,
