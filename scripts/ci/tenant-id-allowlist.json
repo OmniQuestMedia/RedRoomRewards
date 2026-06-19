@@ -249,20 +249,21 @@
     },
     {
       "file": "src/services/burn-catalogue.service.ts",
-      "line": 86,
+      "line": 92,
       "model": "BurnCatalogueItemModel",
       "method": "find",
       "_note": "tenant_id: { $eq: tenantId } is set on the `query` variable built immediately above; checker cannot follow variable references"
     },
     {
       "file": "src/services/burn-catalogue.service.ts",
-      "line": 87,
+      "line": 93,
       "model": "BurnCatalogueItemModel",
       "method": "countDocuments",
       "_note": "Same query variable as line 86 — tenant_id scoped via query object"
     },
     {
       "file": "src/services/burn-catalogue.service.ts",
+      "line": 296,
       "line": 274,
       "model": "BurnRedemptionModel",
       "method": "findOne",

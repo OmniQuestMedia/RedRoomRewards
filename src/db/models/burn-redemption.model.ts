@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
-export type BurnRedemptionStatus = 'PENDING' | 'FULFILLED' | 'EXPIRED' | 'REVERSED';
+export type BurnRedemptionStatus = 'RESERVED' | 'PENDING' | 'FULFILLED' | 'EXPIRED' | 'REVERSED';
 
 export interface IBurnRedemption extends Document {
   redemption_id: string;
@@ -34,7 +34,7 @@ const BurnRedemptionSchema = new Schema<IBurnRedemption>(
     status: {
       type: String,
       required: true,
-      enum: ['PENDING', 'FULFILLED', 'EXPIRED', 'REVERSED'],
+      enum: ['RESERVED', 'PENDING', 'FULFILLED', 'EXPIRED', 'REVERSED'],
       default: 'PENDING',
     },
     correlation_id: { type: String, required: true, trim: true, maxlength: 128 },

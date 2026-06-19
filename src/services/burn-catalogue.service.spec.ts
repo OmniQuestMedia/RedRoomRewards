@@ -1,6 +1,6 @@
 import { BurnCatalogueService } from './burn-catalogue.service';
 import { LedgerService } from '../ledger/ledger.service';
-import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 
 const mockItemBase = {
   item_id: 'item-001',
@@ -35,12 +35,14 @@ jest.mock('../db/models/burn-catalogue-item.model', () => ({
 }));
 
 const mockDeleteOne = jest.fn();
+const mockBurnRedemptionFindOneAndUpdate = jest.fn();
 jest.mock('../db/models/burn-redemption.model', () => ({
   BurnRedemptionModel: {
     findOne: (...args: unknown[]) => mockFindOne(...args),
     find: (...args: unknown[]) => mockFind(...args),
     create: (...args: unknown[]) => mockCreate(...args),
     deleteOne: (...args: unknown[]) => mockDeleteOne(...args),
+    findOneAndUpdate: (...args: unknown[]) => mockBurnRedemptionFindOneAndUpdate(...args),
   },
 }));
 
@@ -55,6 +57,10 @@ describe('BurnCatalogueService', () => {
       creditPoints: jest.fn().mockResolvedValue(true),
     } as unknown as jest.Mocked<LedgerService>;
     service = new BurnCatalogueService(ledger);
+    // Default: RESERVED→PENDING promotion succeeds
+    mockBurnRedemptionFindOneAndUpdate.mockReturnValue({ exec: () => Promise.resolve({}) });
+    // Default: deleteOne rollback succeeds
+    mockDeleteOne.mockReturnValue({ exec: () => Promise.resolve({}) });
   });
 
   describe('listCatalogueItems (smoke)', () => {
@@ -84,6 +90,20 @@ describe('BurnCatalogueService', () => {
       await expect(
         service.redeemItem('member-1', 'item-001', 'redroompleasures', 'idem-key-1'),
       ).rejects.toThrow(BadRequestException);
+    });
+
+    it('promotes RESERVED to PENDING after successful deduct (two-phase commit)', async () => {
+      mockFindOne
+        .mockReturnValueOnce({ exec: () => Promise.resolve(null) })
+        .mockReturnValueOnce({ exec: () => Promise.resolve({ ...mockItemBase }) });
+      mockCreate.mockResolvedValue({});
+
+      await service.redeemItem('member-1', 'item-001', 'redroompleasures', 'idem-key-promote');
+
+      expect(mockBurnRedemptionFindOneAndUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ redemption_id: expect.anything() }),
+        { $set: { status: 'PENDING' } },
+      );
     });
 
     it('creates record first then deducts points on success (create-first atomic gate)', async () => {
@@ -178,6 +198,33 @@ describe('BurnCatalogueService', () => {
       expect(ledger.deductPoints).not.toHaveBeenCalled();
     });
 
+    it('throws ConflictException when E11000 winner slot is still RESERVED (concurrent in-progress)', async () => {
+      const reservedWinner = {
+        redemption_id: 'winner-reserved-id',
+        redemption_code: 'RRR-REDR-WINNER',
+        points_spent: 500,
+        item_title: '10% Off Coupon',
+        catalogue_item_id: 'item-001',
+        status: 'RESERVED',
+      };
+      mockFindOne
+        .mockReturnValueOnce({ exec: () => Promise.resolve(null) })
+        .mockReturnValueOnce({ exec: () => Promise.resolve({ ...mockItemBase }) })
+        .mockReturnValueOnce({ exec: () => Promise.resolve(reservedWinner) });
+      const dupErr = Object.assign(new Error('E11000'), { code: 11000 });
+      mockCreate.mockRejectedValue(dupErr);
+
+      await expect(
+        service.redeemItem(
+          'member-1',
+          'item-001',
+          'redroompleasures',
+          'idem-key-concurrent-reserved',
+        ),
+      ).rejects.toThrow(ConflictException);
+      expect(ledger.deductPoints).not.toHaveBeenCalled();
+    });
+
     it('throws BadRequestException when E11000 winner has a different catalogue_item_id', async () => {
       // Winner slot was created for item-999, but this request is for item-001
       const winnerRecord = {
@@ -224,6 +271,23 @@ describe('BurnCatalogueService', () => {
       // No inventory decrement or new redemption record on retry
       expect(mockFindOneAndUpdate).not.toHaveBeenCalled();
       expect(mockCreate).not.toHaveBeenCalled();
+      expect(ledger.deductPoints).not.toHaveBeenCalled();
+    });
+
+    it('throws ConflictException when existing redemption is RESERVED (in-progress)', async () => {
+      const reservedRedemption = {
+        redemption_id: 'reserved-id',
+        redemption_code: 'RRR-REDR-RESERVED',
+        points_spent: 500,
+        catalogue_item_id: 'item-001',
+        item_title: '10% Off Coupon',
+        status: 'RESERVED',
+      };
+      mockFindOne.mockReturnValueOnce({ exec: () => Promise.resolve(reservedRedemption) });
+
+      await expect(
+        service.redeemItem('member-1', 'item-001', 'redroompleasures', 'idem-key-reserved'),
+      ).rejects.toThrow(ConflictException);
       expect(ledger.deductPoints).not.toHaveBeenCalled();
     });
 
