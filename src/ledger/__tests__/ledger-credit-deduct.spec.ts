@@ -1,31 +1,43 @@
 /**
  * Unit tests for LedgerService.creditPoints and LedgerService.deductPoints
  *
- * These convenience methods wrap createEntry for promotional credit/debit
- * operations. Full transactional balance safety is deferred to B-006.
+ * LCR-1: these methods now mutate the authoritative `WalletModel.availableBalance`
+ * (the same store the escrow / `getUserBalance` path reads) inside the same
+ * transaction as the immutable ledger entry, deriving balanceBefore/After from
+ * the post-update wallet document. Tests therefore mock `WalletModel` rather
+ * than the ledger snapshot.
  */
 
 import { LedgerService } from '../ledger.service';
 import { LedgerEntryModel } from '../../db/models/ledger-entry.model';
+import { WalletModel } from '../../db/models/wallet.model';
 
 jest.mock('../../db/models/ledger-entry.model');
 jest.mock('../../db/models/idempotency.model');
+jest.mock('../../db/models/wallet.model');
 
 describe('LedgerService - creditPoints / deductPoints', () => {
   let service: LedgerService;
 
+  /**
+   * Install a WalletModel.findOneAndUpdate mock that emulates an atomic `$inc`
+   * against a starting `base` balance, returning the post-update document.
+   */
+  function mockWalletStartingAt(base: number): void {
+    (WalletModel.findOneAndUpdate as jest.Mock).mockImplementation(
+      (_filter: unknown, update: { $inc?: { availableBalance?: number } }) => {
+        const inc = update?.$inc?.availableBalance ?? 0;
+        return Promise.resolve({ availableBalance: base + inc, version: 1 });
+      },
+    );
+    (WalletModel.findOne as jest.Mock).mockReturnValue({
+      lean: jest.fn().mockResolvedValue({ availableBalance: base }),
+    });
+  }
+
   beforeEach(() => {
     jest.clearAllMocks();
     service = new LedgerService();
-
-    // getBalanceSnapshot uses LedgerEntryModel.find under the hood
-    (LedgerEntryModel.find as jest.Mock).mockReturnValue({
-      sort: jest.fn().mockReturnValue({
-        lean: jest.fn().mockReturnValue({
-          exec: jest.fn().mockResolvedValue([]),
-        }),
-      }),
-    });
 
     (LedgerEntryModel.create as jest.Mock).mockImplementation((doc: unknown) => {
       const d = doc as Record<string, unknown>;
@@ -40,9 +52,23 @@ describe('LedgerService - creditPoints / deductPoints', () => {
   });
 
   describe('creditPoints', () => {
+    beforeEach(() => mockWalletStartingAt(0));
+
     it('returns true on successful credit', async () => {
       const result = await service.creditPoints('user-1', 500, 'TEST_SOURCE', 'signup bonus');
       expect(result).toBe(true);
+    });
+
+    it('increments the authoritative WalletModel available balance', async () => {
+      await service.creditPoints('user-1b', 500, 'SRC', 'reason');
+
+      expect(WalletModel.findOneAndUpdate).toHaveBeenCalledWith(
+        { userId: { $eq: 'user-1b' } },
+        expect.objectContaining({
+          $inc: expect.objectContaining({ availableBalance: 500 }),
+        }),
+        expect.objectContaining({ upsert: true, new: true }),
+      );
     });
 
     it('writes a credit ledger entry with correct type and balance state', async () => {
@@ -90,7 +116,6 @@ describe('LedgerService - creditPoints / deductPoints', () => {
     });
 
     it('sets balanceAfter = balanceBefore + amount (zero starting balance)', async () => {
-      // getBalanceSnapshot returns availableBalance: 0 when no entries exist
       await service.creditPoints('user-5', 300, 'SRC', 'reason');
 
       expect(LedgerEntryModel.create).toHaveBeenCalledWith(
@@ -117,29 +142,26 @@ describe('LedgerService - creditPoints / deductPoints', () => {
   });
 
   describe('deductPoints', () => {
-    it('returns true on successful deduction when balance is sufficient', async () => {
-      // Mock getBalanceSnapshot to return a non-zero balance
-      (LedgerEntryModel.find as jest.Mock).mockReturnValue({
-        sort: jest.fn().mockReturnValue({
-          lean: jest.fn().mockReturnValue({
-            exec: jest.fn().mockResolvedValue([{ balanceState: 'available', balanceAfter: 500 }]),
-          }),
-        }),
-      });
+    beforeEach(() => mockWalletStartingAt(500));
 
+    it('returns true on successful deduction when balance is sufficient', async () => {
       const result = await service.deductPoints('user-6', 100, 'TEST_SOURCE', 'spend');
       expect(result).toBe(true);
     });
 
-    it('writes a debit ledger entry with correct type and negated amount', async () => {
-      (LedgerEntryModel.find as jest.Mock).mockReturnValue({
-        sort: jest.fn().mockReturnValue({
-          lean: jest.fn().mockReturnValue({
-            exec: jest.fn().mockResolvedValue([{ balanceState: 'available', balanceAfter: 500 }]),
-          }),
-        }),
-      });
+    it('atomically decrements WalletModel with an insufficient-funds guard', async () => {
+      await service.deductPoints('user-6b', 100, 'SRC', 'spend');
 
+      expect(WalletModel.findOneAndUpdate).toHaveBeenCalledWith(
+        { userId: { $eq: 'user-6b' }, availableBalance: { $gte: 100 } },
+        expect.objectContaining({
+          $inc: expect.objectContaining({ availableBalance: -100 }),
+        }),
+        expect.objectContaining({ new: true }),
+      );
+    });
+
+    it('writes a debit ledger entry with correct type and negated amount', async () => {
       await service.deductPoints('user-7', 200, 'BURN', 'redemption');
 
       expect(LedgerEntryModel.create).toHaveBeenCalledWith(
@@ -155,14 +177,6 @@ describe('LedgerService - creditPoints / deductPoints', () => {
     });
 
     it('stores reason and source in metadata', async () => {
-      (LedgerEntryModel.find as jest.Mock).mockReturnValue({
-        sort: jest.fn().mockReturnValue({
-          lean: jest.fn().mockReturnValue({
-            exec: jest.fn().mockResolvedValue([{ balanceState: 'available', balanceAfter: 200 }]),
-          }),
-        }),
-      });
-
       await service.deductPoints('user-8', 50, 'API', 'point burn');
 
       expect(LedgerEntryModel.create).toHaveBeenCalledWith(
@@ -173,14 +187,6 @@ describe('LedgerService - creditPoints / deductPoints', () => {
     });
 
     it('uses caller-provided idempotency key when supplied', async () => {
-      (LedgerEntryModel.find as jest.Mock).mockReturnValue({
-        sort: jest.fn().mockReturnValue({
-          lean: jest.fn().mockReturnValue({
-            exec: jest.fn().mockResolvedValue([{ balanceState: 'available', balanceAfter: 200 }]),
-          }),
-        }),
-      });
-
       const callerKey = 'debit-idem-key-xyz';
       await service.deductPoints('user-8b', 50, 'SRC', 'reason', callerKey);
 
@@ -190,7 +196,12 @@ describe('LedgerService - creditPoints / deductPoints', () => {
     });
 
     it('rejects deduction when balance is insufficient', async () => {
-      // Default mock returns availableBalance: 0
+      // Conditional update matches nothing → null; diagnostic read shows 0.
+      (WalletModel.findOneAndUpdate as jest.Mock).mockResolvedValue(null);
+      (WalletModel.findOne as jest.Mock).mockReturnValue({
+        lean: jest.fn().mockResolvedValue({ availableBalance: 0 }),
+      });
+
       await expect(service.deductPoints('user-9', 75, 'SRC', 'reason')).rejects.toThrow(
         'insufficient balance',
       );

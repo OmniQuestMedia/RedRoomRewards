@@ -13,9 +13,11 @@ import mongoose from 'mongoose';
 import { WalletController } from '../controllers/wallet.controller';
 import { LedgerService } from '../ledger/ledger.service';
 import { LedgerEntryModel } from '../db/models/ledger-entry.model';
+import { WalletModel } from '../db/models/wallet.model';
 
 jest.mock('../db/models/ledger-entry.model');
 jest.mock('../db/models/idempotency.model');
+jest.mock('../db/models/wallet.model');
 
 describe('Wave B Core — Wallet credit/deduct', () => {
   let controller: WalletController;
@@ -31,6 +33,19 @@ describe('Wave B Core — Wallet credit/deduct', () => {
     controller = module.get(WalletController);
     ledger = module.get(LedgerService);
     jest.clearAllMocks();
+
+    // LCR-1: credit/deduct now mutate the authoritative WalletModel balance.
+    // Default mock emulates an atomic `$inc` from a zero starting balance.
+    (WalletModel.findOneAndUpdate as jest.Mock).mockImplementation(
+      (_filter: unknown, update: { $inc?: { availableBalance?: number } }) => {
+        const inc = update?.$inc?.availableBalance ?? 0;
+        return Promise.resolve({ availableBalance: inc, version: 1 });
+      },
+    );
+    (WalletModel.findOne as jest.Mock).mockReturnValue({
+      lean: jest.fn().mockResolvedValue({ availableBalance: 0 }),
+    });
+
     originalReadyStateDescriptor = Object.getOwnPropertyDescriptor(
       mongoose.connection,
       'readyState',
@@ -122,6 +137,11 @@ describe('Wave B Core — Wallet credit/deduct', () => {
 
     it('rejects deductPoints when balance is insufficient', async () => {
       mockBalance(100);
+      // Conditional `availableBalance >= amount` update matches nothing.
+      (WalletModel.findOneAndUpdate as jest.Mock).mockResolvedValue(null);
+      (WalletModel.findOne as jest.Mock).mockReturnValue({
+        lean: jest.fn().mockResolvedValue({ availableBalance: 100 }),
+      });
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const session: any = {
