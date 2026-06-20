@@ -311,8 +311,9 @@ describe('LedgerService - Comprehensive Tests', () => {
     it('should calculate balance from ledger', async () => {
       // Arrange
       const accountId = 'user-123';
+      // LCR-4: snapshot sums signed `amount` deltas per state.
       const mockEntries = [
-        { balanceState: 'available', balanceAfter: 120, amount: 100, type: TransactionType.CREDIT },
+        { balanceState: 'available', balanceAfter: 120, amount: 120, type: TransactionType.CREDIT },
       ];
 
       (LedgerEntryModel.find as jest.Mock).mockReturnValue({
@@ -336,7 +337,7 @@ describe('LedgerService - Comprehensive Tests', () => {
         {
           balanceState: 'available',
           balanceAfter: 70,
-          amount: 100,
+          amount: 70,
           type: TransactionType.CREDIT,
           timestamp: new Date('2026-01-10'),
         },
@@ -387,7 +388,9 @@ describe('LedgerService - Comprehensive Tests', () => {
         .mockReturnValueOnce({
           sort: jest.fn().mockReturnThis(),
           lean: jest.fn().mockReturnThis(),
-          exec: jest.fn().mockResolvedValue([{ balanceState: 'available', balanceAfter: 100 }]),
+          exec: jest
+            .fn()
+            .mockResolvedValue([{ balanceState: 'available', amount: 100, balanceAfter: 100 }]),
         });
 
       // Act — positional args: (accountId, accountType, dateRange, tenantId)
@@ -429,7 +432,9 @@ describe('LedgerService - Comprehensive Tests', () => {
         .mockReturnValueOnce({
           sort: jest.fn().mockReturnThis(),
           lean: jest.fn().mockReturnThis(),
-          exec: jest.fn().mockResolvedValue([{ balanceState: 'available', balanceAfter: 70 }]),
+          exec: jest
+            .fn()
+            .mockResolvedValue([{ balanceState: 'available', amount: 70, balanceAfter: 70 }]),
         });
 
       // Act
