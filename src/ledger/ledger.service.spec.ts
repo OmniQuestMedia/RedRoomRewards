@@ -7,10 +7,12 @@ import { CreateLedgerEntryRequest, LedgerQueryFilter } from './types';
 import { TransactionType, TransactionReason } from '../wallets/types';
 import { LedgerEntryModel } from '../db/models/ledger-entry.model';
 import { IdempotencyRecordModel } from '../db/models/idempotency.model';
+import { WalletModel } from '../db/models/wallet.model';
 
 // Mock mongoose models
 jest.mock('../db/models/ledger-entry.model');
 jest.mock('../db/models/idempotency.model');
+jest.mock('../db/models/wallet.model');
 
 describe('LedgerService', () => {
   let service: LedgerService;
@@ -18,6 +20,18 @@ describe('LedgerService', () => {
   beforeEach(() => {
     service = new LedgerService();
     jest.clearAllMocks();
+
+    // LCR-1: creditPoints/deductPoints mutate the authoritative WalletModel.
+    // Default mock emulates an atomic `$inc` from a zero starting balance.
+    (WalletModel.findOneAndUpdate as jest.Mock).mockImplementation(
+      (_filter: unknown, update: { $inc?: { availableBalance?: number } }) => {
+        const inc = update?.$inc?.availableBalance ?? 0;
+        return Promise.resolve({ availableBalance: inc, version: 1 });
+      },
+    );
+    (WalletModel.findOne as jest.Mock).mockReturnValue({
+      lean: jest.fn().mockResolvedValue({ availableBalance: 0 }),
+    });
   });
 
   describe('createEntry', () => {

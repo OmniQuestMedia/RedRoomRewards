@@ -20,6 +20,7 @@ import {
 } from './types';
 import { LedgerEntryModel, ILedgerEntry } from '../db/models/ledger-entry.model';
 import { IdempotencyRecordModel } from '../db/models/idempotency.model';
+import { WalletModel } from '../db/models/wallet.model';
 import { TransactionType, TransactionReason } from '../wallets/types';
 import logger from '../lib/logger';
 
@@ -570,13 +571,20 @@ export class LedgerService implements ILedgerService {
   /**
    * Credit promotional points to a user's available balance (B-001).
    *
-   * Writes an immutable ledger entry tagged with PROMOTIONAL_AWARD inside a
-   * MongoDB transaction (B-006) so the balance read and entry insert commit
-   * atomically. The string `reason` is captured in metadata alongside
-   * `source`. An optional `idempotencyKey` may be provided by the caller for
-   * true idempotency protection; without it a random key is generated so each
-   * call creates a new entry (B-010 will add mandatory caller-supplied keys).
-   * Pass an existing `session` to enlist this write in the caller's
+   * LCR-1 (unified balance source of truth): the authoritative available
+   * balance lives on `WalletModel.availableBalance`. This method atomically
+   * `$inc`s that field and writes the immutable ledger entry inside the same
+   * MongoDB transaction (B-006), deriving `balanceBefore`/`balanceAfter` from
+   * the post-update wallet document. Previously this path derived balances from
+   * the ledger snapshot and never touched `WalletModel`, so ledger-path credits
+   * (catalogue, WooCommerce, RedRoom compliance awards) were invisible to the
+   * escrow/`getUserBalance` path — the "split-brain" divergence (review F-1).
+   * Now every earn/spend path converges on `WalletModel`.
+   *
+   * The string `reason` is captured in metadata alongside `source`. An optional
+   * `idempotencyKey` may be provided by the caller for true idempotency
+   * protection; without it a random key is generated so each call creates a new
+   * entry. Pass an existing `session` to enlist this write in the caller's
    * transaction.
    */
   async creditPoints(
@@ -591,7 +599,19 @@ export class LedgerService implements ILedgerService {
       throw new Error(`creditPoints: amount must be positive, got ${amount}`);
     }
     return this.withTransactionSafety(session, async (s) => {
-      const snapshot = await this.getBalanceSnapshot(accountId, 'user');
+      // Atomically bump the authoritative balance. Upsert so the first credit
+      // for a brand-new account creates the wallet; `$inc` from the 0 default
+      // yields availableBalance === amount.
+      const updated = await WalletModel.findOneAndUpdate(
+        { userId: { $eq: accountId } },
+        {
+          $inc: { availableBalance: amount, version: 1 },
+          $setOnInsert: { escrowBalance: 0, currency: this.config.defaultCurrency },
+        },
+        { new: true, upsert: true, ...(s ? { session: s } : {}) },
+      );
+      const balanceAfter = updated!.availableBalance;
+      const balanceBefore = balanceAfter - amount;
       await this.createEntry(
         {
           accountId,
@@ -603,8 +623,8 @@ export class LedgerService implements ILedgerService {
           reason: TransactionReason.PROMOTIONAL_AWARD,
           idempotencyKey: idempotencyKey ?? `credit-${source}-${accountId}-${uuidv4()}`,
           requestId: uuidv4(),
-          balanceBefore: snapshot.availableBalance,
-          balanceAfter: snapshot.availableBalance + amount,
+          balanceBefore,
+          balanceAfter,
           correlationId: source,
           metadata: { reason, source },
         },
@@ -617,16 +637,22 @@ export class LedgerService implements ILedgerService {
   /**
    * Deduct points from a user's available balance (B-002).
    *
-   * Writes an immutable ledger entry tagged with ADMIN_DEBIT inside a MongoDB
-   * transaction (B-006) so the insufficient-balance check and entry insert
-   * commit atomically — concurrent debits cannot both succeed against the
-   * same balance because the read is part of the transaction snapshot.
-   * Rejects the deduction if the account has insufficient available balance.
-   * The string `reason` is captured in metadata alongside `source`.
-   * An optional `idempotencyKey` may be provided by the caller for true
-   * idempotency protection; without it a random key is generated so each
-   * call creates a new entry (B-010 will add mandatory caller-supplied keys).
-   * Pass an existing `session` to enlist this write in the caller's
+   * LCR-1 (unified balance source of truth): decrements the authoritative
+   * `WalletModel.availableBalance` with a single atomic, conditional
+   * `findOneAndUpdate` (`availableBalance >= amount`) and writes the immutable
+   * ledger entry in the same transaction (B-006). The conditional decrement is
+   * race-free — concurrent debits cannot both succeed against the same balance,
+   * and the operation never drives the balance negative (the spec only permits
+   * negative balances via reversals/chargebacks, not via this debit path).
+   * A non-match means the wallet is missing or has insufficient funds; both map
+   * to an insufficient-balance error. Previously this derived balances from the
+   * ledger snapshot and never mutated `WalletModel`, leaving catalogue/WooCommerce
+   * burns invisible to the escrow/`getUserBalance` path (review F-1).
+   *
+   * The string `reason` is captured in metadata alongside `source`. An optional
+   * `idempotencyKey` may be provided by the caller for true idempotency
+   * protection; without it a random key is generated so each call creates a new
+   * entry. Pass an existing `session` to enlist this write in the caller's
    * transaction.
    */
   async deductPoints(
@@ -641,12 +667,21 @@ export class LedgerService implements ILedgerService {
       throw new Error(`deductPoints: amount must be positive, got ${amount}`);
     }
     return this.withTransactionSafety(session, async (s) => {
-      const snapshot = await this.getBalanceSnapshot(accountId, 'user');
-      if (snapshot.availableBalance < amount) {
+      const updated = await WalletModel.findOneAndUpdate(
+        { userId: { $eq: accountId }, availableBalance: { $gte: amount } },
+        { $inc: { availableBalance: -amount, version: 1 } },
+        { new: true, ...(s ? { session: s } : {}) },
+      );
+      if (!updated) {
+        // Surface the current balance for diagnostics when a wallet exists.
+        const wallet = await WalletModel.findOne({ userId: { $eq: accountId } }).lean();
+        const available = wallet ? wallet.availableBalance : 0;
         throw new Error(
-          `deductPoints: insufficient balance for ${accountId} — available ${snapshot.availableBalance}, requested ${amount}`,
+          `deductPoints: insufficient balance for ${accountId} — available ${available}, requested ${amount}`,
         );
       }
+      const balanceAfter = updated.availableBalance;
+      const balanceBefore = balanceAfter + amount;
       await this.createEntry(
         {
           accountId,
@@ -658,8 +693,8 @@ export class LedgerService implements ILedgerService {
           reason: TransactionReason.ADMIN_DEBIT,
           idempotencyKey: idempotencyKey ?? `debit-${source}-${accountId}-${uuidv4()}`,
           requestId: uuidv4(),
-          balanceBefore: snapshot.availableBalance,
-          balanceAfter: snapshot.availableBalance - amount,
+          balanceBefore,
+          balanceAfter,
           correlationId: source,
           metadata: { reason, source },
         },
