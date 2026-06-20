@@ -188,7 +188,6 @@ export class BurnCatalogueService {
         redemption_code: redemptionCode,
         // RESERVED = slot claimed; promoted to PENDING only after debit + inventory succeed
         status: 'RESERVED',
-        status: 'PENDING',
         correlation_id: correlationId,
         idempotency_key: idempotencyKey,
       });
