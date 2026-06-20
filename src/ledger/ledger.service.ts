@@ -270,7 +270,15 @@ export class LedgerService implements ILedgerService {
   }
 
   /**
-   * Get balance snapshot at a point in time
+   * Get balance snapshot at a point in time.
+   *
+   * LCR-4: balances are derived by summing the signed `amount` delta of every
+   * entry per balance state, NOT by reading the `balanceAfter` of the most
+   * recent entry. Summing deltas is the correct append-only projection: it is
+   * order-independent and a single incorrect `balanceAfter` annotation can no
+   * longer poison the read. `balanceBefore`/`balanceAfter` remain on each entry
+   * purely as an audit annotation. Credit entries carry a positive `amount`,
+   * debit entries a negative `amount`, so the per-state sum is the net balance.
    */
   async getBalanceSnapshot(
     accountId: string,
@@ -300,7 +308,7 @@ export class LedgerService implements ILedgerService {
       .lean()
       .exec();
 
-    // Calculate balances by state
+    // Project the balance for each state by summing signed deltas (LCR-4).
     const balances: { [key: string]: number } = {
       available: 0,
       escrow: 0,
@@ -308,13 +316,12 @@ export class LedgerService implements ILedgerService {
     };
 
     for (const entry of entries) {
-      // Use the balanceAfter from the entry for the specific state
       if (
         entry.balanceState === 'available' ||
         entry.balanceState === 'escrow' ||
         entry.balanceState === 'earned'
       ) {
-        balances[entry.balanceState] = entry.balanceAfter;
+        balances[entry.balanceState] += entry.amount;
       }
     }
 
