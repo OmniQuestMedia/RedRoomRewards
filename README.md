@@ -31,13 +31,14 @@ no game logic. External platforms integrate via the
 
 ## Tenants & Integrations
 
-| Tenant / Integration     | Role                    | Notes                                                                              |
-| ------------------------ | ----------------------- | ---------------------------------------------------------------------------------- |
-| **ChatNow.Zone**         | Primary merchant tenant | Phase 1 live integration                                                           |
-| **Cyrano**               | Merchant tenant         | Phase 1 — cam platform loyalty earn/redeem                                         |
-| **RedRoomPleasures**     | Merchant tenant         | Phase 1 — adult toy / eComm rewards                                                |
-| **Marketplace / eComms** | eCommerce channel       | Point earn on purchases via WordPress WooCommerce plugin                           |
-| **WordPress plugin**     | Integration bridge      | `integrations/wordpress-redroompleasures/` — syncs purchase events to RRR earn API |
+| Tenant / Integration     | Role                    | Notes                                                                                                                                               |
+| ------------------------ | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **ChatNow.Zone**         | Primary merchant tenant | Phase 1 live integration                                                                                                                            |
+| **Cyrano**               | Merchant tenant         | Phase 1 — cam platform loyalty earn/redeem                                                                                                          |
+| **RedRoomPleasures**     | Merchant tenant         | Phase 1 — adult toy / eComm rewards                                                                                                                 |
+| **Marketplace / eComms** | eCommerce channel       | Point earn on purchases via WordPress WooCommerce plugin                                                                                            |
+| **WordPress plugin**     | Integration bridge      | `integrations/wordpress-redroompleasures/` — syncs purchase events to RRR earn API                                                                  |
+| **OKIB**                 | Advisory intelligence   | OmniQuest Knowledge & Intelligence Bus — gated personalization/nudge context (scaffolding, `OKIB_ENABLED`, off by default; never in the money path) |
 
 Integration contracts: [HMAC auth contract](docs/AUTH_CONTRACT.md) ·
 [UX integration brief](docs/UX_INTEGRATION_BRIEF.md) ·
@@ -53,6 +54,13 @@ pack, 9 wireframe specs (`docs/ux/`), and the WordPress + Cyrano integration
 packets. Build clean (`npm run build`); 585 tests / 60 suites pass under
 `npm run test:ci`. See the [production schedule](.github/PRODUCTION_SCHEDULE.md)
 for ALP-1..ALP-8 detail.
+
+**OKIB integration:** scaffolding landed on `feat/okib-integration` — gated
+`OkibIntegrationService` (off by default via `OKIB_ENABLED`), integration plan,
+and a rewards-qualification review. Inert until a real OKIB endpoint is
+provisioned and the `OKIB` term is ratified in the domain glossary. Next: define
+the OKIB request/response contract and wire creator-affinity → `resolveBonus` →
+`awardPoints` (plan §6, Wave 3).
 
 ## Key docs
 
@@ -70,6 +78,8 @@ for ALP-1..ALP-8 detail.
 | [Alpha test pack](docs/ALPHA_TEST_PACK.md)                                         | What gets exercised before tag                 |
 | [CEO decisions](docs/RRR_CEO_DECISIONS_FINAL_2026-04-17.md)                        | Binding rulings                                |
 | [Coding doctrine](.github/copilot-instructions.md)                                 | AI + human dev rules                           |
+| [OKIB integration plan](docs/okib-integration-plan.md)                             | OKIB personalization integration (scaffolding) |
+| [Rewards qualification review](docs/rewards-qualification-review.md)               | Purchase → earn qualification rules + gaps     |
 
 ## Corporate boilerplate
 
