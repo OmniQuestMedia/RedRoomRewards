@@ -11,21 +11,21 @@
     },
     {
       "file": "src/ledger/ledger.service.ts",
-      "line": 605,
+      "line": 612,
       "model": "WalletModel",
       "method": "findOneAndUpdate",
       "_note": "LCR-1 creditPoints: WalletModel is keyed by userId and has no tenant_id field; scoping requires schema migration (LCR-1 / follow-up ticket). Mirrors point-accrual.service.ts exception."
     },
     {
       "file": "src/ledger/ledger.service.ts",
-      "line": 670,
+      "line": 677,
       "model": "WalletModel",
       "method": "findOneAndUpdate",
       "_note": "LCR-1 deductPoints: WalletModel is keyed by userId and has no tenant_id field; scoping requires schema migration (LCR-1 / follow-up ticket). Mirrors point-accrual.service.ts exception."
     },
     {
       "file": "src/ledger/ledger.service.ts",
-      "line": 677,
+      "line": 684,
       "model": "WalletModel",
       "method": "findOne",
       "_note": "LCR-1 deductPoints diagnostic read: WalletModel is keyed by userId and has no tenant_id field; scoping requires schema migration (LCR-1 / follow-up ticket)."

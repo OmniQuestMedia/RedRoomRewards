@@ -321,14 +321,17 @@ describe('LedgerService', () => {
 
   describe('getBalanceSnapshot', () => {
     it('should calculate balance snapshot for user', async () => {
+      // LCR-4: balances are the sum of signed `amount` deltas per state.
       const mockEntries = [
         {
           balanceState: 'available',
+          amount: 500,
           balanceAfter: 500,
           timestamp: new Date('2024-01-01'),
         },
         {
           balanceState: 'escrow',
+          amount: 100,
           balanceAfter: 100,
           timestamp: new Date('2024-01-02'),
         },
@@ -348,10 +351,32 @@ describe('LedgerService', () => {
       expect(result.escrowBalance).toBe(100);
     });
 
+    it('sums multiple deltas per state rather than reading the last balanceAfter', async () => {
+      // Two credits and a debit on `available`; a stale/incorrect balanceAfter
+      // on the last entry must NOT leak into the projection.
+      const mockEntries = [
+        { balanceState: 'available', amount: 500, balanceAfter: 500 },
+        { balanceState: 'available', amount: 300, balanceAfter: 800 },
+        { balanceState: 'available', amount: -200, balanceAfter: 99999 },
+      ];
+
+      (LedgerEntryModel.find as jest.Mock).mockReturnValue({
+        sort: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValue(mockEntries),
+      });
+
+      const result = await service.getBalanceSnapshot('user-sum', 'user');
+
+      // 500 + 300 - 200 = 600 (NOT the bogus 99999 balanceAfter).
+      expect(result.availableBalance).toBe(600);
+    });
+
     it('should calculate balance snapshot for model', async () => {
       const mockEntries = [
         {
           balanceState: 'earned',
+          amount: 1000,
           balanceAfter: 1000,
           timestamp: new Date('2024-01-01'),
         },
