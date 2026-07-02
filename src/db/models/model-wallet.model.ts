@@ -9,6 +9,9 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IModelWallet extends Document {
+  // Program-tenant isolation boundary (RRR-#2 Phase A). Optional during expand;
+  // backfilled, then filtered (Phase B) and enforced (Phase C).
+  tenant_id?: string;
   modelId: string;
   earnedBalance: number;
   currency: string;
@@ -20,6 +23,14 @@ export interface IModelWallet extends Document {
 
 const ModelWalletSchema = new Schema<IModelWallet>(
   {
+    // Optional during Phase A (expand); required + composite-unique in Phase C.
+    tenant_id: {
+      type: String,
+      required: false,
+      trim: true,
+      maxlength: 128,
+      index: true,
+    },
     modelId: {
       type: String,
       required: true,
@@ -60,7 +71,11 @@ const ModelWalletSchema = new Schema<IModelWallet>(
 );
 
 // Unique index on modelId
+// Phase C will replace this with a composite unique index { tenant_id, modelId }.
 ModelWalletSchema.index({ modelId: 1 }, { unique: true });
+
+// Program-tenant scoped lookup (non-unique in Phase A; composite unique in Phase C).
+ModelWalletSchema.index({ tenant_id: 1, modelId: 1 });
 
 // Index for balance queries
 ModelWalletSchema.index({ earnedBalance: 1 });
