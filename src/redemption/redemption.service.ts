@@ -24,6 +24,7 @@ import { WalletModel } from '../db/models/wallet.model';
 import { EscrowItemModel } from '../db/models/escrow-item.model';
 import { TierCapConfigModel, type ITierCapConfig } from '../db/models/tier-cap-config.model';
 import { TransactionType, TransactionReason } from '../wallets/types';
+import { resolveTenantId } from '../config/program-tenant';
 
 type TierName = ITierCapConfig['tier_name'];
 
@@ -150,7 +151,10 @@ export class RedemptionService {
         'metadata.idempotencyKey': { $eq: request.idempotencyKey },
       }).lean();
       if (existing) {
-        const wallet = await WalletModel.findOne({ userId: { $eq: request.userId } }).lean();
+        const wallet = await WalletModel.findOne({
+          tenant_id: { $eq: resolveTenantId(request.tenantId) },
+          userId: { $eq: request.userId },
+        }).lean();
         return {
           redemptionId: (existing as { escrowId: string }).escrowId,
           escrowId: (existing as { escrowId: string }).escrowId,
@@ -175,7 +179,11 @@ export class RedemptionService {
     );
 
     // 3. Read wallet and validate available balance
-    const wallet = await WalletModel.findOne({ userId: { $eq: request.userId } });
+    const tenantId = resolveTenantId(request.tenantId);
+    const wallet = await WalletModel.findOne({
+      tenant_id: { $eq: tenantId },
+      userId: { $eq: request.userId },
+    });
     if (!wallet) {
       throw new Error(`Wallet not found for userId=${request.userId}`);
     }
@@ -189,7 +197,11 @@ export class RedemptionService {
 
     // 4. Atomically update wallet balances with optimistic locking
     const updated = await WalletModel.findOneAndUpdate(
-      { userId: { $eq: request.userId }, version: { $eq: currentVersion } },
+      {
+        tenant_id: { $eq: tenantId },
+        userId: { $eq: request.userId },
+        version: { $eq: currentVersion },
+      },
       {
         $inc: {
           availableBalance: -request.redemptionAmount,
@@ -209,6 +221,7 @@ export class RedemptionService {
     const redemptionId = uuidv4();
     await EscrowItemModel.create({
       escrowId,
+      tenant_id: tenantId,
       userId: request.userId,
       amount: request.redemptionAmount,
       status: 'held',

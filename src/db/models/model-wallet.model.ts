@@ -9,9 +9,9 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IModelWallet extends Document {
-  // Program-tenant isolation boundary (RRR-#2 Phase A). Optional during expand;
-  // backfilled, then filtered (Phase B) and enforced (Phase C).
-  tenant_id?: string;
+  // Program-tenant isolation boundary. Required + composite-unique with modelId
+  // (RRR-#2 Phase C).
+  tenant_id: string;
   modelId: string;
   earnedBalance: number;
   currency: string;
@@ -23,10 +23,11 @@ export interface IModelWallet extends Document {
 
 const ModelWalletSchema = new Schema<IModelWallet>(
   {
-    // Optional during Phase A (expand); required + composite-unique in Phase C.
+    // Program isolation boundary. Required (RRR-#2 Phase C); uniqueness is on
+    // the composite { tenant_id, modelId } index below.
     tenant_id: {
       type: String,
-      required: false,
+      required: true,
       trim: true,
       maxlength: 128,
       index: true,
@@ -34,7 +35,6 @@ const ModelWalletSchema = new Schema<IModelWallet>(
     modelId: {
       type: String,
       required: true,
-      unique: true,
       trim: true,
       maxlength: 128,
       index: true,
@@ -70,12 +70,9 @@ const ModelWalletSchema = new Schema<IModelWallet>(
   },
 );
 
-// Unique index on modelId
-// Phase C will replace this with a composite unique index { tenant_id, modelId }.
-ModelWalletSchema.index({ modelId: 1 }, { unique: true });
-
-// Program-tenant scoped lookup (non-unique in Phase A; composite unique in Phase C).
-ModelWalletSchema.index({ tenant_id: 1, modelId: 1 });
+// Composite unique index — one model wallet per (tenant, model). Replaces the
+// old global unique { modelId } (RRR-#2 Phase C).
+ModelWalletSchema.index({ tenant_id: 1, modelId: 1 }, { unique: true });
 
 // Index for balance queries
 ModelWalletSchema.index({ earnedBalance: 1 });
