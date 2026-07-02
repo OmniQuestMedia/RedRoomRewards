@@ -51,7 +51,7 @@ and the post-D wiring audit + security hardening (fail-closed middleware, signup
 rate-limit, OpenAPI gated in production) shipped. The Alpha documentation set is
 in: HMAC auth contract, UX integration brief, staging deploy spec, alpha test
 pack, 9 wireframe specs (`docs/ux/`), and the WordPress + Cyrano integration
-packets. Build clean (`npm run build`); 585 tests / 60 suites pass under
+packets. Build clean (`npm run build`); 700 tests / 72 suites pass under
 `npm run test:ci`. See the [production schedule](.github/PRODUCTION_SCHEDULE.md)
 for ALP-1..ALP-8 detail.
 
