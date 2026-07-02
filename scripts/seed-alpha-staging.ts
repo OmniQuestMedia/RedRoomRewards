@@ -28,11 +28,17 @@ import mongoose from 'mongoose';
 import { TenantModel, ITenant } from '../src/db/models/tenant.model';
 import { WalletModel, IWallet } from '../src/db/models/wallet.model';
 import { ModelWalletModel, IModelWallet } from '../src/db/models/model-wallet.model';
+import { MerchantModel, IMerchant, MerchantTier } from '../src/db/models/merchant.model';
 
 interface SeedTenant {
   tenant_id: string;
   name: string;
   phase: 1 | 2;
+  // When set, this fixture is a MERCHANT within `tenant_id` (the program), not a
+  // program tenant of its own. OmniQuest's sites are merchants under the `oqmi`
+  // program tenant — `name` names the merchant. Defaults to MEMBER tier.
+  merchant_id?: string;
+  merchant_tier?: MerchantTier;
 }
 
 interface SeedMemberWallet {
@@ -48,7 +54,9 @@ interface SeedModelWallet {
 }
 
 const TENANTS: SeedTenant[] = [
-  { tenant_id: 'redroompleasures', name: 'RedRoomPleasures', phase: 1 },
+  // RedRoomPleasures is a MERCHANT within the OmniQuest `oqmi` program tenant —
+  // not a tenant of its own (unified balance across OmniQuest sites).
+  { tenant_id: 'oqmi', merchant_id: 'redroompleasures', name: 'RedRoomPleasures', phase: 1 },
   { tenant_id: 'cyrano', name: 'Cyrano', phase: 1 },
   { tenant_id: 'oqmi', name: 'OmniQuest Media Inc.', phase: 1 },
 ];
@@ -149,6 +157,55 @@ async function upsertTenant(
   return 'unchanged';
 }
 
+async function upsertMerchant(
+  m: SeedTenant,
+  dryRun: boolean,
+): Promise<'created' | 'updated' | 'unchanged'> {
+  const merchantId = m.merchant_id!;
+  const tier: MerchantTier = m.merchant_tier ?? 'MEMBER';
+  const existing = await MerchantModel.findOne({ merchant_id: merchantId }).lean();
+  if (!existing) {
+    if (!dryRun) {
+      await MerchantModel.create({
+        merchant_id: merchantId,
+        tenant_id: m.tenant_id,
+        name: m.name,
+        status: 'active',
+        phase: m.phase,
+        merchant_tier: tier,
+        default_currency: 'points',
+        notes: 'Seeded by scripts/seed-alpha-staging.ts',
+      } as Partial<IMerchant>);
+    }
+    return 'created';
+  }
+  // Restore canonical fields if drifted (incl. tenant_id — the realign target).
+  const drifted =
+    existing.tenant_id !== m.tenant_id ||
+    existing.name !== m.name ||
+    existing.phase !== m.phase ||
+    existing.merchant_tier !== tier ||
+    existing.status !== 'active';
+  if (drifted) {
+    if (!dryRun) {
+      await MerchantModel.updateOne(
+        { merchant_id: merchantId },
+        {
+          $set: {
+            tenant_id: m.tenant_id,
+            name: m.name,
+            phase: m.phase,
+            merchant_tier: tier,
+            status: 'active',
+          },
+        },
+      );
+    }
+    return 'updated';
+  }
+  return 'unchanged';
+}
+
 async function upsertMemberWallet(
   w: SeedMemberWallet,
   dryRun: boolean,
@@ -224,9 +281,20 @@ async function main(): Promise<void> {
     let updated = 0;
     let unchanged = 0;
 
-    for (const t of TENANTS) {
+    // Program tenants first (entries without merchant_id), so a merchant's
+    // program tenant already exists when we seed it.
+    for (const t of TENANTS.filter((x) => !x.merchant_id)) {
       const r = await upsertTenant(t, dryRun);
-      console.log(`  tenant  ${t.tenant_id.padEnd(20)}  ${r}`);
+      console.log(`  tenant    ${t.tenant_id.padEnd(20)}  ${r}`);
+      if (r === 'created') created++;
+      else if (r === 'updated') updated++;
+      else unchanged++;
+    }
+
+    // Merchants within a program tenant (entries carrying merchant_id).
+    for (const m of TENANTS.filter((x) => x.merchant_id)) {
+      const r = await upsertMerchant(m, dryRun);
+      console.log(`  merchant  ${m.merchant_id!.padEnd(20)}  ${r}  (tenant=${m.tenant_id})`);
       if (r === 'created') created++;
       else if (r === 'updated') updated++;
       else unchanged++;
