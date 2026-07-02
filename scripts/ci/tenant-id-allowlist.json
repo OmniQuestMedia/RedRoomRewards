@@ -1,46 +1,30 @@
 {
   "$schema": "https://json.schemastore.org/base.json",
-  "_comment": "B-009 baseline allowlist. Each entry is a Model query call site that pre-dates the tenancy layer (B-004) and lacks a tenant_id filter. Adding to this list requires a documented justification or a follow-up ticket. The B-009 CI guard fails on any new violation that is not on this list.",
+  "_comment": "B-009 baseline allowlist of Model query call sites without a tenant_id filter. RRR-#2 Phase B scoped every wallet/model_wallet query by tenant_id (program isolation), so the wallet/model-wallet entries were removed. The remaining exemptions are all legitimate: (1) queries keyed by a globally-unique id where tenant scoping is redundant — EscrowItemModel by escrowId (a UUID), LedgerEntryModel by idempotencyKey (UUID), BurnRedemptionModel by redemption_id (UUID); (2) BurnCatalogueItemModel calls that ARE tenant-scoped via a query variable the regex checker cannot follow; (3) IdempotencyRecordModel (idempotency-keyed); (4) the WalletModel.updateOne inside a JSDoc transaction example (not a real query). Adding a NEW entry requires a documented justification or a follow-up ticket; the guard fails on any new violation not on this list.",
   "allow": [
     {
       "file": "src/ledger/ledger.service.ts",
-      "line": 154,
+      "line": 155,
       "model": "LedgerEntryModel",
-      "method": "findOne",
-      "_note": "idempotencyKey is globally unique (UUID); tenant scoping not possible without adding tenant_id to CreateLedgerEntryRequest (follow-up ticket)"
-    },
-    {
-      "file": "src/ledger/ledger.service.ts",
-      "line": 612,
-      "model": "WalletModel",
-      "method": "findOneAndUpdate",
-      "_note": "LCR-1 creditPoints: WalletModel is keyed by userId and has no tenant_id field; scoping requires schema migration (LCR-1 / follow-up ticket). Mirrors point-accrual.service.ts exception."
-    },
-    {
-      "file": "src/ledger/ledger.service.ts",
-      "line": 677,
-      "model": "WalletModel",
-      "method": "findOneAndUpdate",
-      "_note": "LCR-1 deductPoints: WalletModel is keyed by userId and has no tenant_id field; scoping requires schema migration (LCR-1 / follow-up ticket). Mirrors point-accrual.service.ts exception."
-    },
-    {
-      "file": "src/ledger/ledger.service.ts",
-      "line": 684,
-      "model": "WalletModel",
-      "method": "findOne",
-      "_note": "LCR-1 deductPoints diagnostic read: WalletModel is keyed by userId and has no tenant_id field; scoping requires schema migration (LCR-1 / follow-up ticket)."
-    },
-    {
-      "file": "src/services/admin-ops.service.ts",
-      "line": 242,
-      "model": "WalletModel",
       "method": "findOne"
     },
     {
-      "file": "src/services/admin-ops.service.ts",
-      "line": 257,
-      "model": "WalletModel",
-      "method": "findOneAndUpdate"
+      "file": "src/services/burn-catalogue.service.ts",
+      "line": 297,
+      "model": "BurnRedemptionModel",
+      "method": "findOne"
+    },
+    {
+      "file": "src/services/burn-catalogue.service.ts",
+      "line": 92,
+      "model": "BurnCatalogueItemModel",
+      "method": "find"
+    },
+    {
+      "file": "src/services/burn-catalogue.service.ts",
+      "line": 93,
+      "model": "BurnCatalogueItemModel",
+      "method": "countDocuments"
     },
     {
       "file": "src/services/idempotency.service.ts",
@@ -49,66 +33,8 @@
       "method": "findOne"
     },
     {
-      "file": "src/services/point-accrual.service.ts",
-      "line": 161,
-      "model": "WalletModel",
-      "method": "findOne",
-      "_note": "WalletModel has no tenant_id field; scoping requires schema migration (follow-up ticket)"
-    },
-    {
-      "file": "src/services/point-accrual.service.ts",
-      "line": 177,
-      "model": "WalletModel",
-      "method": "findOneAndUpdate",
-      "_note": "WalletModel has no tenant_id field; scoping requires schema migration (follow-up ticket)"
-    },
-    {
-      "file": "src/services/point-accrual.service.ts",
-      "line": 445,
-      "model": "WalletModel",
-      "method": "findOne",
-      "_note": "WalletModel has no tenant_id field; scoping requires schema migration (follow-up ticket)"
-    },
-    {
-      "file": "src/services/point-accrual.service.ts",
-      "line": 460,
-      "model": "WalletModel",
-      "method": "findOneAndUpdate",
-      "_note": "WalletModel has no tenant_id field; scoping requires schema migration (follow-up ticket)"
-    },
-    {
-      "file": "src/services/point-expiration.service.ts",
-      "line": 151,
-      "model": "WalletModel",
-      "method": "findOne"
-    },
-    {
-      "file": "src/services/point-expiration.service.ts",
-      "line": 168,
-      "model": "WalletModel",
-      "method": "findOneAndUpdate"
-    },
-    {
-      "file": "src/services/point-expiration.service.ts",
-      "line": 347,
-      "model": "WalletModel",
-      "method": "find"
-    },
-    {
       "file": "src/wallets/wallet.service.ts",
-      "line": 124,
-      "model": "WalletModel",
-      "method": "findOne"
-    },
-    {
-      "file": "src/wallets/wallet.service.ts",
-      "line": 160,
-      "model": "WalletModel",
-      "method": "findOneAndUpdate"
-    },
-    {
-      "file": "src/wallets/wallet.service.ts",
-      "line": 177,
+      "line": 185,
       "model": "EscrowItemModel",
       "method": "deleteOne"
     },
@@ -120,174 +46,81 @@
     },
     {
       "file": "src/wallets/wallet.service.ts",
-      "line": 288,
+      "line": 296,
       "model": "EscrowItemModel",
       "method": "findOneAndUpdate"
-    },
-    {
-      "file": "src/wallets/wallet.service.ts",
-      "line": 304,
-      "model": "EscrowItemModel",
-      "method": "findOne"
     },
     {
       "file": "src/wallets/wallet.service.ts",
       "line": 312,
-      "model": "ModelWalletModel",
+      "model": "EscrowItemModel",
       "method": "findOne"
     },
     {
       "file": "src/wallets/wallet.service.ts",
-      "line": 328,
-      "model": "ModelWalletModel",
-      "method": "findOneAndUpdate"
-    },
-    {
-      "file": "src/wallets/wallet.service.ts",
-      "line": 347,
-      "model": "WalletModel",
-      "method": "findOne"
-    },
-    {
-      "file": "src/wallets/wallet.service.ts",
-      "line": 353,
-      "model": "WalletModel",
-      "method": "findOneAndUpdate"
-    },
-    {
-      "file": "src/wallets/wallet.service.ts",
-      "line": 369,
+      "line": 389,
       "model": "EscrowItemModel",
       "method": "updateOne"
     },
     {
       "file": "src/wallets/wallet.service.ts",
-      "line": 377,
+      "line": 397,
       "model": "EscrowItemModel",
       "method": "updateOne"
     },
     {
       "file": "src/wallets/wallet.service.ts",
-      "line": 466,
+      "line": 486,
       "model": "EscrowItemModel",
       "method": "findOneAndUpdate"
     },
     {
       "file": "src/wallets/wallet.service.ts",
-      "line": 482,
+      "line": 502,
       "model": "EscrowItemModel",
       "method": "findOne"
     },
     {
       "file": "src/wallets/wallet.service.ts",
-      "line": 490,
-      "model": "WalletModel",
-      "method": "findOne"
-    },
-    {
-      "file": "src/wallets/wallet.service.ts",
-      "line": 500,
-      "model": "WalletModel",
-      "method": "findOneAndUpdate"
-    },
-    {
-      "file": "src/wallets/wallet.service.ts",
-      "line": 517,
+      "line": 544,
       "model": "EscrowItemModel",
       "method": "updateOne"
     },
     {
       "file": "src/wallets/wallet.service.ts",
-      "line": 525,
+      "line": 552,
       "model": "EscrowItemModel",
       "method": "updateOne"
     },
     {
       "file": "src/wallets/wallet.service.ts",
-      "line": 613,
+      "line": 640,
       "model": "EscrowItemModel",
       "method": "findOneAndUpdate"
     },
     {
       "file": "src/wallets/wallet.service.ts",
-      "line": 629,
+      "line": 656,
       "model": "EscrowItemModel",
       "method": "findOne"
     },
     {
       "file": "src/wallets/wallet.service.ts",
-      "line": 643,
-      "model": "WalletModel",
-      "method": "findOne"
-    },
-    {
-      "file": "src/wallets/wallet.service.ts",
-      "line": 652,
-      "model": "ModelWalletModel",
-      "method": "findOne"
-    },
-    {
-      "file": "src/wallets/wallet.service.ts",
-      "line": 667,
-      "model": "WalletModel",
-      "method": "findOneAndUpdate"
-    },
-    {
-      "file": "src/wallets/wallet.service.ts",
-      "line": 684,
+      "line": 722,
       "model": "EscrowItemModel",
       "method": "updateOne"
     },
     {
       "file": "src/wallets/wallet.service.ts",
-      "line": 692,
-      "model": "ModelWalletModel",
-      "method": "findOneAndUpdate"
-    },
-    {
-      "file": "src/wallets/wallet.service.ts",
-      "line": 708,
+      "line": 747,
       "model": "EscrowItemModel",
       "method": "updateOne"
     },
     {
       "file": "src/wallets/wallet.service.ts",
-      "line": 717,
+      "line": 756,
       "model": "EscrowItemModel",
       "method": "updateOne"
-    },
-    {
-      "file": "src/wallets/wallet.service.ts",
-      "line": 819,
-      "model": "WalletModel",
-      "method": "findOne"
-    },
-    {
-      "file": "src/wallets/wallet.service.ts",
-      "line": 842,
-      "model": "ModelWalletModel",
-      "method": "findOne"
-    },
-    {
-      "file": "src/services/burn-catalogue.service.ts",
-      "line": 92,
-      "model": "BurnCatalogueItemModel",
-      "method": "find",
-      "_note": "tenant_id: { $eq: tenantId } is set on the `query` variable built immediately above; checker cannot follow variable references"
-    },
-    {
-      "file": "src/services/burn-catalogue.service.ts",
-      "line": 93,
-      "model": "BurnCatalogueItemModel",
-      "method": "countDocuments",
-      "_note": "Same query variable as line 86 — tenant_id scoped via query object"
-    },
-    {
-      "file": "src/services/burn-catalogue.service.ts",
-      "line": 297,
-      "model": "BurnRedemptionModel",
-      "method": "findOne",
-      "_note": "fulfillRedemption is an ops-only endpoint; redemption_id is a globally-unique UUID primary key — tenant scoping is not applicable here"
     }
   ]
 }

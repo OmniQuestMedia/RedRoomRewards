@@ -63,7 +63,7 @@ describe('LedgerService - creditPoints / deductPoints', () => {
       await service.creditPoints('user-1b', 500, 'SRC', 'reason');
 
       expect(WalletModel.findOneAndUpdate).toHaveBeenCalledWith(
-        { userId: { $eq: 'user-1b' } },
+        { tenant_id: { $eq: 'oqmi' }, userId: { $eq: 'user-1b' } },
         expect.objectContaining({
           $inc: expect.objectContaining({ availableBalance: 500 }),
         }),
@@ -153,7 +153,7 @@ describe('LedgerService - creditPoints / deductPoints', () => {
       await service.deductPoints('user-6b', 100, 'SRC', 'spend');
 
       expect(WalletModel.findOneAndUpdate).toHaveBeenCalledWith(
-        { userId: { $eq: 'user-6b' }, availableBalance: { $gte: 100 } },
+        { tenant_id: { $eq: 'oqmi' }, userId: { $eq: 'user-6b' }, availableBalance: { $gte: 100 } },
         expect.objectContaining({
           $inc: expect.objectContaining({ availableBalance: -100 }),
         }),

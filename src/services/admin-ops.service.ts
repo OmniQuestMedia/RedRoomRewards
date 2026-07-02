@@ -18,6 +18,7 @@ import { ILedgerService } from '../ledger/types';
 import { IWalletService } from './types';
 import { WalletModel } from '../db/models/wallet.model';
 import { TransactionType, TransactionReason } from '../wallets/types';
+import { getProgramTenantId } from '../config/program-tenant';
 
 /**
  * Admin context for operations (audit trail)
@@ -239,7 +240,11 @@ export class AdminOpsService {
     }
 
     // Get wallet
-    const wallet = await WalletModel.findOne({ userId: { $eq: request.userId } });
+    const tenantId = getProgramTenantId();
+    const wallet = await WalletModel.findOne({
+      tenant_id: { $eq: tenantId },
+      userId: { $eq: request.userId },
+    });
     if (!wallet) {
       throw new Error(`Wallet not found for user: ${request.userId}`);
     }
@@ -256,6 +261,7 @@ export class AdminOpsService {
     // Update wallet with optimistic locking
     const updated = await WalletModel.findOneAndUpdate(
       {
+        tenant_id: { $eq: tenantId },
         userId: { $eq: request.userId },
         version: { $eq: currentVersion },
       },

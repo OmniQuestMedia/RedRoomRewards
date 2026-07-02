@@ -12,6 +12,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ILedgerService, LedgerQueryFilter } from '../ledger/types';
 import { WalletModel } from '../db/models/wallet.model';
 import { TransactionType, TransactionReason } from '../wallets/types';
+import { getProgramTenantId } from '../config/program-tenant';
 
 /**
  * Expiration batch result
@@ -148,7 +149,11 @@ export class PointExpirationService {
     }
 
     // Get user wallet
-    const wallet = await WalletModel.findOne({ userId: { $eq: userId } });
+    const tenantId = getProgramTenantId();
+    const wallet = await WalletModel.findOne({
+      tenant_id: { $eq: tenantId },
+      userId: { $eq: userId },
+    });
     if (!wallet) {
       throw new Error(`Wallet not found for user: ${userId}`);
     }
@@ -167,6 +172,7 @@ export class PointExpirationService {
     // Update wallet with optimistic locking
     const updated = await WalletModel.findOneAndUpdate(
       {
+        tenant_id: { $eq: tenantId },
         userId: { $eq: userId },
         version: { $eq: currentVersion },
       },
@@ -344,7 +350,10 @@ export class PointExpirationService {
    * @returns Array of user IDs
    */
   private async getAllUserIds(): Promise<string[]> {
-    const wallets = await WalletModel.find({}).select('userId').lean().exec();
+    const wallets = await WalletModel.find({ tenant_id: { $eq: getProgramTenantId() } })
+      .select('userId')
+      .lean()
+      .exec();
     return wallets.map((w) => w.userId);
   }
 }
