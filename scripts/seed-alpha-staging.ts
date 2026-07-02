@@ -29,6 +29,7 @@ import { TenantModel, ITenant } from '../src/db/models/tenant.model';
 import { WalletModel, IWallet } from '../src/db/models/wallet.model';
 import { ModelWalletModel, IModelWallet } from '../src/db/models/model-wallet.model';
 import { MerchantModel, IMerchant, MerchantTier } from '../src/db/models/merchant.model';
+import { getProgramTenantId } from '../src/config/program-tenant';
 
 interface SeedTenant {
   tenant_id: string;
@@ -214,6 +215,7 @@ async function upsertMemberWallet(
   if (!existing) {
     if (!dryRun) {
       await WalletModel.create({
+        tenant_id: getProgramTenantId(),
         userId: w.userId,
         availableBalance: w.availableBalance,
         escrowBalance: 0,
@@ -244,6 +246,7 @@ async function upsertModelWallet(
   if (!existing) {
     if (!dryRun) {
       await ModelWalletModel.create({
+        tenant_id: getProgramTenantId(),
         modelId: m.modelId,
         earnedBalance: m.earnedBalance,
         currency: 'points',
