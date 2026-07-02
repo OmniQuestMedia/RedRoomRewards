@@ -53,6 +53,7 @@ import {
 import { WalletModel } from '../db/models/wallet.model';
 import { ModelWalletModel } from '../db/models/model-wallet.model';
 import { EscrowItemModel } from '../db/models/escrow-item.model';
+import { getProgramTenantId, resolveTenantId } from '../config/program-tenant';
 import { ILedgerService } from '../ledger/types';
 import { WalletEventPublisher } from '../events/wallet-event-publisher';
 import { WalletEventType } from '../events/types';
@@ -120,10 +121,15 @@ export class WalletService implements IWalletService {
    * Execute escrow hold operation
    */
   private async executeHoldInEscrow(request: EscrowHoldRequest): Promise<EscrowHoldResponse> {
+    const tenantId = getProgramTenantId();
     // Get or create wallet
-    let wallet = await WalletModel.findOne({ userId: { $eq: request.userId } });
+    let wallet = await WalletModel.findOne({
+      tenant_id: { $eq: tenantId },
+      userId: { $eq: request.userId },
+    });
     if (!wallet) {
       wallet = await WalletModel.create({
+        tenant_id: tenantId,
         userId: request.userId,
         availableBalance: 0,
         escrowBalance: 0,
@@ -146,6 +152,7 @@ export class WalletService implements IWalletService {
     const escrowId = uuidv4();
     await EscrowItemModel.create({
       escrowId,
+      tenant_id: tenantId,
       userId: request.userId,
       amount: request.amount,
       status: 'held',
@@ -159,6 +166,7 @@ export class WalletService implements IWalletService {
     // Update wallet with optimistic locking
     const updated = await WalletModel.findOneAndUpdate(
       {
+        tenant_id: { $eq: tenantId },
         userId: { $eq: request.userId },
         version: { $eq: currentVersion },
       },
@@ -308,10 +316,17 @@ export class WalletService implements IWalletService {
       throw new EscrowAlreadyProcessedError(request.escrowId, existing.status);
     }
 
+    // Scope the money-store to the escrow's program tenant.
+    const tenantId = resolveTenantId(escrow.tenant_id);
+
     // Get or create model wallet
-    let modelWallet = await ModelWalletModel.findOne({ modelId: { $eq: request.modelId } });
+    let modelWallet = await ModelWalletModel.findOne({
+      tenant_id: { $eq: tenantId },
+      modelId: { $eq: request.modelId },
+    });
     if (!modelWallet) {
       modelWallet = await ModelWalletModel.create({
+        tenant_id: tenantId,
         modelId: request.modelId,
         earnedBalance: 0,
         currency: this.config.defaultCurrency,
@@ -327,6 +342,7 @@ export class WalletService implements IWalletService {
     // Update model wallet with optimistic locking
     const updatedModelWallet = await ModelWalletModel.findOneAndUpdate(
       {
+        tenant_id: { $eq: tenantId },
         modelId: { $eq: request.modelId },
         version: { $eq: modelVersion },
       },
@@ -344,7 +360,10 @@ export class WalletService implements IWalletService {
     }
 
     // Update user wallet escrow with optimistic locking
-    const userWallet = await WalletModel.findOne({ userId: { $eq: escrow.userId } });
+    const userWallet = await WalletModel.findOne({
+      tenant_id: { $eq: tenantId },
+      userId: { $eq: escrow.userId },
+    });
     if (!userWallet) {
       throw new Error('User wallet not found');
     }
@@ -352,6 +371,7 @@ export class WalletService implements IWalletService {
     const userVersion = userWallet.version;
     const updatedUserWallet = await WalletModel.findOneAndUpdate(
       {
+        tenant_id: { $eq: tenantId },
         userId: { $eq: escrow.userId },
         version: { $eq: userVersion },
       },
@@ -486,8 +506,14 @@ export class WalletService implements IWalletService {
       throw new EscrowAlreadyProcessedError(request.escrowId, existing.status);
     }
 
+    // Scope the money-store to the escrow's program tenant.
+    const tenantId = resolveTenantId(escrow.tenant_id);
+
     // Get user wallet
-    const wallet = await WalletModel.findOne({ userId: { $eq: request.userId } });
+    const wallet = await WalletModel.findOne({
+      tenant_id: { $eq: tenantId },
+      userId: { $eq: request.userId },
+    });
     if (!wallet) {
       throw new Error('Wallet not found');
     }
@@ -499,6 +525,7 @@ export class WalletService implements IWalletService {
     // Update user wallet with optimistic locking
     const updatedWallet = await WalletModel.findOneAndUpdate(
       {
+        tenant_id: { $eq: tenantId },
         userId: { $eq: request.userId },
         version: { $eq: walletVersion },
       },
@@ -639,8 +666,14 @@ export class WalletService implements IWalletService {
       throw new Error('Refund + settle amounts must equal escrow amount');
     }
 
+    // Scope the money-store to the escrow's program tenant.
+    const tenantId = resolveTenantId(escrow.tenant_id);
+
     // Process refund part
-    const userWallet = await WalletModel.findOne({ userId: { $eq: request.userId } });
+    const userWallet = await WalletModel.findOne({
+      tenant_id: { $eq: tenantId },
+      userId: { $eq: request.userId },
+    });
     if (!userWallet) {
       throw new Error('User wallet not found');
     }
@@ -649,9 +682,13 @@ export class WalletService implements IWalletService {
     const userVersion = userWallet.version;
 
     // Process settle part
-    let modelWallet = await ModelWalletModel.findOne({ modelId: { $eq: request.modelId } });
+    let modelWallet = await ModelWalletModel.findOne({
+      tenant_id: { $eq: tenantId },
+      modelId: { $eq: request.modelId },
+    });
     if (!modelWallet) {
       modelWallet = await ModelWalletModel.create({
+        tenant_id: tenantId,
         modelId: request.modelId,
         earnedBalance: 0,
         currency: this.config.defaultCurrency,
@@ -666,6 +703,7 @@ export class WalletService implements IWalletService {
     // Update user wallet with optimistic locking
     const updatedUserWallet = await WalletModel.findOneAndUpdate(
       {
+        tenant_id: { $eq: tenantId },
         userId: { $eq: request.userId },
         version: { $eq: userVersion },
       },
@@ -691,6 +729,7 @@ export class WalletService implements IWalletService {
     // Update model wallet with optimistic locking
     const updatedModelWallet = await ModelWalletModel.findOneAndUpdate(
       {
+        tenant_id: { $eq: tenantId },
         modelId: { $eq: request.modelId },
         version: { $eq: modelVersion },
       },
@@ -816,7 +855,10 @@ export class WalletService implements IWalletService {
     escrow: number;
     total: number;
   }> {
-    const wallet = await WalletModel.findOne({ userId: { $eq: userId } });
+    const wallet = await WalletModel.findOne({
+      tenant_id: { $eq: getProgramTenantId() },
+      userId: { $eq: userId },
+    });
 
     if (!wallet) {
       return {
@@ -839,7 +881,10 @@ export class WalletService implements IWalletService {
   async getModelBalance(modelId: string): Promise<{
     earned: number;
   }> {
-    const wallet = await ModelWalletModel.findOne({ modelId: { $eq: modelId } });
+    const wallet = await ModelWalletModel.findOne({
+      tenant_id: { $eq: getProgramTenantId() },
+      modelId: { $eq: modelId },
+    });
 
     if (!wallet) {
       return {

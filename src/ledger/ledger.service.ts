@@ -21,6 +21,7 @@ import {
 import { LedgerEntryModel, ILedgerEntry } from '../db/models/ledger-entry.model';
 import { IdempotencyRecordModel } from '../db/models/idempotency.model';
 import { WalletModel } from '../db/models/wallet.model';
+import { getProgramTenantId } from '../config/program-tenant';
 import { TransactionType, TransactionReason } from '../wallets/types';
 import logger from '../lib/logger';
 
@@ -609,11 +610,16 @@ export class LedgerService implements ILedgerService {
       // Atomically bump the authoritative balance. Upsert so the first credit
       // for a brand-new account creates the wallet; `$inc` from the 0 default
       // yields availableBalance === amount.
+      const tenantId = getProgramTenantId();
       const updated = await WalletModel.findOneAndUpdate(
-        { userId: { $eq: accountId } },
+        { tenant_id: { $eq: tenantId }, userId: { $eq: accountId } },
         {
           $inc: { availableBalance: amount, version: 1 },
-          $setOnInsert: { escrowBalance: 0, currency: this.config.defaultCurrency },
+          $setOnInsert: {
+            tenant_id: tenantId,
+            escrowBalance: 0,
+            currency: this.config.defaultCurrency,
+          },
         },
         { new: true, upsert: true, ...(s ? { session: s } : {}) },
       );
@@ -674,14 +680,22 @@ export class LedgerService implements ILedgerService {
       throw new Error(`deductPoints: amount must be positive, got ${amount}`);
     }
     return this.withTransactionSafety(session, async (s) => {
+      const tenantId = getProgramTenantId();
       const updated = await WalletModel.findOneAndUpdate(
-        { userId: { $eq: accountId }, availableBalance: { $gte: amount } },
+        {
+          tenant_id: { $eq: tenantId },
+          userId: { $eq: accountId },
+          availableBalance: { $gte: amount },
+        },
         { $inc: { availableBalance: -amount, version: 1 } },
         { new: true, ...(s ? { session: s } : {}) },
       );
       if (!updated) {
         // Surface the current balance for diagnostics when a wallet exists.
-        const wallet = await WalletModel.findOne({ userId: { $eq: accountId } }).lean();
+        const wallet = await WalletModel.findOne({
+          tenant_id: { $eq: tenantId },
+          userId: { $eq: accountId },
+        }).lean();
         const available = wallet ? wallet.availableBalance : 0;
         throw new Error(
           `deductPoints: insufficient balance for ${accountId} — available ${available}, requested ${amount}`,

@@ -13,6 +13,7 @@ import { ILedgerService } from '../ledger/types';
 import { WalletModel } from '../db/models/wallet.model';
 import { EarnRateConfigModel } from '../db/models/earn-rate-config.model';
 import { TransactionType, TransactionReason } from '../wallets/types';
+import { resolveTenantId } from '../config/program-tenant';
 
 /**
  * Request to award points to a user
@@ -158,9 +159,14 @@ export class PointAccrualService {
     }
 
     // Get or create wallet
-    let wallet = await WalletModel.findOne({ userId: { $eq: request.userId } });
+    const tenantId = resolveTenantId(request.tenantId);
+    let wallet = await WalletModel.findOne({
+      tenant_id: { $eq: tenantId },
+      userId: { $eq: request.userId },
+    });
     if (!wallet) {
       wallet = await WalletModel.create({
+        tenant_id: tenantId,
         userId: request.userId,
         availableBalance: 0,
         escrowBalance: 0,
@@ -176,6 +182,7 @@ export class PointAccrualService {
     // Update wallet with optimistic locking
     const updated = await WalletModel.findOneAndUpdate(
       {
+        tenant_id: { $eq: tenantId },
         userId: { $eq: request.userId },
         version: { $eq: currentVersion },
       },
@@ -442,7 +449,11 @@ export class PointAccrualService {
       }
     }
 
-    const wallet = await WalletModel.findOne({ userId: { $eq: request.userId } });
+    const tenantId = resolveTenantId(request.tenantId);
+    const wallet = await WalletModel.findOne({
+      tenant_id: { $eq: tenantId },
+      userId: { $eq: request.userId },
+    });
     if (!wallet) {
       throw new Error(`Insufficient balance: wallet not found for ${request.userId}`);
     }
@@ -459,6 +470,7 @@ export class PointAccrualService {
     // Optimistic-locked decrement; matches the awardPoints retry pattern.
     const updated = await WalletModel.findOneAndUpdate(
       {
+        tenant_id: { $eq: tenantId },
         userId: { $eq: request.userId },
         version: { $eq: currentVersion },
         availableBalance: { $gte: request.amount },
