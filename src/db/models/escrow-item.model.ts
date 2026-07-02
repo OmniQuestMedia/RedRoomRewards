@@ -9,6 +9,9 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IEscrowItem extends Document {
+  // Program-tenant isolation boundary (RRR-#2 Phase A). Optional during expand;
+  // backfilled, then filtered (Phase B) and enforced (Phase C).
+  tenant_id?: string;
   escrowId: string;
   userId: string;
   amount: number;
@@ -24,6 +27,15 @@ export interface IEscrowItem extends Document {
 
 const EscrowItemSchema = new Schema<IEscrowItem>(
   {
+    // Optional during Phase A (expand); required in Phase C. escrowId stays the
+    // unique key (globally-unique UUID), so no composite-unique change here.
+    tenant_id: {
+      type: String,
+      required: false,
+      trim: true,
+      maxlength: 128,
+      index: true,
+    },
     escrowId: {
       type: String,
       required: true,
@@ -103,6 +115,10 @@ EscrowItemSchema.index({ escrowId: 1 }, { unique: true });
 
 // Unique index on queueItemId (one escrow per queue item)
 EscrowItemSchema.index({ queueItemId: 1 }, { unique: true });
+
+// Program-tenant scoped lookup (Phase A: non-unique). escrowId remains the
+// unique key; tenant_id is defense-in-depth for user/status queries.
+EscrowItemSchema.index({ tenant_id: 1, userId: 1, status: 1 });
 
 // Compound indexes for common queries
 EscrowItemSchema.index({ userId: 1, status: 1, createdAt: -1 });
