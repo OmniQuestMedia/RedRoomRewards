@@ -47,8 +47,8 @@
 
 ## WAVE B — FIZ Wiring + Data Layer (open after A-CLEAN)
 
-_Wave B closed by B-CLEAN (`9788b3b`). Individual rows below landed across PRs
-#289–#297; SHA shown is the wave-close commit by which all Wave B work was
+_Wave B closed by B-CLEAN (`9788b3b`). Individual rows below landed across
+PRs #289–#297; SHA shown is the wave-close commit by which all Wave B work was
 confirmed merged. C and D waves built on top of these._
 
 | ID      | Task                                                                                                                                                                                                                                                                    | Status | Merge SHA |
