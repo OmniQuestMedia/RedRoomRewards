@@ -1,7 +1,7 @@
 # Reference Branch Policy
 
 **Project:** BUILD CONTROL - REWARDS (RRR) **Repo:**
-OmniQuestMediaInc/RedRoomRewards **Authority:** Kevin B. Hartley, CEO —
+OmniQuestMedia/RedRoomRewards **Authority:** Kevin B. Hartley, CEO —
 OmniQuest Media Inc. **Established:** 2026-04-18
 
 ---

@@ -1,7 +1,7 @@
 # DOMAIN GLOSSARY — RedRoomRewards
 
 **Authority:** Kevin B. Hartley, CEO — OmniQuest Media Inc. **Repo:**
-OmniQuestMediaInc/RedRoomRewards **Last updated:** 2026-05-03
+OmniQuestMedia/RedRoomRewards **Last updated:** 2026-05-03
 
 This file is the canonical naming authority for all code, comments,
 documentation, and identifiers in the RedRoomRewards codebase. Agents must check
@@ -23,7 +23,7 @@ HOW TO USE:
 | -------------------- | -------------------------------------- | -------------------------- |
 | RedRoomRewards       | OQMInc SaaS loyalty and rewards engine | RedRoomRewards, RRR        |
 | RRR                  | RedRoomRewards abbreviation            | RRR                        |
-| OmniQuest Media Inc. | Parent company                         | OmniQuestMediaInc, OQMI    |
+| OmniQuest Media Inc. | Parent company                         | OmniQuestMedia, OQMI    |
 | ChatNow.Zone         | Primary merchant tenant                | ChatNow.Zone, chatnow_zone |
 | RedRoomPleasures     | Merchant tenant (Phase 1)              | RedRoomPleasures           |
 | Cyrano               | Merchant tenant (Phase 1)              | Cyrano                     |

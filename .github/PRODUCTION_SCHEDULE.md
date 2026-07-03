@@ -1,6 +1,6 @@
 # RedRoomRewards — Production Schedule
 
-# OmniQuestMediaInc/RedRoomRewards
+# OmniQuestMedia/RedRoomRewards
 
 # Updated: 2026-05-03 (Waves A–D closed; Alpha test prep landing)
 

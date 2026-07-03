@@ -1,4 +1,4 @@
-Repo: https://github.com/OmniQuestMediaInc/RedRoomRewards
+Repo: https://github.com/OmniQuestMedia/RedRoomRewards
 
 Read `AGENT_INSTRUCTIONS.md` and `PRODUCTION_SCHEDULE.md` from the repo root
 first.

@@ -4,31 +4,31 @@
 # Changes to financial-integrity paths require CEO review.
 
 # Default: all files require OQMInc org review
-* @OmniQuestMediaInc/rrrdev
+* @KevinBHartley
 
 # Governance and policy — CEO approval required
-OQMI_INFRASTRUCTURE_AND_SECURITY_POLICY.md @OmniQuestMediaInc/ceo
-PROGRAM_CONTROL/ @OmniQuestMediaInc/ceo
-.github/PRODUCTION_SCHEDULE.md @OmniQuestMediaInc/ceo
-.github/copilot-instructions.md @OmniQuestMediaInc/ceo
+OQMI_INFRASTRUCTURE_AND_SECURITY_POLICY.md @KevinBHartley
+PROGRAM_CONTROL/ @KevinBHartley
+.github/PRODUCTION_SCHEDULE.md @KevinBHartley
+.github/copilot-instructions.md @KevinBHartley
 
 # Financial Integrity Zone — requires dedicated FIZ review
-src/ledger/ @OmniQuestMediaInc/rrrdev @OmniQuestMediaInc/ceo
-src/wallets/ @OmniQuestMediaInc/rrrdev @OmniQuestMediaInc/ceo
-src/services/point-accrual.service.ts @OmniQuestMediaInc/rrrdev @OmniQuestMediaInc/ceo
-src/services/point-redemption.service.ts @OmniQuestMediaInc/rrrdev @OmniQuestMediaInc/ceo
-src/services/point-expiration.service.ts @OmniQuestMediaInc/rrrdev @OmniQuestMediaInc/ceo
+src/ledger/ @KevinBHartley
+src/wallets/ @KevinBHartley
+src/services/point-accrual.service.ts @KevinBHartley
+src/services/point-redemption.service.ts @KevinBHartley
+src/services/point-expiration.service.ts @KevinBHartley
 
 # API contracts — require rrrdev approval
-api/ @OmniQuestMediaInc/rrrdev
-src/api/ @OmniQuestMediaInc/rrrdev
+api/ @KevinBHartley
+src/api/ @KevinBHartley
 
 # DB schema / models — require rrrdev approval
-src/db/ @OmniQuestMediaInc/rrrdev
+src/db/ @KevinBHartley
 
 # Infrastructure
-infra/ @OmniQuestMediaInc/rrrdev
-.github/workflows/ @OmniQuestMediaInc/rrrdev
+infra/ @KevinBHartley
+.github/workflows/ @KevinBHartley
 
 # Archive — read-only historical reference; changes require ceo
-archive/ @OmniQuestMediaInc/ceo
+archive/ @KevinBHartley

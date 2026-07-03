@@ -104,7 +104,7 @@ authoritative DNS for the apex once delegated.
 
 ### 4.1 Build
 
-- Source: `OmniQuestMediaInc/RedRoomRewards`, **tag-based deploy** (no
+- Source: `OmniQuestMedia/RedRoomRewards`, **tag-based deploy** (no
   auto-deploy on push).
 - Build command: `npm ci && npm run build`
 - Run command: `npm run start:prod`

@@ -5,7 +5,7 @@
 **Status:** SPIKE — Not production-ready. Architecture only.  
 **Authority:** Kevin B. Hartley, CEO — OmniQuest Media Inc.  
 **Date:** 2026-04-24  
-**Governs:** OmniQuestMediaInc/RedRoomRewards
+**Governs:** OmniQuestMedia/RedRoomRewards
 
 ---
 
