@@ -80,7 +80,7 @@ go-live nears, mirror with `api.` and `auth.` (no `-staging`).
 
 ### 4.1 Build
 
-- **Source:** GitHub repo `OmniQuestMediaInc/RedRoomRewards`, branch `main`
+- **Source:** GitHub repo `OmniQuestMedia/RedRoomRewards`, branch `main`
   (auto-deploy on push to main; staging tracks main).
 - **Build command:** `npm ci && npm run build`
 - **Run command:** `npm run start:prod`

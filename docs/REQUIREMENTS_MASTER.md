@@ -1,7 +1,7 @@
 # REQUIREMENTS MASTER — RedRoomRewards
 
 **Authority:** Kevin B. Hartley, CEO — OmniQuest Media Inc. **Repo:**
-OmniQuestMediaInc/RedRoomRewards **Source:**
+OmniQuestMedia/RedRoomRewards **Source:**
 RRR_CEO_DECISIONS_FINAL_2026-04-17.md + RRR_LOYALTY_ENGINE_SPEC_v1.1.md **Hard
 launch target:** Phase 1 (RedRoomPleasures + Cyrano) before ChatNow.Zone **Last
 updated:** 2026-04-17

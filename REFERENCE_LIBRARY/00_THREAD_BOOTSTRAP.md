@@ -3,7 +3,7 @@
 **Always-current master orientation document** **Authority:** Kevin B. Hartley,
 CEO — OmniQuest Media Inc. **Initialized:** Thread RRR-001 — 2026-04-18 **Last
 updated:** Thread RRR-001 — 2026-04-18 **Repo:**
-OmniQuestMediaInc/RedRoomRewards
+OmniQuestMedia/RedRoomRewards
 
 ---
 
@@ -27,7 +27,7 @@ in the sibling library files.
 | Project           | BUILD CONTROL - REWARDS                       |
 | Short code        | RRR                                           |
 | Description       | RedRoomRewards Loyalty program                |
-| Repo              | OmniQuestMediaInc/RedRoomRewards              |
+| Repo              | OmniQuestMedia/RedRoomRewards              |
 | Initialized       | Thread RRR-001 — 2026-04-18                   |
 | **BANNED ENTITY** | Jaime Watt / Navigator Ltd. — NEVER reference |
 

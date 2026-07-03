@@ -8,7 +8,7 @@
 
 [![Program Control](https://img.shields.io/badge/Program_Control-DIRECTIVES-blue?style=flat-square)](PROGRAM_CONTROL/DIRECTIVES/QUEUE/)
 [![Production Schedule](https://img.shields.io/badge/Production_Schedule-ACTIVE-green?style=flat-square)](.github/PRODUCTION_SCHEDULE.md)
-[![CI](https://github.com/OmniQuestMediaInc/RedRoomRewards/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
+[![CI](https://github.com/OmniQuestMedia/RedRoomRewards/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 [![Fast-Path](https://img.shields.io/badge/Fast--Path-Copilot_Internal-blueviolet?style=flat-square)](.github/workflows/copilot-internal.yml)
 [![Ship-Gate](https://img.shields.io/badge/Ship--Gate-Required-black?style=flat-square)](PROGRAM_CONTROL/ship-gate-verifier.ts)
 

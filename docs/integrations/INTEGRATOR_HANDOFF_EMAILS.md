@@ -53,7 +53,7 @@ plugin
 Hi [Author Name],
 
 We're ready to start wiring RedRoomPleasures into the RedRoomRewards
-loyalty engine. Everything you need to begin is in the OmniQuestMediaInc/
+loyalty engine. Everything you need to begin is in the OmniQuestMedia/
 RedRoomRewards repo — you've been invited as a collaborator with
 read access.
 
@@ -123,7 +123,7 @@ business as usual.
 Hi [Lead Name],
 
 Ready to start wiring Cyrano into the RedRoomRewards loyalty engine.
-You're already a collaborator on OmniQuestMediaInc/RedRoomRewards (or
+You're already a collaborator on OmniQuestMedia/RedRoomRewards (or
 will be by the time you read this).
 
 Start here:

@@ -422,7 +422,7 @@ Every failure cites:
 - The exact request body (sanitized — no secrets).
 - Whatever staging-side context (logs, DB snapshot id, etc.) the issue requires.
 
-Findings get filed as GitHub issues in `OmniQuestMediaInc/RedRoomRewards` with
+Findings get filed as GitHub issues in `OmniQuestMedia/RedRoomRewards` with
 the `alpha-test` label.
 
 ---

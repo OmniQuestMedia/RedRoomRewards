@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: RedRoomRewards (RedRoomPleasures)
- * Plugin URI:  https://github.com/OmniQuestMediaInc/RedRoomRewards
+ * Plugin URI:  https://github.com/OmniQuestMedia/RedRoomRewards
  * Description: Loyalty-points integration for the RedRoomPleasures storefront. Bridges WooCommerce to the RRR loyalty engine via HMAC-signed service-to-service requests.
  * Version:     0.1.0-alpha
  * Requires PHP: 8.1

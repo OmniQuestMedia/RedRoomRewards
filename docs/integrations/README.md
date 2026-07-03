@@ -54,6 +54,6 @@ For each integrator team:
 1. Read the packet end-to-end before writing code.
 2. Run the smoke-test checklist against staging when staging is provisioned.
 3. File integration questions as GitHub issues against
-   `OmniQuestMediaInc/RedRoomRewards` with the `integration:<merchant>` label.
+   `OmniQuestMedia/RedRoomRewards` with the `integration:<merchant>` label.
 4. When ready for Alpha test, ping the OQMI Operator console for the per-tenant
    HMAC key pair.

@@ -67,7 +67,7 @@ All complaints will be reviewed and investigated promptly and fairly.
 2. **Add Upstream Remote**
 
    ```bash
-   git remote add upstream https://github.com/OmniQuestMediaInc/RedRoomRewards.git
+   git remote add upstream https://github.com/OmniQuestMedia/RedRoomRewards.git
    ```
 
 3. **Install Dependencies** (when package.json exists)
@@ -119,7 +119,7 @@ Before contributing, please read:
 ### 1. Choose an Issue
 
 - Browse
-  [open issues](https://github.com/OmniQuestMediaInc/RedRoomRewards/issues)
+  [open issues](https://github.com/OmniQuestMedia/RedRoomRewards/issues)
 - Look for issues tagged `good first issue` if you're new
 - Comment on the issue to claim it and avoid duplicate work
 
