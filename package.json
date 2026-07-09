@@ -41,7 +41,7 @@
   "dependencies": {
     "@nestjs/config": "^4.0.4",
     "@nestjs/platform-express": "^11.1.27",
-    "@nestjs/swagger": "^11.4.4",
+    "@nestjs/swagger": "^11.4.5",
     "@types/jsonwebtoken": "^9.0.10",
     "express-rate-limit": "^8.5.2",
     "jsonwebtoken": "^9.0.3",
@@ -60,7 +60,7 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^26.1.0",
     "@typescript-eslint/eslint-plugin": "^8.59.2",
-    "@types/node": "^25.9.1",
+    "@types/node": "^26.1.0",
     "@typescript-eslint/eslint-plugin": "^8.62.0",
     "@typescript-eslint/parser": "^8.60.0",
     "ajv": "^8.20.0",
