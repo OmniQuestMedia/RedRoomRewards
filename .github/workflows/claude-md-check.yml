@@ -1,0 +1,38 @@
+# CLAUDE.md staleness gate.
+# Fails a PR when CLAUDE.md references a repo path that no longer exists, or when
+# the generated facts block is out of date. Cheap, fast, and portable — copy
+# verbatim into any repo that has a CLAUDE.md.
+name: CLAUDE.md Check
+
+on:
+  push:
+    branches: [main, "claude/**", "feature/**", "fix/**"]
+  pull_request:
+    branches: [main, "claude/**", "feature/**", "fix/**"]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Dangling-pointer check
+        run: node scripts/check-claude-md.js
+
+      - name: Generated facts up-to-date check
+        run: node scripts/refresh-claude-md.js --check
+
+      - name: Doc classification up-to-date check
+        run: |
+          node scripts/classify-docs.js
+          git diff --exit-code docs/DOC_CLASSIFICATION.md

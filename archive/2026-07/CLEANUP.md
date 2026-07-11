@@ -1,3 +1,5 @@
+> **ARCHIVED 2026-07-11** — spent point-in-time report, quarantined per `docs/SOURCE_OF_TRUTH.md`. Not for current work; the live source of truth is `README.md` / the canonical docs in `docs/SOURCE_OF_TRUTH.md`. Git history preserves the original.
+
 # CLEANUP CHECKLIST — RedRoomRewards
 
 This document tracks all features, files, modules, and logic inherited from the
