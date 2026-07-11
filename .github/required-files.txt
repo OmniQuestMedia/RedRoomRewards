@@ -1,0 +1,52 @@
+# required-files.txt — RedRoomRewards canonical-doc pins
+#
+# Consumed by scripts/classify-docs.js: every *.md entry here is pinned
+# CANONICAL (source of truth) and is therefore NEVER an archival candidate for
+# the reports-scope pass (scripts/archive-historical-docs.js). This is the
+# kit-native way to protect a live doc whose *name* would otherwise trip the
+# HISTORICAL report-name heuristic (e.g. STATUS_PAGE_TEMPLATES.md is a live
+# incident-comms template, not a spent "STATUS" report).
+#
+# SEED FOR CEO RATIFICATION. This list was curated during the doc-kit install
+# from the live doc corpus; it is deliberately conservative (specs, contracts,
+# runbooks, and standing references only — no point-in-time reports). The CEO
+# may extend or trim it. The governing charter itself is RRR-GOV-002; this file
+# governs doc classification only, not code.
+#
+# One repo-relative path per line. Blank lines and #-comments are ignored.
+
+# --- Root authorities ---
+README.md
+CONTRIBUTING.md
+SECURITY.md
+CLAUDE.md
+
+# --- Doc-governance ---
+docs/SOURCE_OF_TRUTH.md
+
+# --- Domain & product canon ---
+docs/DOMAIN_GLOSSARY.md
+docs/RRR_LOYALTY_ENGINE_SPEC_v1.1.md
+docs/RRR_CEO_DECISIONS_FINAL_2026-04-17.md
+docs/REQUIREMENTS_MASTER.md
+docs/PROMOTION_RULES.md
+docs/FEATURE_COMPLIANCE_CHECKLIST.md
+
+# --- Architecture & contracts ---
+docs/ARCHITECTURE.md
+docs/API_SURFACE.md
+docs/AUTH_CONTRACT.md
+docs/DATABASE_SCHEMA.md
+docs/EVENT_ARCHITECTURE.md
+docs/INTEGRATION_CONTRACT.md
+docs/WALLET_ESCROW_ARCHITECTURE.md
+docs/QUEUE_INTEGRATION_GUIDE.md
+
+# --- Ops, deploy & compliance runbooks ---
+docs/OPERATIONAL_RUNBOOK.md
+docs/DISASTER_RECOVERY_RUNBOOK.md
+docs/PIPEDA_BREACH_PROCEDURE.md
+docs/STATUS_PAGE_TEMPLATES.md
+docs/PRODUCTION_DEPLOY_SPEC.md
+docs/STAGING_DEPLOY_SPEC.md
+docs/KEYCLOAK_REALM_SPEC.md

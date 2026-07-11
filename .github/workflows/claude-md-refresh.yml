@@ -1,0 +1,40 @@
+# Refresh CLAUDE.md generated facts block.
+# Regenerates the machine-managed <!-- generated:repo-facts --> block from live
+# repo signals and self-commits [skip ci] when (and only when) a fact changed.
+# Modeled on repo-manifest.yml. Portable: copy verbatim into any repo that has a
+# CLAUDE.md carrying the markers.
+name: Refresh CLAUDE.md
+
+# Runs on the default branch only, so the committed facts block is maintained
+# post-merge without self-committing to every working branch (which would race
+# the pre-merge CLAUDE.md Check gate).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Regenerate repo-facts block
+        run: node scripts/refresh-claude-md.js
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add CLAUDE.md
+          git diff --staged --quiet || git commit -m "CHORE: refresh CLAUDE.md repo-facts [skip ci]"
+          git push

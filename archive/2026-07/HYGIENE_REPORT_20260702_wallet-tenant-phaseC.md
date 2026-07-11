@@ -1,3 +1,5 @@
+> **ARCHIVED 2026-07-11** — spent point-in-time report, quarantined per `docs/SOURCE_OF_TRUTH.md`. Not for current work; the live source of truth is `README.md` / the canonical docs in `docs/SOURCE_OF_TRUTH.md`. Git history preserves the original.
+
 # RedRoomRewards — Carry-Back #2 Phase C: enforce tenant isolation
 
 **Date:** 2026-07-02 **Branch:** `claude/rrr-wallet-tenant-phaseC-20260702` (off
