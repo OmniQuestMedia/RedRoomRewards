@@ -9,12 +9,14 @@ import { WebhookReceiveService } from '../webhook-receive.service';
 import { WebhookEmitService } from '../webhook-emit.service';
 import { IdempotencyService } from '../../services/idempotency.service';
 import { AffiliateService } from '../../services/affiliate.service';
+import { AffiliateSpiffService } from '../../services/affiliate-spiff.service';
 
 describe('WebhookReceiveService (C-007)', () => {
   let service: WebhookReceiveService;
   let idempotency: jest.Mocked<IdempotencyService>;
   let emitService: WebhookEmitService;
   let affiliate: jest.Mocked<AffiliateService>;
+  let spiff: jest.Mocked<AffiliateSpiffService>;
 
   beforeEach(() => {
     idempotency = {
@@ -26,7 +28,12 @@ describe('WebhookReceiveService (C-007)', () => {
     affiliate = {
       ensureLinkForCreator: jest.fn().mockResolvedValue({ affiliate_id: 'aff-1' }),
     } as unknown as jest.Mocked<AffiliateService>;
-    service = new WebhookReceiveService(idempotency, emitService, affiliate);
+    spiff = {
+      awardNewAccountSpiff: jest
+        .fn()
+        .mockResolvedValue({ awarded: true, points: 1000, reason: 'awarded' }),
+    } as unknown as jest.Mocked<AffiliateSpiffService>;
+    service = new WebhookReceiveService(idempotency, emitService, affiliate, spiff);
   });
 
   it('accepts and records a new webhook event', async () => {
@@ -126,5 +133,85 @@ describe('WebhookReceiveService (C-007)', () => {
 
     expect(result.status).toBe('accepted');
     expect(affiliate.ensureLinkForCreator).not.toHaveBeenCalled();
+  });
+
+  it('awards the account spiff on a first-purchase affiliate.award.attributed event', async () => {
+    idempotency.checkKey.mockResolvedValue(null);
+    idempotency.recordKey.mockResolvedValue(undefined);
+
+    await service.handleIncoming(
+      {
+        eventId: 'evt-awd-1',
+        event: {
+          type: 'affiliate.award.attributed',
+          tenant_id: 'tenant_1',
+          correlation_id: 'corr-awd-1',
+          payload: {
+            creatorId: 'creator-9',
+            referredUserId: 'guest-3',
+            isFirstPurchase: true,
+          },
+        },
+      },
+      'sig',
+      'ts',
+      {},
+    );
+
+    expect(spiff.awardNewAccountSpiff).toHaveBeenCalledWith(
+      expect.objectContaining({
+        creatorId: 'creator-9',
+        referredUserId: 'guest-3',
+        requestId: 'corr-awd-1',
+        tenantId: 'tenant_1',
+      }),
+    );
+  });
+
+  it('does not award a spiff when the award is not a first purchase', async () => {
+    idempotency.checkKey.mockResolvedValue(null);
+    idempotency.recordKey.mockResolvedValue(undefined);
+
+    await service.handleIncoming(
+      {
+        eventId: 'evt-awd-2',
+        event: {
+          type: 'affiliate.award.attributed',
+          tenant_id: 'tenant_1',
+          payload: {
+            creatorId: 'creator-9',
+            referredUserId: 'guest-3',
+            isFirstPurchase: false,
+          },
+        },
+      },
+      'sig',
+      'ts',
+      {},
+    );
+
+    expect(spiff.awardNewAccountSpiff).not.toHaveBeenCalled();
+  });
+
+  it('skips the spiff (no throw) when creator/referred are missing', async () => {
+    idempotency.checkKey.mockResolvedValue(null);
+    idempotency.recordKey.mockResolvedValue(undefined);
+
+    const result = await service.handleIncoming(
+      {
+        eventId: 'evt-awd-3',
+        event: {
+          type: 'affiliate.award.attributed',
+          tenant_id: 'tenant_1',
+          payload: { isFirstPurchase: true },
+        },
+      },
+      'sig',
+      'ts',
+      {},
+    );
+
+    expect(result.status).toBe('accepted');
+    expect(spiff.awardNewAccountSpiff).not.toHaveBeenCalled();
   });
 });
