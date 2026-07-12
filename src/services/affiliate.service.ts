@@ -18,6 +18,15 @@ export interface AffiliateAccrualResult {
   affiliate_id: string | null;
 }
 
+/** Minimal signal extracted from an AccountsZone `CreatorRegistered` event. */
+export interface CreatorRegisteredSignal {
+  tenant_id: string;
+  creator_id: string;
+  external_creator_ref: string;
+  platform: IAffiliateLink['platform'];
+  correlation_id?: string;
+}
+
 @Injectable()
 export class AffiliateService {
   async registerLink(input: RegisterAffiliateLinkInput): Promise<IAffiliateLink> {
@@ -70,6 +79,48 @@ export class AffiliateService {
       total_points: basePoints + bonus_points,
       affiliate_id: link.affiliate_id,
     };
+  }
+
+  /**
+   * Idempotently ensure a RedRoomRewards affiliate link exists for a creator
+   * whose account was just created on another Park. Called from the inbound
+   * AccountsZone `CreatorRegistered` webhook. The link is toggled ON at
+   * creation (`is_active: true`) so the creator is immediately credited for
+   * referred members.
+   *
+   * NON-FINANCIAL by design: `bonus_points_pct` is left at 0 (no points/cash
+   * economics). The actual bonus rate is a governed (FIZ / CEO) decision set in
+   * a later pass; a 0% link still generates and attributes without any ledger
+   * or wallet write.
+   */
+  async ensureLinkForCreator(signal: CreatorRegisteredSignal): Promise<IAffiliateLink> {
+    const existing = await AffiliateLinkModel.findOne({
+      tenant_id: { $eq: signal.tenant_id },
+      creator_id: { $eq: signal.creator_id },
+      platform: { $eq: signal.platform },
+    }).exec();
+
+    if (existing) {
+      return existing;
+    }
+
+    return this.registerLink({
+      tenant_id: signal.tenant_id,
+      creator_id: signal.creator_id,
+      platform: signal.platform,
+      external_creator_ref: signal.external_creator_ref,
+      bonus_points_pct: 0,
+      correlation_id: signal.correlation_id,
+    });
+  }
+
+  /** Visibility read: the creator's active affiliate link, or null. */
+  async getLinkForCreator(tenantId: string, creatorId: string): Promise<IAffiliateLink | null> {
+    return AffiliateLinkModel.findOne({
+      tenant_id: { $eq: tenantId },
+      creator_id: { $eq: creatorId },
+      is_active: { $eq: true },
+    }).exec();
   }
 
   async deactivateLink(affiliateId: string, tenantId: string): Promise<void> {
