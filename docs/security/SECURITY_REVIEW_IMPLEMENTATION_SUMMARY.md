@@ -305,7 +305,7 @@ Review**: 2026-04-04 (Quarterly)
 ## Sign-Off
 
 **Reviewed By**: GitHub Copilot Coding Agent **Review Date**: 2026-01-04 **PR**:
-#[pending] **Branch**: copilot/review-repository-security-practices
+\#[pending] **Branch**: copilot/review-repository-security-practices
 
 ---
 
