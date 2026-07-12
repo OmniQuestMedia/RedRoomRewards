@@ -104,8 +104,8 @@ authoritative DNS for the apex once delegated.
 
 ### 4.1 Build
 
-- Source: `OmniQuestMedia/RedRoomRewards`, **tag-based deploy** (no
-  auto-deploy on push).
+- Source: `OmniQuestMedia/RedRoomRewards`, **tag-based deploy** (no auto-deploy
+  on push).
 - Build command: `npm ci && npm run build`
 - Run command: `npm run start:prod`
 - Container size: Professional tier, 2 vCPU / 4 GB minimum; scale up before

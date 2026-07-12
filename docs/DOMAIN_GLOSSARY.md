@@ -23,7 +23,7 @@ HOW TO USE:
 | -------------------- | -------------------------------------- | -------------------------- |
 | RedRoomRewards       | OQMInc SaaS loyalty and rewards engine | RedRoomRewards, RRR        |
 | RRR                  | RedRoomRewards abbreviation            | RRR                        |
-| OmniQuest Media Inc. | Parent company                         | OmniQuestMedia, OQMI    |
+| OmniQuest Media Inc. | Parent company                         | OmniQuestMedia, OQMI       |
 | ChatNow.Zone         | Primary merchant tenant                | ChatNow.Zone, chatnow_zone |
 | RedRoomPleasures     | Merchant tenant (Phase 1)              | RedRoomPleasures           |
 | Cyrano               | Merchant tenant (Phase 1)              | Cyrano                     |
