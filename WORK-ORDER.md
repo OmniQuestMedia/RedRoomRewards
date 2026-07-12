@@ -10,9 +10,9 @@
 
 - [x] **Add Sovereign Infrastructure & Security Policy** (Critical —
       Non-negotiable)  
-       `OQMI_INFRASTRUCTURE_AND_SECURITY_POLICY.md` created at **repo root**
+      `OQMI_INFRASTRUCTURE_AND_SECURITY_POLICY.md` created at **repo root**
       (v1.0, effective 2026-05-06).  
-       `README.md` and `SECURITY.md` updated to reference it as **authoritative
+      `README.md` and `SECURITY.md` updated to reference it as **authoritative
       sovereign document**.
 
 - [x] **Create / Overwrite WORK-ORDER.md** with this full document

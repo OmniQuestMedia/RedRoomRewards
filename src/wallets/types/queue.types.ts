@@ -44,11 +44,7 @@ export interface QueueIntakeEvent {
 export interface FinancialEvent {
   /** Event type */
   eventType:
-    | 'escrow_held'
-    | 'escrow_settled'
-    | 'escrow_refunded'
-    | 'points_awarded'
-    | 'points_redeemed';
+    'escrow_held' | 'escrow_settled' | 'escrow_refunded' | 'points_awarded' | 'points_redeemed';
 
   /** Message template ID */
   templateId: string;
@@ -81,10 +77,7 @@ export interface IdempotencyRecord {
 
   /** Result of the operation (stored response) */
   result:
-    | EscrowHoldResponse
-    | EscrowSettleResponse
-    | EscrowRefundResponse
-    | EscrowPartialSettleResponse;
+    EscrowHoldResponse | EscrowSettleResponse | EscrowRefundResponse | EscrowPartialSettleResponse;
 
   /** HTTP status code */
   statusCode: number;

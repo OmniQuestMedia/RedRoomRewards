@@ -6,9 +6,9 @@ name: CLAUDE.md Check
 
 on:
   push:
-    branches: [main, "claude/**", "feature/**", "fix/**"]
+    branches: [main, 'claude/**', 'feature/**', 'fix/**']
   pull_request:
-    branches: [main, "claude/**", "feature/**", "fix/**"]
+    branches: [main, 'claude/**', 'feature/**', 'fix/**']
 
 permissions:
   contents: read

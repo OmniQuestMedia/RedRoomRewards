@@ -118,8 +118,7 @@ Before contributing, please read:
 
 ### 1. Choose an Issue
 
-- Browse
-  [open issues](https://github.com/OmniQuestMedia/RedRoomRewards/issues)
+- Browse [open issues](https://github.com/OmniQuestMedia/RedRoomRewards/issues)
 - Look for issues tagged `good first issue` if you're new
 - Comment on the issue to claim it and avoid duplicate work
 
@@ -454,9 +453,7 @@ describe('EarnPoints', () => {
     });
 
     it('should handle duplicate requests idempotently', async () => {
-      const request = {
-        /* ... */
-      };
+      const request = {/* ... */};
 
       const result1 = await earnPoints(request);
       const result2 = await earnPoints(request); // Same idempotency key

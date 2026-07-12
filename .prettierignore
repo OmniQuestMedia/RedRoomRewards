@@ -20,6 +20,10 @@ pnpm-lock.yaml
 # Legacy archived configs (do not reformat)
 LEGACY_CONFIGS/
 
+# Quarantined historical docs (git history preserves every version; do not
+# cosmetically rewrite spent reports — see docs/SOURCE_OF_TRUTH.md)
+archive/
+
 # Generated / vendored files
 *.min.js
 *.min.css
