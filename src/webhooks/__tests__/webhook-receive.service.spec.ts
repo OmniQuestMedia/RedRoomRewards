@@ -8,11 +8,13 @@
 import { WebhookReceiveService } from '../webhook-receive.service';
 import { WebhookEmitService } from '../webhook-emit.service';
 import { IdempotencyService } from '../../services/idempotency.service';
+import { AffiliateService } from '../../services/affiliate.service';
 
 describe('WebhookReceiveService (C-007)', () => {
   let service: WebhookReceiveService;
   let idempotency: jest.Mocked<IdempotencyService>;
   let emitService: WebhookEmitService;
+  let affiliate: jest.Mocked<AffiliateService>;
 
   beforeEach(() => {
     idempotency = {
@@ -21,7 +23,10 @@ describe('WebhookReceiveService (C-007)', () => {
     } as unknown as jest.Mocked<IdempotencyService>;
 
     emitService = new WebhookEmitService();
-    service = new WebhookReceiveService(idempotency, emitService);
+    affiliate = {
+      ensureLinkForCreator: jest.fn().mockResolvedValue({ affiliate_id: 'aff-1' }),
+    } as unknown as jest.Mocked<AffiliateService>;
+    service = new WebhookReceiveService(idempotency, emitService, affiliate);
   });
 
   it('accepts and records a new webhook event', async () => {
@@ -62,5 +67,64 @@ describe('WebhookReceiveService (C-007)', () => {
     await expect(service.handleIncoming({ foo: 'bar' }, 'sig', 'ts', {})).rejects.toThrow(
       'Missing eventId in webhook payload',
     );
+  });
+
+  it('auto-provisions an affiliate link on a CreatorRegistered envelope', async () => {
+    idempotency.checkKey.mockResolvedValue(null);
+    idempotency.recordKey.mockResolvedValue(undefined);
+
+    await service.handleIncoming(
+      {
+        eventId: 'evt-cr-1',
+        event: {
+          type: 'CreatorRegistered',
+          tenant_id: 'tenant_1',
+          correlation_id: 'corr-1',
+          payload: { account_id: 'acc-9', origin_platform: 'synthimates' },
+        },
+      },
+      'sig',
+      'ts',
+      {},
+    );
+
+    expect(affiliate.ensureLinkForCreator).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tenant_id: 'tenant_1',
+        creator_id: 'acc-9',
+        external_creator_ref: 'acc-9',
+        platform: 'synthimate',
+        correlation_id: 'corr-1',
+      }),
+    );
+  });
+
+  it('does not provision for non-creator event types', async () => {
+    idempotency.checkKey.mockResolvedValue(null);
+    idempotency.recordKey.mockResolvedValue(undefined);
+
+    await service.handleIncoming(
+      { eventId: 'evt-x', type: 'UserRegistered', payload: { account_id: 'acc-1' } },
+      'sig',
+      'ts',
+      {},
+    );
+
+    expect(affiliate.ensureLinkForCreator).not.toHaveBeenCalled();
+  });
+
+  it('skips provisioning (no throw) when tenant/account are missing', async () => {
+    idempotency.checkKey.mockResolvedValue(null);
+    idempotency.recordKey.mockResolvedValue(undefined);
+
+    const result = await service.handleIncoming(
+      { eventId: 'evt-bad', event: { type: 'CreatorRegistered', payload: {} } },
+      'sig',
+      'ts',
+      {},
+    );
+
+    expect(result.status).toBe('accepted');
+    expect(affiliate.ensureLinkForCreator).not.toHaveBeenCalled();
   });
 });

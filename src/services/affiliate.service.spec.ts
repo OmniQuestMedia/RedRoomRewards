@@ -148,4 +148,48 @@ describe('AffiliateService', () => {
       await expect(service.deactivateLink('aff-1', 't-1')).resolves.toBeUndefined();
     });
   });
+
+  describe('ensureLinkForCreator', () => {
+    it('returns the existing link without creating a duplicate', async () => {
+      const existing = { affiliate_id: 'aff-existing', is_active: true, bonus_points_pct: 0 };
+      mockFindOne.mockReturnValue({ exec: () => Promise.resolve(existing) });
+
+      const result = await service.ensureLinkForCreator({
+        tenant_id: 't-1',
+        creator_id: 'acc-9',
+        external_creator_ref: 'acc-9',
+        platform: 'chatnow',
+      });
+
+      expect(result).toBe(existing);
+      expect(mockSave).not.toHaveBeenCalled();
+    });
+
+    it('mints an ON link with bonus_points_pct=0 (non-financial) when none exists', async () => {
+      mockFindOne.mockReturnValue({ exec: () => Promise.resolve(null) });
+      const saved = { affiliate_id: 'aff-new', is_active: true, bonus_points_pct: 0 };
+      mockSave.mockResolvedValue(saved);
+
+      const result = await service.ensureLinkForCreator({
+        tenant_id: 't-1',
+        creator_id: 'acc-9',
+        external_creator_ref: 'acc-9',
+        platform: 'synthimate',
+      });
+
+      expect(mockSave).toHaveBeenCalled();
+      expect(result.bonus_points_pct).toBe(0);
+    });
+  });
+
+  describe('getLinkForCreator', () => {
+    it('returns the active link for the creator', async () => {
+      const link = { affiliate_id: 'aff-1', is_active: true };
+      mockFindOne.mockReturnValue({ exec: () => Promise.resolve(link) });
+
+      const result = await service.getLinkForCreator('t-1', 'acc-9');
+
+      expect(result).toBe(link);
+    });
+  });
 });
