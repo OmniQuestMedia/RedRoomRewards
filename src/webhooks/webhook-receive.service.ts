@@ -3,6 +3,7 @@ import { createHmac, timingSafeEqual } from 'crypto';
 import { IdempotencyService } from '../services/idempotency.service';
 import { WebhookEmitService } from './webhook-emit.service';
 import { AffiliateService } from '../services/affiliate.service';
+import { AffiliateSpiffService } from '../services/affiliate-spiff.service';
 import { IAffiliateLink } from '../db/models/affiliate-link.model';
 import logger from '../lib/logger';
 
@@ -38,6 +39,7 @@ export class WebhookReceiveService {
     private readonly idempotency: IdempotencyService,
     private readonly emitService: WebhookEmitService,
     private readonly affiliate: AffiliateService,
+    private readonly spiff: AffiliateSpiffService,
   ) {}
 
   async handleIncoming(
@@ -82,10 +84,11 @@ export class WebhookReceiveService {
   }
 
   /**
-   * Dispatch an accepted webhook event to its handler. Currently handles
-   * AccountsZone `CreatorRegistered` → auto-provision an ON RedRoomRewards
-   * affiliate link. Unknown types are a no-op (logged), preserving the prior
-   * accept-and-log behaviour.
+   * Dispatch an accepted webhook event to its handler. Handles:
+   *   AccountsZone `CreatorRegistered`          → auto-provision an ON affiliate link.
+   *   RedRoomPleasures `affiliate.award.attributed` → award the creator's first-purchase
+   *                                               RRR points spiff (RRR owns points).
+   * Unknown types are a no-op (logged), preserving the prior accept-and-log behaviour.
    */
   private async routeEvent(payload: Record<string, unknown>): Promise<void> {
     // Tolerate both the raw event and the AccountsZone v1.1 envelope
@@ -96,10 +99,22 @@ export class WebhookReceiveService {
       (payload['type'] as string) ??
       (payload['eventType'] as string);
 
-    if (eventType !== 'CreatorRegistered') {
-      return;
+    switch (eventType) {
+      case 'CreatorRegistered':
+        return this.handleCreatorRegistered(payload, envelope, eventType);
+      case 'affiliate.award.attributed':
+        return this.handleAffiliateAwardAttributed(payload, envelope, eventType);
+      default:
+        return;
     }
+  }
 
+  /** Auto-provision an ON RedRoomRewards affiliate link for a new creator. */
+  private async handleCreatorRegistered(
+    payload: Record<string, unknown>,
+    envelope: Record<string, unknown> | null,
+    eventType: string,
+  ): Promise<void> {
     const source = envelope ?? payload;
     const data = asRecord(source['payload']) ?? asRecord(payload['data']) ?? {};
     const tenantId = (source['tenant_id'] as string) ?? (data['tenant_id'] as string);
@@ -126,6 +141,69 @@ export class WebhookReceiveService {
     logger.info(
       { affiliateId: link.affiliate_id, creatorId: accountId, tenantId },
       'Auto-provisioned RedRoomRewards affiliate link from CreatorRegistered',
+    );
+  }
+
+  /**
+   * Award the referring creator's account-spiff points on an attributed
+   * affiliate award. Gated on `isFirstPurchase` (the spiff fires once, on the
+   * referred guest's first RedRoomPleasures purchase). RRR is the points
+   * authority; AccountFinanceZone only reflects the resulting balance.
+   */
+  private async handleAffiliateAwardAttributed(
+    payload: Record<string, unknown>,
+    envelope: Record<string, unknown> | null,
+    eventType: string,
+  ): Promise<void> {
+    const source = envelope ?? payload;
+    const data = asRecord(source['payload']) ?? asRecord(payload['data']) ?? {};
+    const tenantId = (source['tenant_id'] as string) ?? (data['tenant_id'] as string);
+    const creatorId = data['creatorId'] as string;
+    const referredUserId = data['referredUserId'] as string;
+    const isFirstPurchase = data['isFirstPurchase'] === true;
+    const eventId =
+      (source['correlation_id'] as string) ??
+      (payload['eventId'] as string) ??
+      (payload['id'] as string);
+
+    if (!isFirstPurchase) {
+      logger.info(
+        { eventType, creatorId },
+        'affiliate.award.attributed is not a first purchase; no account spiff',
+      );
+      return;
+    }
+
+    if (!tenantId || !creatorId || !referredUserId) {
+      logger.warn(
+        {
+          eventType,
+          hasTenant: Boolean(tenantId),
+          hasCreator: Boolean(creatorId),
+          hasReferred: Boolean(referredUserId),
+        },
+        'affiliate.award.attributed missing tenant_id/creatorId/referredUserId; skipping spiff',
+      );
+      return;
+    }
+
+    const result = await this.spiff.awardNewAccountSpiff({
+      creatorId,
+      referredUserId,
+      requestId: eventId,
+      tenantId,
+    });
+
+    logger.info(
+      {
+        creatorId,
+        referredUserId,
+        tenantId,
+        awarded: result.awarded,
+        points: result.points,
+        reason: result.reason,
+      },
+      'Processed affiliate.award.attributed account spiff',
     );
   }
 
