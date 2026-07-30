@@ -213,7 +213,12 @@ export class WebhookReceiveService {
    * Compares the `x-webhook-signature` header against
    * HMAC-SHA256(timestamp + '.' + JSON.stringify(payload), RRR_WEBHOOK_SECRET).
    * Uses timing-safe comparison to prevent timing attacks.
-   * Returns true when RRR_WEBHOOK_SECRET is not configured (stub mode).
+   *
+   * Fail-closed: when RRR_WEBHOOK_SECRET is not configured this rejects the
+   * webhook (returns false) in production, so a missing-secret misconfiguration
+   * can never let unsigned events award points on this financial ingest path.
+   * The unsigned "stub mode" allowance survives only outside production
+   * (NODE_ENV !== 'production') for local dev/CI, and logs a loud warning.
    */
   private verifySignature(
     payload: Record<string, unknown>,
@@ -222,7 +227,16 @@ export class WebhookReceiveService {
   ): boolean {
     const secret = process.env['RRR_WEBHOOK_SECRET'];
     if (!secret) {
-      return true; // stub mode — secret not configured
+      if (process.env['NODE_ENV'] === 'production') {
+        logger.error(
+          'RRR_WEBHOOK_SECRET is not configured in production; rejecting webhook (fail-closed)',
+        );
+        return false;
+      }
+      logger.warn(
+        'RRR_WEBHOOK_SECRET not configured — accepting unsigned webhook in non-production stub mode only',
+      );
+      return true; // stub mode — non-production only
     }
     const body = `${timestamp}.${JSON.stringify(payload)}`;
     const expected = createHmac('sha256', secret).update(body).digest('hex');
