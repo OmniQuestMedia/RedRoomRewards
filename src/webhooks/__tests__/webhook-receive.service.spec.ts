@@ -5,6 +5,7 @@
  * and missing eventId rejection.
  */
 
+import { createHmac } from 'crypto';
 import { WebhookReceiveService } from '../webhook-receive.service';
 import { WebhookEmitService } from '../webhook-emit.service';
 import { IdempotencyService } from '../../services/idempotency.service';
@@ -213,5 +214,50 @@ describe('WebhookReceiveService (C-007)', () => {
 
     expect(result.status).toBe('accepted');
     expect(spiff.awardNewAccountSpiff).not.toHaveBeenCalled();
+  });
+
+  describe('signature verification (fail-closed)', () => {
+    const prevSecret = process.env['RRR_WEBHOOK_SECRET'];
+    const prevNodeEnv = process.env['NODE_ENV'];
+
+    afterEach(() => {
+      if (prevSecret === undefined) delete process.env['RRR_WEBHOOK_SECRET'];
+      else process.env['RRR_WEBHOOK_SECRET'] = prevSecret;
+      if (prevNodeEnv === undefined) delete process.env['NODE_ENV'];
+      else process.env['NODE_ENV'] = prevNodeEnv;
+    });
+
+    it('rejects an unsigned webhook in production when RRR_WEBHOOK_SECRET is unset (fail-closed)', async () => {
+      delete process.env['RRR_WEBHOOK_SECRET'];
+      process.env['NODE_ENV'] = 'production';
+
+      await expect(
+        service.handleIncoming({ eventId: 'evt-prod-nosecret' }, 'sig', 'ts', {}),
+      ).rejects.toThrow('Invalid webhook signature');
+      expect(idempotency.recordKey).not.toHaveBeenCalled();
+    });
+
+    it('rejects a webhook with a bad signature when the secret is configured', async () => {
+      process.env['RRR_WEBHOOK_SECRET'] = 'test-secret';
+
+      await expect(
+        service.handleIncoming({ eventId: 'evt-badsig' }, 'not-the-right-signature', 'ts', {}),
+      ).rejects.toThrow('Invalid webhook signature');
+    });
+
+    it('accepts a webhook with a valid HMAC signature when the secret is configured', async () => {
+      const secret = 'test-secret';
+      process.env['RRR_WEBHOOK_SECRET'] = secret;
+      idempotency.checkKey.mockResolvedValue(null);
+      idempotency.recordKey.mockResolvedValue(undefined);
+
+      const payload = { eventId: 'evt-goodsig' };
+      const timestamp = 'ts-1';
+      const body = `${timestamp}.${JSON.stringify(payload)}`;
+      const signature = createHmac('sha256', secret).update(body).digest('hex');
+
+      const result = await service.handleIncoming(payload, signature, timestamp, {});
+      expect(result.status).toBe('accepted');
+    });
   });
 });
