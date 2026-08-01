@@ -39,7 +39,6 @@ jobs:
           CHANGED_FILES="$(git diff --name-only "refs/remotes/origin/${{ github.base_ref }}...HEAD" || true)" node -e "const files=(process.env.CHANGED_FILES||'').split('\\n').filter(Boolean);const rx=new RegExp(process.env.RESTRICTED_PATH_REGEX,'i');const hits=files.filter((f)=>rx.test(f));if(hits.length){console.log('Restricted paths changed:');console.log(hits.join('\\n'));}else{console.log('No restricted paths changed.');}"
 
       - name: Lint CI Gate
-        continue-on-error: true
         run: npm run lint:ci
 
       - name: Type Check
@@ -47,7 +46,6 @@ jobs:
 
       - name: Ship Gate
         env:
-          SHIP_GATE_SKIP_LINT: '1'
           RESTRICTED_PATH_REGEX: '^(src/(ledger|wallets|consent)/|.*\\bpii\\b.*)'
         run: npm run ship-gate
 
