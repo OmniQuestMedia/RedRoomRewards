@@ -72,6 +72,7 @@ doc-kit install — extend or trim it as the corpus settles.
 | Production deploy spec         | `docs/PRODUCTION_DEPLOY_SPEC.md`             |
 | Staging deploy spec            | `docs/STAGING_DEPLOY_SPEC.md`                |
 | Keycloak realm spec            | `docs/KEYCLOAK_REALM_SPEC.md`                |
+| Member-portal design handoff   | `docs/DESIGN_HANDOFF.md`                     |
 
 Everything not pinned here or listed under HISTORICAL in
 `docs/DOC_CLASSIFICATION.md` is **UNKNOWN** — left alone pending human
