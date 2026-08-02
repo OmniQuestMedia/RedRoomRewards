@@ -50,3 +50,6 @@ docs/STATUS_PAGE_TEMPLATES.md
 docs/PRODUCTION_DEPLOY_SPEC.md
 docs/STAGING_DEPLOY_SPEC.md
 docs/KEYCLOAK_REALM_SPEC.md
+
+# --- Design / UX handoff ---
+docs/DESIGN_HANDOFF.md

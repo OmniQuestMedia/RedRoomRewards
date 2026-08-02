@@ -7,10 +7,10 @@ HISTORICAL docs are archival candidates. CANONICAL is pinned source-of-truth
 (never archived). UNKNOWN is left alone pending human judgement.
 
 ```text
-CANONICAL   41   source of truth (26 pinned via required-files.txt) — never archived
+CANONICAL   42   source of truth (27 pinned via required-files.txt) — never archived
 HISTORICAL  64   spent point-in-time reports — archival candidates
 UNKNOWN     94   needs human ratification — left alone
-TOTAL       199
+TOTAL       200
 ```
 
 ## CANONICAL — source of truth (do not archive)
@@ -24,6 +24,7 @@ TOTAL       199
 - `docs/ARCHITECTURE.md`
 - `docs/AUTH_CONTRACT.md`
 - `docs/DATABASE_SCHEMA.md`
+- `docs/DESIGN_HANDOFF.md`
 - `docs/DISASTER_RECOVERY_RUNBOOK.md`
 - `docs/DOMAIN_GLOSSARY.md`
 - `docs/EVENT_ARCHITECTURE.md`
