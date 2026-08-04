@@ -9,8 +9,8 @@ HISTORICAL docs are archival candidates. CANONICAL is pinned source-of-truth
 ```text
 CANONICAL   42   source of truth (27 pinned via required-files.txt) — never archived
 HISTORICAL  64   spent point-in-time reports — archival candidates
-UNKNOWN     94   needs human ratification — left alone
-TOTAL       200
+UNKNOWN     95   needs human ratification — left alone
+TOTAL       201
 ```
 
 ## CANONICAL — source of truth (do not archive)
@@ -209,6 +209,7 @@ Not touched at reports scope. Promote to CANONICAL, mark SUPERSEDED, or leave.
 - `docs/integrations/redroompleasures-wordpress.md`
 - `docs/loyalty-compliance-review.md`
 - `docs/okib-integration-plan.md`
+- `docs/proposals/STANDING_ACCRUAL.md`
 - `docs/rewards-qualification-review.md`
 - `docs/security/COMPREHENSIVE_SECURITY_REVIEW_2026-01-04.md`
 - `docs/security/SECURITY_BEST_PRACTICES.md`
