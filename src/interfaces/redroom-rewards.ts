@@ -1,8 +1,8 @@
 export enum RedRoomTier {
-  RED_DESIRE = 'RED_DESIRE',
-  RED_PASSION = 'RED_PASSION',
-  RED_OBSESSION = 'RED_OBSESSION',
-  RED_REIGN = 'RED_REIGN',
+  DESIRE = 'DESIRE',
+  PASSION = 'PASSION',
+  OBSESSION = 'OBSESSION',
+  REIGN = 'REIGN',
 }
 
 export interface GateGuardAVResult {

@@ -16,26 +16,19 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 export type LoyaltyAccountStatus = 'active' | 'suspended' | 'closed';
 
-/**
- * Member-level RRR tier per CEO Decision B2. Distinct from
- * `merchant_tier` (issuer-level dimension on the Merchant model).
- * `null` is permitted at launch — population is deferred per B2.
- */
-export type RrrMemberTier = 'PLATINUM' | 'GOLD' | 'SILVER' | 'MEMBER' | 'GUEST';
-export const RRR_MEMBER_TIERS: ReadonlyArray<RrrMemberTier> = [
-  'PLATINUM',
-  'GOLD',
-  'SILVER',
-  'MEMBER',
-  'GUEST',
-] as const;
+// Canon Amendment 2026-08: RRR is standing-only. The former RRR-native
+// `RrrMemberTier` (`GUEST…PLATINUM`) ladder on the loyalty account was drift —
+// there is no RRR-native member tier. Earned progression is Standing
+// (DESIRE/PASSION/OBSESSION/REIGN, see RedRoomTier). External ChatNow.Zone /
+// SynthiMatesAi member tiers may only *trigger* RRR multipliers/rewards; they
+// are not stored on the RRR account. The type, its constant, and the
+// `rrr_member_tier` field are removed here.
 
 export interface ILoyaltyAccount extends Document {
   account_id: string;
   tenant_id: string;
   user_id: string;
   status: LoyaltyAccountStatus;
-  rrr_member_tier: RrrMemberTier | null;
   enrolled_at: Date;
   closed_at?: Date | null;
   default_currency: string;
@@ -73,12 +66,6 @@ export const LoyaltyAccountSchema = new Schema<ILoyaltyAccount>(
       enum: ['active', 'suspended', 'closed'],
       default: 'active',
       index: true,
-    },
-    rrr_member_tier: {
-      type: String,
-      required: false,
-      enum: [...RRR_MEMBER_TIERS, null],
-      default: null,
     },
     enrolled_at: {
       type: Date,
