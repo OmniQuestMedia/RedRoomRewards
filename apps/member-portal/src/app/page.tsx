@@ -10,17 +10,17 @@ import {
 import { requireAuth } from '../../lib/auth';
 
 const TIER_COLORS: Record<string, string> = {
-  RED_DESIRE: 'text-red-400',
-  RED_PASSION: 'text-red-500',
-  RED_OBSESSION: 'text-red-600',
-  RED_REIGN: 'text-red-700',
+  DESIRE: 'text-red-400',
+  PASSION: 'text-red-500',
+  OBSESSION: 'text-red-600',
+  REIGN: 'text-red-700',
 };
 
 const TIER_LABELS: Record<string, string> = {
-  RED_DESIRE: '🔴 Red Desire',
-  RED_PASSION: '❤️ Red Passion',
-  RED_OBSESSION: '💔 Red Obsession',
-  RED_REIGN: '👑 Red Reign',
+  DESIRE: '🔴 Red Desire',
+  PASSION: '❤️ Red Passion',
+  OBSESSION: '💔 Red Obsession',
+  REIGN: '👑 Red Reign',
 };
 
 export default function DashboardPage() {

@@ -36,7 +36,7 @@ describe('MemberService', () => {
           provide: TierEngineService,
           useValue: {
             calculateTier: jest.fn().mockReturnValue({
-              currentTier: RedRoomTier.RED_DESIRE,
+              currentTier: RedRoomTier.DESIRE,
               pointsToNextTier: 4000,
               vibeDescription: 'Heartbeat — alive in the program',
             }),
@@ -61,7 +61,7 @@ describe('MemberService', () => {
       'WELCOME_BONUS',
     );
     expect(tierService.calculateTier).toHaveBeenCalledWith(1000);
-    expect(profile.tier).toBe(RedRoomTier.RED_DESIRE);
+    expect(profile.tier).toBe(RedRoomTier.DESIRE);
     expect(profile.totalPoints).toBe(1000);
     expect(profile.promotionalBalance).toBe(1000);
     expect(profile.verifiedAt).toBeInstanceOf(Date);

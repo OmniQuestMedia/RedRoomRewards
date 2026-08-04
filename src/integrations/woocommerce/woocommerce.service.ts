@@ -221,7 +221,6 @@ export class WooCommerceService {
           tenant_id: tenantId,
           user_id: userId,
           status: 'active',
-          rrr_member_tier: null,
           enrolled_at: new Date(),
           default_currency: 'CAD',
           notes: 'Auto-created from WooCommerce order',
