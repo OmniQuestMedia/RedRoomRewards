@@ -43,6 +43,35 @@ HOW TO USE:
 
 ---
 
+## MEMBER STANDING (canonical — Canon Amendment 2026-08)
+
+RRR is **standing-only**. The single RRR-native member-progression ladder is
+**Standing**, an earned, loyalty-driven status with exactly four values. The
+`RED_` prefix is dropped: the code identifier is the bare token; the display
+label carries the "Red" styling in UI/marketing only.
+
+| Rank | Display label | Code identifier | Prior name (RETIRED) |
+| ---- | ------------- | --------------- | -------------------- |
+| 0    | Desire        | `DESIRE`        | `RED_DESIRE`         |
+| 1    | Passion       | `PASSION`       | `RED_PASSION`        |
+| 2    | Obsession     | `OBSESSION`     | `RED_OBSESSION`      |
+| 3    | Reign         | `REIGN`         | `RED_REIGN`          |
+
+Standing is the **only** membership/status ladder in RRR. There is **no**
+`GUEST` / `VIP` / `SILVER` / `GOLD` / `PLATINUM` / `DIAMOND` tier or status
+inside RedRoomRewards. Those are **ChatNow.Zone / SynthiMatesAi member tiers** —
+they live in those products and may _trigger_ RRR earn multipliers or reward
+events via the integration contract, but they are **not** an RRR level, enum, or
+persisted status. Any such value found in RRR schema/code (e.g. a persisted
+`RrrMemberTier` of `GUEST…PLATINUM`) is **drift** and must be sanitised out —
+see the `rrr_member_tier` note under Merchant Configuration.
+
+Retired standing tokens `RED_DESIRE` / `RED_PASSION` / `RED_OBSESSION` /
+`RED_REIGN` must not appear in schema, code, config, or new docs (archival
+report-backs excepted).
+
+---
+
 ## LOYALTY ECONOMY
 
 | Term                    | Definition                                                    | Code identifier         |
@@ -67,17 +96,17 @@ HOW TO USE:
 
 ## MERCHANT CONFIGURATION
 
-| Term                   | Definition                                                                | Code identifier                      |
-| ---------------------- | ------------------------------------------------------------------------- | ------------------------------------ |
-| Earn rate              | Points awarded per $1.00 USD spent (default 12)                           | earn_rate, points_per_usd_spend      |
-| Redemption cap         | Maximum percentage of order value redeemable in points, by tier           | max_discount_percent                 |
-| Valuation              | Points-to-USD conversion rate (default 1000 pts = $1.00)                  | valuation, points_per_usd            |
-| Effective-dated config | Configuration with a start/end date, replacing prior config on activation | effective_start_at, effective_end_at |
-| Merchant tier          | Merchant-defined membership level for their customers                     | merchant_tier                        |
-| RRR member tier        | Cross-merchant loyalty level (future — architecture must support)         | rrr_member_tier                      |
-| Inferno multiplier     | Earn rate multiplier for qualifying Room-Heat Inferno sessions            | inferno_multiplier                   |
-| Standard template      | Pre-built earn/burn configuration merchants select                        | standard_template                    |
-| Custom template        | Merchant-configured earn/burn program requiring RRR rep authorization     | custom_template                      |
+| Term                   | Definition                                                                                                                                                                                                                                                                                                                                                           | Code identifier                            |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| Earn rate              | Points awarded per $1.00 USD spent (default 12)                                                                                                                                                                                                                                                                                                                      | earn_rate, points_per_usd_spend            |
+| Redemption cap         | Maximum percentage of order value redeemable in points, by tier                                                                                                                                                                                                                                                                                                      | max_discount_percent                       |
+| Valuation              | Points-to-USD conversion rate (default 1000 pts = $1.00)                                                                                                                                                                                                                                                                                                             | valuation, points_per_usd                  |
+| Effective-dated config | Configuration with a start/end date, replacing prior config on activation                                                                                                                                                                                                                                                                                            | effective_start_at, effective_end_at       |
+| Merchant tier          | Merchant-defined membership level for their customers                                                                                                                                                                                                                                                                                                                | merchant_tier                              |
+| RRR member tier        | RETIRED CONCEPT (Canon Amendment 2026-08). There is no RRR-native `GUEST…PLATINUM/DIAMOND` member-tier ladder — RRR's only member ladder is **Standing** (see Member Standing). External ChatNow.Zone / SynthiMatesAi member tiers may _trigger_ multipliers/rewards but are not stored as an RRR tier. Any persisted `RrrMemberTier` enum is drift to sanitise out. | ~~rrr_member_tier~~ (do not use)           |
+| Smoke'n multiplier     | Earn-rate multiplier for qualifying ChatNow.Zone Room-Heat **Smoke'n** (top-band) sessions. (Code id `inferno_multiplier` renames to `smoken_multiplier` in the P0 heat sweep — the CNZ heat authority renamed `INFERNO`→`SMOKEN`.)                                                                                                                                  | smoken_multiplier (was inferno_multiplier) |
+| Standard template      | Pre-built earn/burn configuration merchants select                                                                                                                                                                                                                                                                                                                   | standard_template                          |
+| Custom template        | Merchant-configured earn/burn program requiring RRR rep authorization                                                                                                                                                                                                                                                                                                | custom_template                            |
 
 ---
 
