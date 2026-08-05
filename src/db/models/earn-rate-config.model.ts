@@ -5,14 +5,20 @@
  * Versioned via effective_at / superseded_at — never delete or update rows;
  * insert a new row and stamp superseded_at on the prior active row.
  *
- * CEO Decision B1: inferno_multiplier is REQUIRED — merchants must set
- *   this value explicitly before program activation. No platform default.
- * CEO Decision B2: dual-tier layer —
- *   merchant_tier (launch, required) + rrr_member_tier (future, nullable).
+ * The base earn rate is `base_points_per_unit × amount`. The earn **bonus** is
+ * NOT set here — it is a per-Standing-tier `rrr_multiplier` on the tier benefits
+ * card (see tier-benefit-config.model.ts). Applied in
+ * PointAccrualService.calculateEarnRate as `base × (1 + rrr_multiplier)`.
+ *
+ * Canon Amendment 2026-08 (CEO):
+ *   - The former per-config `inferno_multiplier` (retired Room-Heat "Inferno
+ *     Bonus" lever) is REMOVED. There is no per-EarnRateConfig multiplier; the
+ *     only earn multiplier is the per-Standing-tier `rrr_multiplier`.
+ *   - The former `rrr_member_tier` field is REMOVED — RRR has no persisted
+ *     member-tier ladder beyond Standing (drift sanitised out).
  * CEO Decision D3: diamond_concierge_zero_earn defaults to true.
  *   Diamond Concierge purchases earn 0 RRR points. Setting this to false
  *   requires an explicit config row with reason_code documenting CEO exception.
- * CEO Decision D4: inferno_multiplier drives the Room-Heat Inferno Bonus.
  *
  * Collection: earn_rate_configs
  */
@@ -29,10 +35,8 @@ export interface IEarnRateConfig extends Document {
   reason_code: string;
   created_by: string;
   merchant_tier: string;
-  rrr_member_tier: string | null;
   event_class: string;
   base_points_per_unit: number;
-  inferno_multiplier: number;
   diamond_concierge_zero_earn: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -97,13 +101,6 @@ export const EarnRateConfigSchema = new Schema<IEarnRateConfig>(
       trim: true,
       maxlength: 128,
     },
-    rrr_member_tier: {
-      type: String,
-      required: false,
-      default: null,
-      trim: true,
-      maxlength: 128,
-    },
     event_class: {
       type: String,
       required: true,
@@ -111,13 +108,6 @@ export const EarnRateConfigSchema = new Schema<IEarnRateConfig>(
       maxlength: 128,
     },
     base_points_per_unit: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
-    // CEO Decision B1 + D4: REQUIRED — no default. Merchants must set explicitly before
-    // program activation. RRR rep validates. Mongoose will reject save when missing.
-    inferno_multiplier: {
       type: Number,
       required: true,
       min: 0,

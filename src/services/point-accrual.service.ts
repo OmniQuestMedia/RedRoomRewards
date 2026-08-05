@@ -12,6 +12,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { ILedgerService } from '../ledger/types';
 import { WalletModel } from '../db/models/wallet.model';
 import { EarnRateConfigModel } from '../db/models/earn-rate-config.model';
+import { TierBenefitConfigModel } from '../db/models/tier-benefit-config.model';
+import { RedRoomTier } from '../interfaces/redroom-rewards';
 import { TransactionType, TransactionReason } from '../wallets/types';
 import { resolveTenantId } from '../config/program-tenant';
 
@@ -367,9 +369,14 @@ export class PointAccrualService {
    * Calculate the earn rate for a given tier, event class, and spend amount (C-001).
    *
    * Looks up the active `EarnRateConfig` row for the tenant/merchant/tier/event
-   * combination and applies `base_points_per_unit * inferno_multiplier * amount`.
-   * Diamond Concierge purchases earn 0 when `diamond_concierge_zero_earn` is true
-   * (CEO Decision D3).
+   * combination and applies the base earn `base_points_per_unit * amount`, then
+   * applies the member's per-Standing-tier earn bonus:
+   * `base × (1 + rrr_multiplier)` (Canon Amendment 2026-08). The `rrr_multiplier`
+   * is a bonus fraction resolved from the tier benefits card
+   * (TierBenefitConfig); it defaults to 0 (0 % bonus) when no `memberTier` is
+   * supplied or no active card exists — so base points are unchanged. Diamond
+   * Concierge purchases earn 0 when `diamond_concierge_zero_earn` is true
+   * (CEO Decision D3), evaluated before any bonus.
    *
    * @param tenantId   Tenant identifier
    * @param merchantId Merchant identifier
@@ -377,6 +384,8 @@ export class PointAccrualService {
    * @param eventClass Event class (e.g. "PURCHASE")
    * @param amount     Spend amount (units) to convert to points
    * @param isDiamondConcierge Whether the purchase is a Diamond Concierge purchase (CEO D3)
+   * @param memberTier Member's RRR Standing tier — selects the per-tier
+   *   `rrr_multiplier` bonus. Omit for no tier bonus (base points only).
    * @returns Calculated points to award
    * @throws Error when no active earn-rate config exists for the given parameters
    */
@@ -387,6 +396,7 @@ export class PointAccrualService {
     eventClass: string,
     amount: number,
     isDiamondConcierge: boolean = false,
+    memberTier?: RedRoomTier,
   ): Promise<number> {
     const config = await EarnRateConfigModel.findOne({
       tenant_id: { $eq: tenantId },
@@ -407,7 +417,28 @@ export class PointAccrualService {
       return 0;
     }
 
-    return config.base_points_per_unit * config.inferno_multiplier * amount;
+    const base = config.base_points_per_unit * amount;
+    const bonus = await this.resolveTierMultiplier(tenantId, memberTier);
+    return base * (1 + bonus);
+  }
+
+  /**
+   * Resolve the per-Standing-tier earn bonus fraction (`rrr_multiplier`) from the
+   * active tier benefits card (Canon Amendment 2026-08). Returns 0 (0 % bonus)
+   * when no tier is supplied or no active card exists — fail-safe to base earn.
+   */
+  private async resolveTierMultiplier(tenantId: string, memberTier?: RedRoomTier): Promise<number> {
+    if (!memberTier) {
+      return 0;
+    }
+
+    const card = await TierBenefitConfigModel.findOne({
+      tenant_id: { $eq: tenantId },
+      tier: { $eq: memberTier },
+      superseded_at: null,
+    }).sort({ effective_at: -1 });
+
+    return card?.rrr_multiplier ?? 0;
   }
 
   /**

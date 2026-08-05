@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { RedRoomTier, TierMultiplierConfig, TierProgress } from '../interfaces/redroom-rewards';
+import { RedRoomTier, TierProgress } from '../interfaces/redroom-rewards';
 
 /**
  * TierEngineService — WO-007 final polish.
@@ -42,36 +42,11 @@ export class TierEngineService {
     RedRoomTier.REIGN,
   ];
 
-  private readonly multipliers: TierMultiplierConfig[] = [
-    {
-      tier: RedRoomTier.DESIRE,
-      earningMultiplier: 1.0,
-      doublePointsDaysPerYear: 4,
-      birthdayBonusDays: 7,
-    },
-    {
-      tier: RedRoomTier.PASSION,
-      earningMultiplier: 1.2,
-      doublePointsDaysPerYear: 6,
-      birthdayBonusDays: 14,
-    },
-    {
-      tier: RedRoomTier.OBSESSION,
-      earningMultiplier: 1.5,
-      doublePointsDaysPerYear: 8,
-      birthdayBonusDays: 21,
-    },
-    {
-      tier: RedRoomTier.REIGN,
-      earningMultiplier: 1.7,
-      doublePointsDaysPerYear: 10,
-      birthdayBonusDays: 30,
-    },
-  ];
-
-  getMultiplier(tier: RedRoomTier): number {
-    return this.multipliers.find((m) => m.tier === tier)?.earningMultiplier || 1.0;
-  }
+  // Canon Amendment 2026-08: the per-tier earn bonus (`rrr_multiplier`) and the
+  // other per-tier benefits now live on the admin-configurable tier benefits
+  // card (TierBenefitConfig), not as a hard-coded table here. This service owns
+  // only Standing-threshold resolution. The bonus is applied in
+  // PointAccrualService.calculateEarnRate.
 
   calculateTier(totalPoints: number): TierProgress {
     const effective = Math.max(0, totalPoints);
