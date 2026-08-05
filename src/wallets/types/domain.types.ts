@@ -76,6 +76,10 @@ export enum TransactionReason {
 
   // Merchant order redemption
   MERCHANT_ORDER_REDEMPTION = 'merchant_order_redemption',
+  // Merchant redemption escrow lifecycle: settle (sale final → burn) /
+  // void (order cancelled → release held points back to available).
+  MERCHANT_ORDER_REDEMPTION_SETTLE = 'merchant_order_redemption_settle',
+  MERCHANT_ORDER_REDEMPTION_VOID = 'merchant_order_redemption_void',
 
   // Admin award reasons (Screen 07)
   MODEL_GIFT = 'model_gift',
