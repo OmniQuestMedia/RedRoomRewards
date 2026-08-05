@@ -1,35 +1,46 @@
 /**
- * TierCapConfig Model
+ * TierCapConfig Model — the per-tier redemption **band** card.
  *
- * Tenant-scoped, merchant-set redemption cap configuration per loyalty tier.
- * Versioned via effective_at / superseded_at — never delete or update rows;
- * insert a new row and stamp superseded_at on the prior active row.
+ * Tenant-scoped, admin-set redemption limits per RRR **Standing** tier
+ * (Desire / Passion / Obsession / Reign — RRR's only membership ladder; see
+ * docs/DOMAIN_GLOSSARY.md § Member Standing). One active card per tenant per
+ * tier. Versioned via effective_at / superseded_at — never delete or update
+ * rows; insert a new row and stamp superseded_at on the prior active row.
  *
- * CEO Decision B5: No platform defaults. Each merchant configures
- *   max_discount_percent per tier in this table.
+ * Canon Amendment 2026-08 (CEO): redemption is a per-Standing-tier **band**
+ *   `redemption_floor_pct` … `redemption_cap_pct` of the member's
+ *   **merchandise-eligible** order value. Points may NOT be redeemed against
+ *   taxes / shipping / handling / customs-import-excise charges, so the band is
+ *   applied to the caller-supplied merchandise subtotal, never the gross order.
+ *   Redemption is additionally subject to processed-points availability.
  *
- * B5 placeholder values for testing (DO NOT seed in this PR — model only):
- *   PLATINUM: redemption_cap_pct = 50
- *   GOLD:     redemption_cap_pct = 35
- *   SILVER:   redemption_cap_pct = 20
- *   MEMBER:   redemption_cap_pct = 10
- *   GUEST:    redemption_cap_pct = 5
+ *   CEO-set band (seeded by migration; admin may re-version):
+ *     DESIRE     5 % … 15 %
+ *     PASSION    5 % … 25 %
+ *     OBSESSION  5 % … 35 %
+ *     REIGN      5 % … 45 %
+ *
+ *   This replaces the retired per-merchant `GUEST…PLATINUM` ladder (drift): the
+ *   band is program-wide Standing-tier policy (tenant-scoped, no merchant_id).
  *
  * Collection: tier_cap_configs
  */
 
 import mongoose, { Document, Schema } from 'mongoose';
+import { RedRoomTier } from '../../interfaces/redroom-rewards';
 
 export interface ITierCapConfig extends Document {
   config_id: string;
   tenant_id: string;
-  merchant_id: string;
   effective_at: Date;
   superseded_at: Date | null;
   correlation_id: string;
   reason_code: string;
   created_by: string;
-  tier_name: 'PLATINUM' | 'GOLD' | 'SILVER' | 'MEMBER' | 'GUEST';
+  tier: RedRoomTier;
+  /** Minimum redemption as a % of the merchandise-eligible value (the 5 % floor). */
+  redemption_floor_pct: number;
+  /** Maximum redemption as a % of the merchandise-eligible value (the tier cap). */
   redemption_cap_pct: number;
   createdAt: Date;
   updatedAt: Date;
@@ -46,13 +57,6 @@ export const TierCapConfigSchema = new Schema<ITierCapConfig>(
       index: true,
     },
     tenant_id: {
-      type: String,
-      required: true,
-      trim: true,
-      maxlength: 128,
-      index: true,
-    },
-    merchant_id: {
       type: String,
       required: true,
       trim: true,
@@ -88,11 +92,19 @@ export const TierCapConfigSchema = new Schema<ITierCapConfig>(
       trim: true,
       maxlength: 128,
     },
-    tier_name: {
+    tier: {
       type: String,
       required: true,
-      enum: ['PLATINUM', 'GOLD', 'SILVER', 'MEMBER', 'GUEST'],
+      enum: [RedRoomTier.DESIRE, RedRoomTier.PASSION, RedRoomTier.OBSESSION, RedRoomTier.REIGN],
     },
+    // Canon Amendment 2026-08: the 5 % redemption floor (minimum of the band).
+    redemption_floor_pct: {
+      type: Number,
+      required: true,
+      min: 0,
+      max: 100,
+    },
+    // Canon Amendment 2026-08: the per-tier redemption cap (maximum of the band).
     redemption_cap_pct: {
       type: Number,
       required: true,
@@ -106,11 +118,11 @@ export const TierCapConfigSchema = new Schema<ITierCapConfig>(
   },
 );
 
-// Compound index for active-config lookup (tenant + merchant, newest first)
-TierCapConfigSchema.index({ tenant_id: 1, merchant_id: 1, effective_at: -1 });
+// Compound index for active-card lookup (tenant, newest first)
+TierCapConfigSchema.index({ tenant_id: 1, effective_at: -1 });
 
-// Index for tier-specific lookups
-TierCapConfigSchema.index({ tenant_id: 1, merchant_id: 1, tier_name: 1 });
+// Index for tier-specific active-card lookups
+TierCapConfigSchema.index({ tenant_id: 1, tier: 1, superseded_at: 1 });
 
 export const TierCapConfigModel = mongoose.model<ITierCapConfig>(
   'TierCapConfig',

@@ -12,7 +12,8 @@
 
 import { IWalletService } from './types';
 import { EscrowHoldRequest, TransactionReason } from '../wallets/types';
-import { TierCapConfigModel, type ITierCapConfig } from '../db/models/tier-cap-config.model';
+import { TierCapConfigModel } from '../db/models/tier-cap-config.model';
+import { RedRoomTier } from '../interfaces/redroom-rewards';
 
 /**
  * Request to redeem points for a feature
@@ -262,45 +263,42 @@ export class PointRedemptionService {
   /**
    * Validate a redemption amount against the active tier cap (C-002).
    *
-   * Looks up the active `TierCapConfig` row for the tenant/merchant/tier combination
+   * Looks up the active per-Standing-tier `TierCapConfig` card for the tenant
    * and checks that `redemptionAmount` does not exceed
-   * `(redemption_cap_pct / 100) * transactionValue`.
+   * `(redemption_cap_pct / 100) * transactionValue`. The redemption **floor**
+   * is a merchandise-redemption concept (see RedemptionService); this in-platform
+   * escrow path enforces the tier cap only.
    *
-   * CEO Decision B5: No platform defaults — each merchant must configure a cap row
-   * before redemptions are allowed.
+   * Canon Amendment 2026-08: the card is program-wide Standing-tier policy
+   * (tenant + tier), not per-merchant.
    *
    * @param tenantId         Tenant identifier
-   * @param merchantId       Merchant identifier
-   * @param tierName         Loyalty tier name
-   * @param transactionValue Full transaction value against which the cap percentage is applied
+   * @param tier             Member's RRR Standing tier
+   * @param transactionValue Transaction value against which the cap percentage is applied
    * @param redemptionAmount Points the user wants to redeem
    * @throws Error when no active cap config exists for the given parameters
    * @throws Error when redemptionAmount exceeds the tier cap
    */
   async validateTierCap(
     tenantId: string,
-    merchantId: string,
-    tierName: ITierCapConfig['tier_name'],
+    tier: RedRoomTier,
     transactionValue: number,
     redemptionAmount: number,
   ): Promise<void> {
     const capConfig = await TierCapConfigModel.findOne({
       tenant_id: { $eq: tenantId },
-      merchant_id: { $eq: merchantId },
-      tier_name: { $eq: tierName },
+      tier: { $eq: tier },
       superseded_at: null,
     }).sort({ effective_at: -1 });
 
     if (!capConfig) {
-      throw new Error(
-        `No active tier cap config for tenant=${tenantId} merchant=${merchantId} tier=${tierName}`,
-      );
+      throw new Error(`No active tier cap config for tenant=${tenantId} tier=${tier}`);
     }
 
     const maxAllowed = (capConfig.redemption_cap_pct / 100) * transactionValue;
     if (redemptionAmount > maxAllowed) {
       throw new Error(
-        `Redemption amount ${redemptionAmount} exceeds tier cap of ${capConfig.redemption_cap_pct}% (${maxAllowed}) for tier ${tierName}`,
+        `Redemption amount ${redemptionAmount} exceeds tier cap of ${capConfig.redemption_cap_pct}% (${maxAllowed}) for tier ${tier}`,
       );
     }
   }

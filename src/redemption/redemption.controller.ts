@@ -17,25 +17,29 @@ import {
   CreateRedemptionRequest,
   GetEligibleRequest,
   TierCapExceededError,
+  TierMinNotMetError,
   InsufficientBalanceError,
 } from './redemption.service';
+import { RedRoomTier } from '../interfaces/redroom-rewards';
 
 interface RedemptionRequestBody {
   userId?: string;
   merchantId: string;
   orderId: string;
-  transactionValue: number;
+  /** Merchandise subtotal only (excludes taxes/shipping/handling/customs). */
+  eligibleMerchandiseValue: number;
   redemptionAmount: number;
   idempotencyKey: string;
   requestId?: string;
-  tierName: 'PLATINUM' | 'GOLD' | 'SILVER' | 'MEMBER' | 'GUEST';
+  tierName: RedRoomTier;
 }
 
 interface EligibleQuery {
   userId?: string;
   merchantId: string;
-  transactionValue: string;
-  tierName: 'PLATINUM' | 'GOLD' | 'SILVER' | 'MEMBER' | 'GUEST';
+  /** Merchandise subtotal only (excludes taxes/shipping/handling/customs). */
+  eligibleMerchandiseValue: string;
+  tierName: RedRoomTier;
 }
 
 @Controller('redemptions')
@@ -78,8 +82,10 @@ export class RedemptionController {
       res.status(HttpStatus.BAD_REQUEST).json({ error: 'redemptionAmount must be positive' });
       return;
     }
-    if (!(body.transactionValue > 0)) {
-      res.status(HttpStatus.BAD_REQUEST).json({ error: 'transactionValue must be positive' });
+    if (!(body.eligibleMerchandiseValue > 0)) {
+      res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ error: 'eligibleMerchandiseValue must be positive' });
       return;
     }
 
@@ -88,7 +94,7 @@ export class RedemptionController {
       merchantId: body.merchantId,
       tenantId,
       orderId: body.orderId,
-      transactionValue: body.transactionValue,
+      eligibleMerchandiseValue: body.eligibleMerchandiseValue,
       redemptionAmount: body.redemptionAmount,
       idempotencyKey: body.idempotencyKey,
       requestId: body.requestId ?? '',
@@ -108,6 +114,18 @@ export class RedemptionController {
           error: err.code,
           message: err.message,
           details: { allowed: err.allowed, requested: err.requested, capPct: err.capPct },
+        });
+        return;
+      }
+      if (err instanceof TierMinNotMetError) {
+        res.status(HttpStatus.UNPROCESSABLE_ENTITY).json({
+          error: err.code,
+          message: err.message,
+          details: {
+            minRequired: err.minRequired,
+            requested: err.requested,
+            floorPct: err.floorPct,
+          },
         });
         return;
       }
@@ -137,7 +155,7 @@ export class RedemptionController {
   ): Promise<void> {
     const userId = query.userId ?? req.userId ?? '';
     const tenantId = req.tenantId ?? '';
-    const transactionValue = parseFloat(query.transactionValue ?? '0');
+    const eligibleMerchandiseValue = parseFloat(query.eligibleMerchandiseValue ?? '0');
 
     if (!userId) {
       res.status(HttpStatus.BAD_REQUEST).json({ error: 'userId is required' });
@@ -147,8 +165,10 @@ export class RedemptionController {
       res.status(HttpStatus.BAD_REQUEST).json({ error: 'tenantId is required' });
       return;
     }
-    if (!(transactionValue > 0)) {
-      res.status(HttpStatus.BAD_REQUEST).json({ error: 'transactionValue must be positive' });
+    if (!(eligibleMerchandiseValue > 0)) {
+      res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ error: 'eligibleMerchandiseValue must be positive' });
       return;
     }
 
@@ -156,7 +176,7 @@ export class RedemptionController {
       userId,
       merchantId: query.merchantId,
       tenantId,
-      transactionValue,
+      eligibleMerchandiseValue,
       tierName: query.tierName,
     };
 
