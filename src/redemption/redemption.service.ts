@@ -10,7 +10,8 @@
  *   GET  /redemptions/eligible (tier cap check)
  *
  * Error codes raised:
- *   TIER_CAP_EXCEEDED      — redemptionAmount > (cap_pct / 100) * transactionValue
+ *   TIER_CAP_EXCEEDED      — redemptionAmount > (cap_pct / 100) * eligibleMerchandiseValue
+ *   TIER_MIN_NOT_MET       — redemptionAmount < (floor_pct / 100) * eligibleMerchandiseValue
  *   INSUFFICIENT_BALANCE   — availableBalance < redemptionAmount
  *   IDEMPOTENCY_REPLAY     — returned on duplicate idempotency_key (cached result)
  *
@@ -22,11 +23,13 @@ import { v4 as uuidv4 } from 'uuid';
 import { LedgerService } from '../ledger/ledger.service';
 import { WalletModel } from '../db/models/wallet.model';
 import { EscrowItemModel } from '../db/models/escrow-item.model';
-import { TierCapConfigModel, type ITierCapConfig } from '../db/models/tier-cap-config.model';
+import { TierCapConfigModel } from '../db/models/tier-cap-config.model';
+import { RedRoomTier } from '../interfaces/redroom-rewards';
 import { TransactionType, TransactionReason } from '../wallets/types';
 import { resolveTenantId } from '../config/program-tenant';
 
-type TierName = ITierCapConfig['tier_name'];
+/** Member's RRR Standing tier drives the redemption band. */
+type TierName = RedRoomTier;
 
 /** Allowed reason codes for Screen 07 that may appear as escrow annotations */
 export const MERCHANT_REDEMPTION_FEATURE_TYPE = 'merchant_order' as const;
@@ -45,15 +48,20 @@ export interface CreateRedemptionRequest {
   tenantId: string;
   /** Merchant-side order reference (used as queueItemId / idempotency anchor) */
   orderId: string;
-  /** Full monetary value of the order in the merchant's unit */
-  transactionValue: number;
+  /**
+   * Merchandise-eligible order value in the merchant's unit — the merchandise
+   * subtotal ONLY, already excluding taxes / shipping / handling /
+   * customs-import-excise charges (points may not be redeemed against those).
+   * The tier redemption band is applied to this value.
+   */
+  eligibleMerchandiseValue: number;
   /** RRR points the member wants to apply */
   redemptionAmount: number;
   /** Caller-supplied idempotency key (required) */
   idempotencyKey: string;
   /** Tracing ID */
   requestId: string;
-  /** Member's current loyalty tier (PLATINUM | GOLD | SILVER | MEMBER | GUEST) */
+  /** Member's current RRR Standing tier (DESIRE | PASSION | OBSESSION | REIGN) */
   tierName: TierName;
 }
 
@@ -74,8 +82,11 @@ export interface GetEligibleRequest {
   userId: string;
   merchantId: string;
   tenantId: string;
-  /** Order value for cap calculation */
-  transactionValue: number;
+  /**
+   * Merchandise-eligible order value (subtotal excluding taxes / shipping /
+   * handling / customs-import-excise) that the redemption band is applied to.
+   */
+  eligibleMerchandiseValue: number;
   tierName: TierName;
 }
 
@@ -83,10 +94,13 @@ export interface GetEligibleResponse {
   eligible: boolean;
   availableBalance: number;
   tierName: string;
+  tierFloorPct: number;
   tierCapPct: number;
+  /** Minimum points redeemable (the floor of the band, subject to balance). */
+  minRedeemableAmount: number;
   maxRedeemableAmount: number;
-  /** Informational copy slot: "{tierCapPct}% max redemption" */
-  tierCapLabel: string;
+  /** Informational copy slot: "{tierFloorPct}%–{tierCapPct}% of merchandise". */
+  tierBandLabel: string;
 }
 
 // ── Error classes ──────────────────────────────────────────────────────────
@@ -103,6 +117,20 @@ export class TierCapExceededError extends Error {
   }
 }
 
+export class TierMinNotMetError extends Error {
+  public readonly code = 'TIER_MIN_NOT_MET';
+  constructor(
+    public readonly minRequired: number,
+    public readonly requested: number,
+    public readonly floorPct: number,
+  ) {
+    super(
+      `Redemption amount ${requested} is below the ${floorPct}% tier floor (min ${minRequired})`,
+    );
+    this.name = 'TierMinNotMetError';
+  }
+}
+
 export class InsufficientBalanceError extends Error {
   public readonly code = 'INSUFFICIENT_BALANCE';
   constructor(
@@ -115,10 +143,8 @@ export class InsufficientBalanceError extends Error {
 }
 
 export class NoCapConfigError extends Error {
-  constructor(tenantId: string, merchantId: string, tierName: string) {
-    super(
-      `No active tier cap config for tenant=${tenantId} merchant=${merchantId} tier=${tierName}`,
-    );
+  constructor(tenantId: string, tierName: string) {
+    super(`No active tier cap config for tenant=${tenantId} tier=${tierName}`);
     this.name = 'NoCapConfigError';
   }
 }
@@ -169,12 +195,11 @@ export class RedemptionService {
       }
     }
 
-    // 2. Validate tier cap
+    // 2. Validate tier redemption band (floor + cap) against merchandise value
     await this.validateTierCap(
       request.tenantId,
-      request.merchantId,
       request.tierName,
-      request.transactionValue,
+      request.eligibleMerchandiseValue,
       request.redemptionAmount,
     );
 
@@ -232,7 +257,7 @@ export class RedemptionService {
         redemptionId,
         merchantId: request.merchantId,
         tenantId: request.tenantId,
-        transactionValue: request.transactionValue,
+        eligibleMerchandiseValue: request.eligibleMerchandiseValue,
         tierName: request.tierName,
         idempotencyKey: request.idempotencyKey,
         requestId: request.requestId,
@@ -292,29 +317,35 @@ export class RedemptionService {
 
     const capConfig = await TierCapConfigModel.findOne({
       tenant_id: { $eq: request.tenantId },
-      merchant_id: { $eq: request.merchantId },
-      tier_name: { $eq: request.tierName },
+      tier: { $eq: request.tierName },
       superseded_at: null,
     })
       .sort({ effective_at: -1 })
       .lean();
 
     if (!capConfig) {
-      throw new NoCapConfigError(request.tenantId, request.merchantId, request.tierName);
+      throw new NoCapConfigError(request.tenantId, request.tierName);
     }
 
+    const tierFloorPct = capConfig.redemption_floor_pct;
     const tierCapPct = capConfig.redemption_cap_pct;
-    const maxFromCap = Math.floor((tierCapPct / 100) * request.transactionValue);
+    const maxFromCap = Math.floor((tierCapPct / 100) * request.eligibleMerchandiseValue);
+    const minRequired = Math.ceil((tierFloorPct / 100) * request.eligibleMerchandiseValue);
     const maxRedeemableAmount = Math.min(maxFromCap, availableBalance);
-    const eligible = availableBalance > 0 && maxRedeemableAmount > 0;
+    // Eligible only when the balance can cover the floor AND the tier cap is at
+    // least the floor (tiny merchandise values can round the cap below the floor).
+    const eligible =
+      minRequired > 0 && maxFromCap >= minRequired && availableBalance >= minRequired;
 
     return {
       eligible,
       availableBalance,
       tierName: request.tierName,
+      tierFloorPct,
       tierCapPct,
+      minRedeemableAmount: minRequired,
       maxRedeemableAmount,
-      tierCapLabel: `${tierCapPct}% max redemption`,
+      tierBandLabel: `${tierFloorPct}%–${tierCapPct}% of merchandise`,
     };
   }
 
@@ -322,27 +353,32 @@ export class RedemptionService {
 
   private async validateTierCap(
     tenantId: string,
-    merchantId: string,
     tierName: TierName,
-    transactionValue: number,
+    eligibleMerchandiseValue: number,
     redemptionAmount: number,
   ): Promise<void> {
     const capConfig = await TierCapConfigModel.findOne({
       tenant_id: { $eq: tenantId },
-      merchant_id: { $eq: merchantId },
-      tier_name: { $eq: tierName },
+      tier: { $eq: tierName },
       superseded_at: null,
     })
       .sort({ effective_at: -1 })
       .lean();
 
     if (!capConfig) {
-      throw new NoCapConfigError(tenantId, merchantId, tierName);
+      throw new NoCapConfigError(tenantId, tierName);
     }
 
-    const maxAllowed = Math.floor((capConfig.redemption_cap_pct / 100) * transactionValue);
+    const maxAllowed = Math.floor((capConfig.redemption_cap_pct / 100) * eligibleMerchandiseValue);
+    const minRequired = Math.ceil(
+      (capConfig.redemption_floor_pct / 100) * eligibleMerchandiseValue,
+    );
+
     if (redemptionAmount > maxAllowed) {
       throw new TierCapExceededError(maxAllowed, redemptionAmount, capConfig.redemption_cap_pct);
+    }
+    if (redemptionAmount < minRequired) {
+      throw new TierMinNotMetError(minRequired, redemptionAmount, capConfig.redemption_floor_pct);
     }
   }
 
