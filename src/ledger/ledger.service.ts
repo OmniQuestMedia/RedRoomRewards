@@ -166,6 +166,47 @@ export class LedgerService implements ILedgerService {
   }
 
   /**
+   * Lifetime earned points for a member — the RRR **Standing** ladder is a
+   * ratchet on cumulative points *earned*, independent of current balance
+   * (spending never lowers Standing). The ledger is the single source of truth
+   * across every heterogeneous earn path (accrual, `creditPoints`, WooCommerce,
+   * admin award, …), so we derive it here rather than maintain a fragile
+   * per-path counter.
+   *
+   * Definition: the sum of `credit` entries to a **user's** `available` balance,
+   * EXCLUDING credits that are refunds/releases back to the member (those return
+   * previously-held points, they are not new earnings). Model settlements never
+   * match (they are not user `available` credits).
+   */
+  async getLifetimeEarnedPoints(accountId: string): Promise<number> {
+    const NON_EARN_CREDIT_REASONS: string[] = [
+      TransactionReason.PERFORMANCE_ABANDONED,
+      TransactionReason.USER_DISCONNECTED,
+      TransactionReason.MODEL_INITIATED_REFUND,
+      TransactionReason.ROPE_DROP_TIMEOUT,
+      TransactionReason.ADMIN_REFUND,
+      // Escrow releases back to available on a voided merchant redemption
+      // (see RedemptionService.voidRedemption) — a return, not an earning.
+      TransactionReason.MERCHANT_ORDER_REDEMPTION_VOID,
+    ];
+
+    const rows = await LedgerEntryModel.aggregate<{ total: number }>([
+      {
+        $match: {
+          accountId: { $eq: accountId },
+          accountType: 'user',
+          type: TransactionType.CREDIT,
+          balanceState: 'available',
+          reason: { $nin: NON_EARN_CREDIT_REASONS },
+        },
+      },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]);
+
+    return rows.length > 0 ? rows[0].total : 0;
+  }
+
+  /**
    * Query ledger entries with filters
    */
   async queryEntries(filter: LedgerQueryFilter): Promise<LedgerQueryResult> {

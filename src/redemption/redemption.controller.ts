@@ -10,7 +10,7 @@
  * @module redemption/redemption.controller
  */
 
-import { Controller, Post, Get, Body, Query, Req, Res, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Get, Body, Query, Param, Req, Res, HttpStatus } from '@nestjs/common';
 import { Request, Response } from 'express';
 import {
   RedemptionService,
@@ -19,6 +19,8 @@ import {
   TierCapExceededError,
   TierMinNotMetError,
   InsufficientBalanceError,
+  NoRedemptionError,
+  RedemptionStateError,
 } from './redemption.service';
 import { RedRoomTier } from '../interfaces/redroom-rewards';
 
@@ -31,7 +33,8 @@ interface RedemptionRequestBody {
   redemptionAmount: number;
   idempotencyKey: string;
   requestId?: string;
-  tierName: RedRoomTier;
+  /** OPTIONAL — omit to have RRR derive the member's Standing tier. */
+  tierName?: RedRoomTier;
 }
 
 interface EligibleQuery {
@@ -39,7 +42,12 @@ interface EligibleQuery {
   merchantId: string;
   /** Merchandise subtotal only (excludes taxes/shipping/handling/customs). */
   eligibleMerchandiseValue: string;
-  tierName: RedRoomTier;
+  /** OPTIONAL — omit to have RRR derive the member's Standing tier. */
+  tierName?: RedRoomTier;
+}
+
+interface ResolveRedemptionBody {
+  requestId?: string;
 }
 
 @Controller('redemptions')
@@ -182,5 +190,74 @@ export class RedemptionController {
 
     const result = await this.redemptionService.getEligible(request);
     res.status(HttpStatus.OK).json(result);
+  }
+
+  /**
+   * POST /redemptions/:escrowId/settle
+   *
+   * Burn the held points — the merchant order finalized (RRP cooling-off
+   * captured). Idempotent; 200 with the resolved escrow state.
+   */
+  @Post(':escrowId/settle')
+  async settleRedemption(
+    @Param('escrowId') escrowId: string,
+    @Body() body: ResolveRedemptionBody,
+    @Req() req: Request & { tenantId?: string },
+    @Res() res: Response,
+  ): Promise<void> {
+    await this.resolve('settle', escrowId, body, req, res);
+  }
+
+  /**
+   * POST /redemptions/:escrowId/void
+   *
+   * Release the held points back to the member's available balance — the order
+   * was cancelled during cooling-off. Idempotent; 200 with the resolved state.
+   */
+  @Post(':escrowId/void')
+  async voidRedemption(
+    @Param('escrowId') escrowId: string,
+    @Body() body: ResolveRedemptionBody,
+    @Req() req: Request & { tenantId?: string },
+    @Res() res: Response,
+  ): Promise<void> {
+    await this.resolve('void', escrowId, body, req, res);
+  }
+
+  private async resolve(
+    action: 'settle' | 'void',
+    escrowId: string,
+    body: ResolveRedemptionBody,
+    req: Request & { tenantId?: string },
+    res: Response,
+  ): Promise<void> {
+    const tenantId = req.tenantId ?? '';
+    if (!tenantId) {
+      res.status(HttpStatus.BAD_REQUEST).json({ error: 'tenantId is required' });
+      return;
+    }
+    if (!escrowId?.trim()) {
+      res.status(HttpStatus.BAD_REQUEST).json({ error: 'escrowId is required' });
+      return;
+    }
+
+    const resolveRequest = { tenantId, escrowId, requestId: body?.requestId };
+    try {
+      const result =
+        action === 'settle'
+          ? await this.redemptionService.settleRedemption(resolveRequest)
+          : await this.redemptionService.voidRedemption(resolveRequest);
+      res.status(HttpStatus.OK).json(result);
+    } catch (err) {
+      if (err instanceof NoRedemptionError) {
+        res.status(HttpStatus.NOT_FOUND).json({ error: err.code, message: err.message });
+        return;
+      }
+      if (err instanceof RedemptionStateError) {
+        res.status(HttpStatus.CONFLICT).json({ error: err.code, message: err.message });
+        return;
+      }
+      throw err;
+    }
   }
 }

@@ -462,3 +462,34 @@ describe('LedgerService', () => {
     });
   });
 });
+
+describe('LedgerService.getLifetimeEarnedPoints', () => {
+  let service: LedgerService;
+
+  beforeEach(() => {
+    service = new LedgerService();
+    jest.clearAllMocks();
+  });
+
+  it('sums credit-to-available entries, excluding refund/release reasons', async () => {
+    const aggregate = LedgerEntryModel.aggregate as unknown as jest.Mock;
+    aggregate.mockResolvedValue([{ total: 12500 }]);
+
+    const total = await service.getLifetimeEarnedPoints('user-1');
+
+    expect(total).toBe(12500);
+    const pipeline = aggregate.mock.calls[0][0];
+    const match = pipeline[0].$match;
+    expect(match.accountId).toEqual({ $eq: 'user-1' });
+    expect(match.type).toBe(TransactionType.CREDIT);
+    expect(match.balanceState).toBe('available');
+    // Escrow releases (voids) and refunds must be excluded from lifetime earned.
+    expect(match.reason.$nin).toContain(TransactionReason.MERCHANT_ORDER_REDEMPTION_VOID);
+    expect(match.reason.$nin).toContain(TransactionReason.ADMIN_REFUND);
+  });
+
+  it('returns 0 when the member has no earning history', async () => {
+    (LedgerEntryModel.aggregate as unknown as jest.Mock).mockResolvedValue([]);
+    expect(await service.getLifetimeEarnedPoints('user-none')).toBe(0);
+  });
+});
