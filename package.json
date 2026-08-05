@@ -24,6 +24,7 @@
     "teardown:alpha-staging": "ts-node scripts/teardown-alpha-staging.ts",
     "reconcile": "ts-node scripts/reconcile.ts",
     "migrate:wallet-tenant-id": "ts-node scripts/migrations/2026-07-02-backfill-wallet-tenant-id.ts",
+    "migrate:rrr-multiplier-card": "ts-node scripts/migrations/2026-08-05-rrr-multiplier-card.ts",
     "type-check": "tsc --noEmit",
     "ship-gate": "npx tsx PROGRAM_CONTROL/ship-gate-verifier.ts",
     "prepare": "husky"

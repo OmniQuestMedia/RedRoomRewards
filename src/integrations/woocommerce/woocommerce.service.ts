@@ -81,8 +81,10 @@ export class WooCommerceService {
 
   /**
    * Resolve the active earn rate (points per eligible unit) for the configured
-   * tenant/merchant from EarnRateConfig: `base_points_per_unit *
-   * inferno_multiplier` of the newest non-superseded PURCHASE config.
+   * tenant/merchant from EarnRateConfig: `base_points_per_unit` of the newest
+   * non-superseded PURCHASE config. (Canon Amendment 2026-08 removed the
+   * per-config `inferno_multiplier`; any per-Standing-tier `rrr_multiplier`
+   * bonus is applied downstream at award time, not in this per-unit rate.)
    *
    * Fail-closed: throws when the integration is unconfigured or no active
    * config exists, so we never issue points at a guessed rate. Family/merchant
@@ -110,7 +112,7 @@ export class WooCommerceService {
       );
     }
 
-    return rateConfig.base_points_per_unit * rateConfig.inferno_multiplier;
+    return rateConfig.base_points_per_unit;
   }
 
   async processOrderCompleted(payload: WooCommerceOrderPayload): Promise<void> {

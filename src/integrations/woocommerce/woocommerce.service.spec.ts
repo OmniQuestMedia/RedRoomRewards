@@ -25,9 +25,7 @@ const { EarnRateConfigModel } = jest.requireMock('../../db/models/earn-rate-conf
  * Wire EarnRateConfigModel.findOne(...).sort(...).lean().exec() to resolve the
  * given active config row (or null for "no active config").
  */
-function mockActiveEarnRate(
-  row: { base_points_per_unit: number; inferno_multiplier: number } | null,
-) {
+function mockActiveEarnRate(row: { base_points_per_unit: number } | null) {
   EarnRateConfigModel.findOne.mockReturnValue({
     sort: () => ({ lean: () => ({ exec: () => Promise.resolve(row) }) }),
   });
@@ -47,8 +45,8 @@ describe('WooCommerceService', () => {
       deductPoints: jest.fn().mockResolvedValue(true),
     } as unknown as jest.Mocked<LedgerService>;
     service = new WooCommerceService(ledger, TEST_CONFIG);
-    // Default: active config at the canonical rate 1 (base 1 × inferno 1).
-    mockActiveEarnRate({ base_points_per_unit: 1, inferno_multiplier: 1 });
+    // Default: active config at the canonical rate 1 (base_points_per_unit 1).
+    mockActiveEarnRate({ base_points_per_unit: 1 });
   });
 
   describe('loadWooCommerceConfig', () => {
@@ -98,10 +96,10 @@ describe('WooCommerceService', () => {
 
   describe('SAFE-SWAP — config-driven rate preserves legacy behaviour', () => {
     // Pre-refactor the rate was a hard-coded POINTS_PER_DOLLAR = 1. A
-    // redroompleasures config seeded at base 1 × inferno 1 must yield the
+    // redroompleasures config seeded at base_points_per_unit 1 must yield the
     // IDENTICAL result, so no tenant's effective rate changes.
     it('credits 90 pts for the canonical 99.99/9.99 order at rate 1', async () => {
-      mockActiveEarnRate({ base_points_per_unit: 1, inferno_multiplier: 1 });
+      mockActiveEarnRate({ base_points_per_unit: 1 });
       await service.processOrderCompleted({
         id: 7001,
         number: '7001',
@@ -158,8 +156,8 @@ describe('WooCommerceService', () => {
       );
     });
 
-    it('applies a non-unit earn rate from config (base 2 × inferno 1)', async () => {
-      mockActiveEarnRate({ base_points_per_unit: 2, inferno_multiplier: 1 });
+    it('applies a non-unit earn rate from config (base_points_per_unit 2)', async () => {
+      mockActiveEarnRate({ base_points_per_unit: 2 });
       await service.processOrderCompleted({
         id: 1006,
         number: '1006',
@@ -177,8 +175,8 @@ describe('WooCommerceService', () => {
       );
     });
 
-    it('applies the inferno multiplier (base 1 × inferno 1.5)', async () => {
-      mockActiveEarnRate({ base_points_per_unit: 1, inferno_multiplier: 1.5 });
+    it('resolves a fractional base rate from config (base_points_per_unit 1.5)', async () => {
+      mockActiveEarnRate({ base_points_per_unit: 1.5 });
       await service.processOrderCompleted({
         id: 1007,
         number: '1007',

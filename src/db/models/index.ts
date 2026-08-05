@@ -18,6 +18,7 @@ export * from './escrow-item.model';
 export * from './valuation-config.model';
 export * from './earn-rate-config.model';
 export * from './tier-cap-config.model';
+export * from './tier-benefit-config.model';
 export * from './micro-topup-config.model';
 export * from './spend-order-config.model';
 export * from './tenant.model';
