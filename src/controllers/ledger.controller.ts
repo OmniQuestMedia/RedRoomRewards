@@ -84,4 +84,19 @@ export class LedgerController {
     }
     return detail;
   }
+
+  /**
+   * GET /ledger/balance/:userId
+   *
+   * Aggregate point balance for a member: the per-bucket balances (available,
+   * escrow) and their computed total, projected from the append-only ledger as
+   * of now. Read-only — never mutates the ledger.
+   */
+  @Get('balance/:userId')
+  async getBalance(@Param('userId') userId: string) {
+    if (!userId || !userId.trim()) {
+      throw new BadRequestException('userId is required');
+    }
+    return this.api.getBalance(userId);
+  }
 }
