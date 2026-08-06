@@ -55,6 +55,56 @@ export interface TransactionHistoryResponse {
   page: number;
 }
 
+/**
+ * Canonical server response for GET /ledger/transactions
+ * (OpenAPI `TransactionListResponse`). The member portal previously assumed a
+ * bespoke `{ entries, total, page }` shape and sent `accountId`/`page`; the
+ * server has always spoken `{ transactions, pagination }` and reads
+ * `userId`/`offset`/`limit`. That drift meant history silently returned nothing
+ * — indistinguishable from a brand-new member. This is the contract of record.
+ */
+interface ServerTransactionListResponse {
+  transactions: Array<{
+    id: string;
+    userId: string;
+    amount: number;
+    type: 'credit' | 'debit';
+    reason: string;
+    timestamp: string;
+    metadata?: Record<string, unknown>;
+    idempotencyKey?: string;
+    previousBalance?: number;
+    newBalance?: number;
+    requestId?: string;
+  }>;
+  pagination: { limit: number; offset: number; total: number; hasMore: boolean };
+}
+
+/** Member-facing history page size (matches the history view's paging control). */
+export const TRANSACTION_PAGE_SIZE = 20;
+
+/**
+ * Adapt the canonical server `TransactionListResponse` to the member portal's
+ * page-oriented view model. Pure + exported so the row mapping and the
+ * offset↔page translation are unit-testable without a network round-trip.
+ */
+export function mapTransactionList(
+  server: ServerTransactionListResponse,
+  page: number,
+): TransactionHistoryResponse {
+  return {
+    entries: server.transactions.map((t) => ({
+      entryId: t.id,
+      type: t.type,
+      amount: t.amount,
+      reason: t.reason,
+      timestamp: t.timestamp,
+    })),
+    total: server.pagination.total,
+    page,
+  };
+}
+
 export interface CatalogueItem {
   item_id: string;
   tenant_id: string;
@@ -106,9 +156,17 @@ export async function getTransactionHistory(
   memberId: string,
   page = 1,
 ): Promise<TransactionHistoryResponse> {
-  return apiFetch<TransactionHistoryResponse>(
-    `/ledger/transactions?accountId=${encodeURIComponent(memberId)}&page=${page}`,
+  const limit = TRANSACTION_PAGE_SIZE;
+  const offset = Math.max(0, (page - 1) * limit);
+  const params = new URLSearchParams({
+    userId: memberId,
+    limit: String(limit),
+    offset: String(offset),
+  });
+  const server = await apiFetch<ServerTransactionListResponse>(
+    `/ledger/transactions?${params.toString()}`,
   );
+  return mapTransactionList(server, page);
 }
 
 export async function getCatalogue(
