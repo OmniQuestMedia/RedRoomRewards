@@ -9,8 +9,8 @@ HISTORICAL docs are archival candidates. CANONICAL is pinned source-of-truth
 ```text
 CANONICAL   42   source of truth (27 pinned via required-files.txt) — never archived
 HISTORICAL  64   spent point-in-time reports — archival candidates
-UNKNOWN     95   needs human ratification — left alone
-TOTAL       201
+UNKNOWN     96   needs human ratification — left alone
+TOTAL       202
 ```
 
 ## CANONICAL — source of truth (do not archive)
@@ -179,6 +179,7 @@ Not touched at reports scope. Promote to CANONICAL, mark SUPERSEDED, or leave.
 - `docs/PLAYBOOKS-REFERENCE.md`
 - `docs/ROADMAP_AND_BACKLOG.md`
 - `docs/SEED_ALPHA_STAGING.md`
+- `docs/SOFT_PROMOTIONS.md`
 - `docs/TESTING_STRATEGY.md`
 - `docs/TEST_SUITE.md`
 - `docs/UNIVERSAL_ARCHITECTURE.md`
