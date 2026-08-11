@@ -126,12 +126,33 @@ describe('Security Wiring — PUBLIC_ROUTES policy', () => {
 // ---------------------------------------------------------------------------
 
 describe('Security Wiring — protected route classification', () => {
-  it('should classify 13 routes as AUTH-AND-TENANT', () => {
-    expect(TENANT_SCOPED_ROUTES).toHaveLength(13);
+  // These counts are a tripwire, not trivia: adding a route without deciding
+  // its classification fails here. Update the number only alongside a
+  // deliberate entry in route-policy.ts.
+  it('should classify 18 routes as AUTH-AND-TENANT', () => {
+    expect(TENANT_SCOPED_ROUTES).toHaveLength(18);
   });
 
-  it('should classify 7 routes as AUTH-ONLY', () => {
-    expect(AUTH_ONLY_ROUTES).toHaveLength(7);
+  it('should classify 13 routes as AUTH-ONLY', () => {
+    expect(AUTH_ONLY_ROUTES).toHaveLength(13);
+  });
+
+  it('should put every member-facing promotions route under AUTH-AND-TENANT', () => {
+    const memberPromotionRoutes = TENANT_SCOPED_ROUTES.filter((r) =>
+      r.path.startsWith('api/v1/promotions'),
+    );
+    expect(memberPromotionRoutes).toHaveLength(5);
+
+    // The point-burning claim endpoint must never be reachable without a
+    // tenant claim — it debits a member's balance.
+    const claim = memberPromotionRoutes.find((r) => r.path === 'api/v1/promotions/offers/claim');
+    expect(claim).toBeDefined();
+    expect(claim!.method).toBe(RequestMethod.POST);
+  });
+
+  it('should keep promotions admin routes out of PUBLIC_ROUTES', () => {
+    const publicPromotions = PUBLIC_ROUTES.filter((r) => r.path.includes('promotions'));
+    expect(publicPromotions).toHaveLength(0);
   });
 
   it('should include ledger transaction history endpoints in AUTH-ONLY', () => {

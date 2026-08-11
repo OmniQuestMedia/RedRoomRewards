@@ -188,6 +188,9 @@ export class LedgerService implements ILedgerService {
       // Escrow releases back to available on a voided merchant redemption
       // (see RedemptionService.voidRedemption) — a return, not an earning.
       TransactionReason.MERCHANT_ORDER_REDEMPTION_VOID,
+      // Compensating credit when a promotional offer redemption fails after the
+      // debit — returns the member's own burned points, not a new earning.
+      TransactionReason.PROMOTION_OFFER_REVERSAL,
     ];
 
     const rows = await LedgerEntryModel.aggregate<{ total: number }>([
@@ -635,6 +638,14 @@ export class LedgerService implements ILedgerService {
    * protection; without it a random key is generated so each call creates a new
    * entry. Pass an existing `session` to enlist this write in the caller's
    * transaction.
+   *
+   * `reasonCode` selects the structured `TransactionReason` written to the
+   * ledger entry, defaulting to `PROMOTIONAL_AWARD` so every existing caller is
+   * unchanged. Soft-promotion campaigns pass their own code
+   * (`PROMOTION_MULTIPLIER_BONUS`, `PROMOTION_PROGRESS_BONUS`, …) so that
+   * campaign-attributable grants are separable from generic promotional awards
+   * when projecting points liability. The free-text `reason` stays in metadata
+   * — it is a human note, not a queryable dimension.
    */
   async creditPoints(
     accountId: string,
@@ -643,6 +654,7 @@ export class LedgerService implements ILedgerService {
     reason: string,
     idempotencyKey?: string,
     session?: ClientSession,
+    reasonCode: TransactionReason = TransactionReason.PROMOTIONAL_AWARD,
   ): Promise<boolean> {
     if (amount <= 0) {
       throw new Error(`creditPoints: amount must be positive, got ${amount}`);
@@ -674,7 +686,7 @@ export class LedgerService implements ILedgerService {
           amount,
           balanceState: 'available',
           stateTransition: 'promotional-credit→available',
-          reason: TransactionReason.PROMOTIONAL_AWARD,
+          reason: reasonCode,
           idempotencyKey: idempotencyKey ?? `credit-${source}-${accountId}-${uuidv4()}`,
           requestId: uuidv4(),
           balanceBefore,
@@ -708,6 +720,12 @@ export class LedgerService implements ILedgerService {
    * protection; without it a random key is generated so each call creates a new
    * entry. Pass an existing `session` to enlist this write in the caller's
    * transaction.
+   *
+   * `reasonCode` selects the structured `TransactionReason` written to the
+   * ledger entry, defaulting to `ADMIN_DEBIT` so every existing caller is
+   * unchanged. Promotional burns pass `PROMOTION_OFFER_REDEMPTION` so that
+   * points retired by a redemption offer are distinguishable from operator
+   * debits when measuring how much liability a campaign actually burned down.
    */
   async deductPoints(
     accountId: string,
@@ -716,6 +734,7 @@ export class LedgerService implements ILedgerService {
     reason: string,
     idempotencyKey?: string,
     session?: ClientSession,
+    reasonCode: TransactionReason = TransactionReason.ADMIN_DEBIT,
   ): Promise<boolean> {
     if (amount <= 0) {
       throw new Error(`deductPoints: amount must be positive, got ${amount}`);
@@ -752,7 +771,7 @@ export class LedgerService implements ILedgerService {
           amount: -amount,
           balanceState: 'available',
           stateTransition: 'available→promotional-debit',
-          reason: TransactionReason.ADMIN_DEBIT,
+          reason: reasonCode,
           idempotencyKey: idempotencyKey ?? `debit-${source}-${accountId}-${uuidv4()}`,
           requestId: uuidv4(),
           balanceBefore,

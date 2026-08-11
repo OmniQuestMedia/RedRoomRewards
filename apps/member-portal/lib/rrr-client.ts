@@ -194,6 +194,64 @@ export async function getMyRedemptions(): Promise<{ redemptions: Redemption[] }>
   return apiFetch<{ redemptions: Redemption[] }>('/catalogue/my-redemptions');
 }
 
+/** A progress-to-bonus bar, as returned by GET /promotions/progress. */
+export interface ProgressBar {
+  campaignId: string;
+  campaignName: string;
+  description: string;
+  metric: string;
+  threshold: number;
+  progressUnits: number;
+  /** Server-clamped to 0..1 — render directly, do not recompute. */
+  progressRatio: number;
+  unitsRemaining: number;
+  bonusPoints: number;
+  completions: number;
+  repeatable: boolean;
+  endsAt: string | null;
+}
+
+/** A timed redemption offer, as returned by GET /promotions/offers. */
+export interface PromotionOffer {
+  campaignId: string;
+  name: string;
+  description: string;
+  pointsPrice: number;
+  rewardType: 'DISCOUNT_CODE' | 'FREE_PRODUCT' | 'EXCLUSIVE_ACCESS';
+  rewardValue: Record<string, unknown>;
+  endsAt: string | null;
+  remainingInventory: number | null;
+  claimsRemainingForMember: number;
+}
+
+export interface ClaimOfferResponse {
+  claimId: string;
+  claimCode: string;
+  campaignId: string;
+  campaignName: string;
+  pointsBurned: number;
+  rewardType: string;
+  rewardValue: Record<string, unknown>;
+}
+
+export async function getProgressBars(): Promise<{ bars: ProgressBar[] }> {
+  return apiFetch<{ bars: ProgressBar[] }>('/promotions/progress');
+}
+
+export async function getPromotionOffers(): Promise<{ offers: PromotionOffer[] }> {
+  return apiFetch<{ offers: PromotionOffer[] }>('/promotions/offers');
+}
+
+export async function claimPromotionOffer(
+  campaignId: string,
+  idempotencyKey = crypto.randomUUID(),
+): Promise<ClaimOfferResponse> {
+  return apiFetch<ClaimOfferResponse>('/promotions/offers/claim', {
+    method: 'POST',
+    body: JSON.stringify({ campaignId, idempotencyKey }),
+  });
+}
+
 export const EARN_RULES: EarnRule[] = [
   { trigger: 'Sign up', points: '1,000 pts', notes: 'Welcome bonus, one-time' },
   {

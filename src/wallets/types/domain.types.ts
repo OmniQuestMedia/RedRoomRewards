@@ -84,6 +84,19 @@ export enum TransactionReason {
   // Admin award reasons (Screen 07)
   MODEL_GIFT = 'model_gift',
 
+  // Soft-promotion reasons (RRR-PROMO). Each promotional point movement carries
+  // its own reason code so grants and burns are separable in the ledger and in
+  // the liability report — a generic `promotional_award` / `admin_debit` would
+  // make campaign-attributable liability unmeasurable.
+  /** Bonus points granted by a purchase-multiplier / double-points campaign. */
+  PROMOTION_MULTIPLIER_BONUS = 'promotion_multiplier_bonus',
+  /** Bonus points granted when a member completes a progress-to-bonus bar. */
+  PROMOTION_PROGRESS_BONUS = 'promotion_progress_bonus',
+  /** Points burned against a timed redemption offer (discount / free item). */
+  PROMOTION_OFFER_REDEMPTION = 'promotion_offer_redemption',
+  /** Compensating credit when an offer redemption fails after the debit. */
+  PROMOTION_OFFER_REVERSAL = 'promotion_offer_reversal',
+
   // Debit reasons
   POINT_EXPIRY = 'point_expiry',
   ADMIN_DEBIT = 'admin_debit',

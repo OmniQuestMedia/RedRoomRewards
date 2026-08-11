@@ -26,3 +26,7 @@ export * from './merchant.model';
 export * from './loyalty-account.model';
 export * from './identity-link.model';
 export * from './merchant-pair-config.model';
+export * from './promotion-campaign.model';
+export * from './promotion-grant.model';
+export * from './promotion-progress.model';
+export * from './promotion-offer-claim.model';

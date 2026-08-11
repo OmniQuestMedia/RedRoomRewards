@@ -82,6 +82,14 @@ export const TENANT_SCOPED_ROUTES: RouteInfo[] = [
   { path: 'api/v1/catalogue/:id', method: RequestMethod.GET },
   { path: 'api/v1/catalogue/redeem', method: RequestMethod.POST },
   { path: 'api/v1/catalogue/my-redemptions', method: RequestMethod.GET },
+  // Soft promotions — member-facing. `offers/claim` burns points and
+  // `progress` reads a member's own accumulators, so both need the tenant
+  // claim, not merely a valid token.
+  { path: 'api/v1/promotions/progress', method: RequestMethod.GET },
+  { path: 'api/v1/promotions/offers', method: RequestMethod.GET },
+  { path: 'api/v1/promotions/offers/claim', method: RequestMethod.POST },
+  { path: 'api/v1/promotions/preview', method: RequestMethod.GET },
+  { path: 'api/v1/promotions/standing', method: RequestMethod.GET },
 ];
 
 /**
@@ -106,4 +114,13 @@ export const AUTH_ONLY_ROUTES: RouteInfo[] = [
   // Burn Catalogue — admin management (auth-only; tenant_id must be provided in request body)
   { path: 'api/v1/admin/catalogue', method: RequestMethod.POST },
   { path: 'api/v1/admin/catalogue/:id', method: RequestMethod.PUT },
+  // Soft promotions — admin authoring, reporting, and the machine-to-machine
+  // purchase-bonus hook. Auth-only: these are operator/merchant-system callers
+  // that supply tenant_id explicitly rather than carrying a member tenant claim.
+  { path: 'api/v1/admin/promotions', method: RequestMethod.GET },
+  { path: 'api/v1/admin/promotions', method: RequestMethod.POST },
+  { path: 'api/v1/admin/promotions/liability', method: RequestMethod.GET },
+  { path: 'api/v1/admin/promotions/purchase-bonus', method: RequestMethod.POST },
+  { path: 'api/v1/admin/promotions/:id', method: RequestMethod.PUT },
+  { path: 'api/v1/admin/promotions/:id/status', method: RequestMethod.POST },
 ];
