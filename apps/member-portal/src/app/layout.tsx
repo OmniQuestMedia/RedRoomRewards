@@ -22,6 +22,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <a href="/burn" className="hover:text-red-400">
                 Redeem
               </a>
+              <a href="/promotions" className="hover:text-red-400">
+                Promotions
+              </a>
               <a href="/history" className="hover:text-red-400">
                 History
               </a>
