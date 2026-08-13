@@ -202,8 +202,28 @@ npm run lint               # Check linting
 npm run lint:fix          # Auto-fix issues
 npm run format            # Format code
 npm run format:check      # Formatting verification
+npm run type-check        # Typecheck src/
+npm run type-check:scripts # Typecheck scripts/ + src/
 npm run ship-gate         # Required governance gate
 ```
+
+#### Why `scripts/` has its own tsconfig
+
+The root `tsconfig.json` sets `rootDir: ./src` and `include: ["src/**/*"]`, so
+`npm run type-check` never looked at `scripts/`. That is how a dead
+`LedgerEntryModel.deleteMany()` branch — guarded by a property that had been
+removed from its own args type, so permanently `undefined` — sat unnoticed in
+`scripts/teardown-alpha-staging.ts`. These files connect to databases and delete
+rows; they need the compiler more than most of the codebase, not less.
+
+`tsconfig.scripts.json` covers them and runs as part of `npm run lint:ci-js`, so
+the ship-gate catches this class of bug. It carries no comments because
+Super-Linter enforces `jsonc/no-comments` on changed JSON files — which is why
+this explanation lives here instead.
+
+> Note: the root `tsconfig.json` does contain comments and would fail the same
+> rule if it were ever edited, since Super-Linter only lints **changed** files.
+> Worth stripping the next time that file is touched.
 
 ### Fast-path checks for agent branches
 
