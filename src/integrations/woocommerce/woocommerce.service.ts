@@ -152,6 +152,16 @@ export class WooCommerceService {
       'WOOCOMMERCE_ORDER',
       `WooCommerce order #${payload.number} — earn ${points} pts`,
       `wc-order-${payload.id}`,
+      undefined,
+      undefined,
+      {
+        // Attributable spend for MemberContributionService. Shipping is
+        // excluded to match the earn basis: points are awarded on goods value,
+        // so margin must be measured against the same base or a member's
+        // contribution ratio is inflated by postage they paid a carrier for.
+        spend_cents: Math.round(Math.max(0, orderTotal - shippingCost) * 100),
+        order_reference: String(payload.id),
+      },
     );
 
     this.logger.log(

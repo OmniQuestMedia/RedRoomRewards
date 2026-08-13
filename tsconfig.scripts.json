@@ -1,0 +1,19 @@
+{
+  // Typecheck for `scripts/` — the operational tooling (seed, teardown,
+  // reconcile, migrations, sandbox smoke, dev token).
+  //
+  // The root tsconfig sets `rootDir: ./src` and `include: ["src/**/*"]`, so
+  // scripts/ was never typechecked by `npm run type-check` or the ship-gate.
+  // That is how a dead `LedgerEntryModel.deleteMany()` branch — guarded by a
+  // property that no longer existed on its own args type — sat in the teardown
+  // script unnoticed. These files connect to databases and delete rows; they
+  // need the compiler more than most of the codebase, not less.
+  //
+  // noEmit only: scripts are executed through tsx, never built to dist/.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": "."
+  },
+  "include": ["scripts/**/*.ts", "src/**/*.ts"]
+}

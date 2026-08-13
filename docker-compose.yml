@@ -1,0 +1,57 @@
+# RedRoomRewards — local / closed-sandbox stack.
+#
+# Mongo runs as a SINGLE-NODE REPLICA SET, not a standalone. This is not
+# optional dressing: LedgerService.withTransactionSafety needs a replica set to
+# open a session, and on a standalone it silently falls back to running
+# multi-document financial writes with no transaction. A sandbox that cannot
+# exercise the transaction path cannot tell you whether the ledger is correct.
+#
+#   docker compose up -d
+#   npm run dev:token            # mint a sandbox JWT
+#   npm run start:dev
+#
+# Never expose 27017 publicly; this file binds it to localhost only.
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: rrr-mongo
+    command: ['--replSet', 'rs0', '--bind_ip_all']
+    ports:
+      - '127.0.0.1:27017:27017'
+    volumes:
+      - rrr-mongo-data:/data/db
+    healthcheck:
+      # Initiates the replica set on first boot, then reports healthy once the
+      # node has actually reached PRIMARY. Reporting healthy at "process up"
+      # would let the API connect before elections finish and fail its first
+      # transaction.
+      test: |
+        mongosh --quiet --eval '
+          try { rs.status().ok } catch (e) {
+            rs.initiate({_id:"rs0",members:[{_id:0,host:"localhost:27017"}]})
+          }
+          quit(rs.status().myState === 1 ? 0 : 1)
+        '
+      interval: 5s
+      timeout: 10s
+      retries: 20
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    container_name: rrr-redis
+    command: ['redis-server', '--appendonly', 'yes']
+    ports:
+      - '127.0.0.1:6379:6379'
+    volumes:
+      - rrr-redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  rrr-mongo-data:
+  rrr-redis-data:

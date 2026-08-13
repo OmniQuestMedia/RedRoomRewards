@@ -7,9 +7,9 @@ HISTORICAL docs are archival candidates. CANONICAL is pinned source-of-truth
 (never archived). UNKNOWN is left alone pending human judgement.
 
 ```text
-CANONICAL   42   source of truth (27 pinned via required-files.txt) — never archived
+CANONICAL   43   source of truth (28 pinned via required-files.txt) — never archived
 HISTORICAL  64   spent point-in-time reports — archival candidates
-UNKNOWN     96   needs human ratification — left alone
+UNKNOWN     95   needs human ratification — left alone
 TOTAL       202
 ```
 
@@ -39,6 +39,7 @@ TOTAL       202
 - `docs/REQUIREMENTS_MASTER.md`
 - `docs/RRR_CEO_DECISIONS_FINAL_2026-04-17.md`
 - `docs/RRR_LOYALTY_ENGINE_SPEC_v1.1.md`
+- `docs/SOFT_PROMOTIONS.md`
 - `docs/SOURCE_OF_TRUTH.md`
 - `docs/STAGING_DEPLOY_SPEC.md`
 - `docs/STATUS_PAGE_TEMPLATES.md`
@@ -179,7 +180,6 @@ Not touched at reports scope. Promote to CANONICAL, mark SUPERSEDED, or leave.
 - `docs/PLAYBOOKS-REFERENCE.md`
 - `docs/ROADMAP_AND_BACKLOG.md`
 - `docs/SEED_ALPHA_STAGING.md`
-- `docs/SOFT_PROMOTIONS.md`
 - `docs/TESTING_STRATEGY.md`
 - `docs/TEST_SUITE.md`
 - `docs/UNIVERSAL_ARCHITECTURE.md`
