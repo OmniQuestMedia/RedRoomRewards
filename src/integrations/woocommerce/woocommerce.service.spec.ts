@@ -114,6 +114,12 @@ describe('WooCommerceService', () => {
         'WOOCOMMERCE_ORDER',
         expect.stringContaining('7001'),
         'wc-order-7001',
+        undefined,
+        undefined,
+        // Attributable spend is goods only: 99.99 total - 9.99 shipping = 90.00.
+        // Points are earned on goods, so margin must be measured on the same
+        // base or a member's contribution ratio is inflated by postage.
+        { spend_cents: 9000, order_reference: '7001' },
       );
     });
 
@@ -137,6 +143,64 @@ describe('WooCommerceService', () => {
     });
   });
 
+  /**
+   * Spend attribution is what makes the margin-gated multiplier uplift possible
+   * at all: MemberContributionService can only band a member on purchases whose
+   * spend it can see. Before this was stamped, every WooCommerce earn was
+   * unattributed, so every member stayed UNPROVEN and no uplift could ever fire
+   * — a silent, permanent no-op. These tests exist so that regressing the
+   * stamping breaks the build rather than quietly disabling the ladder.
+   */
+  describe('spend attribution (feeds contribution banding)', () => {
+    function metadataFromLastCredit(): Record<string, unknown> {
+      const call = ledger.creditPoints.mock.calls.at(-1);
+      return (call?.[7] ?? {}) as Record<string, unknown>;
+    }
+
+    it('stamps goods value in cents, excluding shipping', async () => {
+      await service.processOrderCompleted({
+        id: 5001,
+        number: '5001',
+        status: 'completed',
+        total: '120.50',
+        shipping_total: '5.50',
+        billing: { email: 'attr@example.com' },
+      });
+      expect(metadataFromLastCredit().spend_cents).toBe(11_500);
+    });
+
+    it('never stamps negative spend when shipping exceeds the total', async () => {
+      // Defensive: a malformed or fully-discounted order must not record
+      // negative spend, which would silently reduce a member's measured margin.
+      await service.processOrderCompleted({
+        id: 5002,
+        number: '5002',
+        status: 'completed',
+        total: '5.00',
+        shipping_total: '10.00',
+        billing: { email: 'weird@example.com' },
+      });
+      const stamped = metadataFromLastCredit().spend_cents;
+      if (stamped !== undefined) {
+        expect(stamped).toBeGreaterThanOrEqual(0);
+      }
+    });
+
+    it('carries an opaque order reference and no PII', async () => {
+      await service.processOrderCompleted({
+        id: 5003,
+        number: '5003',
+        status: 'completed',
+        total: '40.00',
+        shipping_total: '0.00',
+        billing: { email: 'private@example.com' },
+      });
+      const meta = metadataFromLastCredit();
+      expect(meta.order_reference).toBe('5003');
+      expect(JSON.stringify(meta)).not.toContain('private@example.com');
+    });
+  });
+
   describe('processOrderCompleted', () => {
     it('credits points for a valid order using the resolved rate', async () => {
       await service.processOrderCompleted({
@@ -153,6 +217,9 @@ describe('WooCommerceService', () => {
         'WOOCOMMERCE_ORDER',
         expect.stringContaining('1001'),
         'wc-order-1001',
+        undefined,
+        undefined,
+        { spend_cents: 9000, order_reference: '1001' },
       );
     });
 
@@ -172,6 +239,11 @@ describe('WooCommerceService', () => {
         'WOOCOMMERCE_ORDER',
         expect.any(String),
         'wc-order-1006',
+        undefined,
+        undefined,
+        // Spend attribution is independent of the earn rate: 50.00 of goods is
+        // 5000c whether it earned 100 points or 50.
+        { spend_cents: 5000, order_reference: '1006' },
       );
     });
 
@@ -191,6 +263,9 @@ describe('WooCommerceService', () => {
         'WOOCOMMERCE_ORDER',
         expect.any(String),
         'wc-order-1007',
+        undefined,
+        undefined,
+        { spend_cents: 10_000, order_reference: '1007' },
       );
     });
 
@@ -353,6 +428,9 @@ describe('WooCommerceService', () => {
         'WOOCOMMERCE_ORDER',
         expect.any(String),
         expect.any(String),
+        undefined,
+        undefined,
+        expect.objectContaining({ spend_cents: expect.any(Number) }),
       );
     });
   });

@@ -32,7 +32,7 @@ If anything here ever conflicts with `RRR-GOV-002`, the charter wins.
 ```text
 Package manager        npm
 Node engines           >=22.0.0
-Tracked markdown docs  202
+Tracked markdown docs  203
 ```
 
 <!-- END:generated:repo-facts -->

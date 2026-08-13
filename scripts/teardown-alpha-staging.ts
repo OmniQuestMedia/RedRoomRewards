@@ -135,9 +135,6 @@ async function teardown(args: Args): Promise<void> {
   console.log(`teardown-alpha-staging: starting${args.dryRun ? ' (DRY RUN)' : ''}`);
   console.log(`teardown-alpha-staging: MONGODB_URI host = ${maskUri(process.env.MONGODB_URI!)}`);
   console.log('teardown-alpha-staging: ledger entries are PRESERVED (append-only invariant)');
-  console.log(
-    `teardown-alpha-staging: include-ledger = ${args.includeLedger ? 'YES (deliberate override)' : 'no (default)'}`,
-  );
 
   const userPrefixFilter = prefixFilter([TEST_USER_PREFIX, TEST_OPERATOR_PREFIX]);
   const modelPrefixFilter = prefixFilter([TEST_MODEL_PREFIX]);
@@ -177,25 +174,23 @@ async function teardown(args: Args): Promise<void> {
     console.log(`  EscrowItem           matched=${matched}  ${args.dryRun ? '(dry)' : 'deleted'}`);
   }
 
-  // LedgerEntry is intentionally not deleted by this script — see the file
-  // header. To wipe ledger entries on staging, drop the staging database
-  // manually and re-run npm run seed:alpha-staging.
-  // 5. LedgerEntry — gated behind --include-ledger
-  if (args.includeLedger) {
-    const filter = { accountId: userPrefixFilter };
-    const matched = await LedgerEntryModel.countDocuments(filter);
-    if (!args.dryRun && matched > 0) {
-      const r = await LedgerEntryModel.deleteMany(filter);
-      totalDeleted += r.deletedCount ?? 0;
-    }
+  // 5. LedgerEntry — COUNTED, NEVER DELETED.
+  //
+  // This block previously branched on `args.includeLedger` and called
+  // LedgerEntryModel.deleteMany() on the true side. `--include-ledger` was
+  // removed from Args (parseArgs now rejects the flag outright), so the field
+  // was permanently undefined and the delete never fired — but the DELETE path
+  // was still sitting in the file, one property addition away from live, and
+  // invisible to CI because scripts/ was never typechecked. A DELETE against an
+  // append-only ledger has no business existing in the tree at all
+  // (charter §3.1.1), so it is gone rather than merely unreachable.
+  //
+  // To wipe ledger entries on staging, drop the staging database and re-run
+  // npm run seed:alpha-staging.
+  {
+    const matched = await LedgerEntryModel.countDocuments({ accountId: userPrefixFilter });
     console.log(
-      `  LedgerEntry          matched=${matched}  ${args.dryRun ? '(dry)' : 'deleted (--include-ledger)'}`,
-    );
-  } else {
-    const filter = { accountId: userPrefixFilter };
-    const matched = await LedgerEntryModel.countDocuments(filter);
-    console.log(
-      `  LedgerEntry          matched=${matched}  skipped (pass --include-ledger to remove)`,
+      `  LedgerEntry          matched=${matched}  PRESERVED (append-only — never deleted)`,
     );
   }
 

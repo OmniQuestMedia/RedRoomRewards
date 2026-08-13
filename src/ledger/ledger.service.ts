@@ -646,6 +646,13 @@ export class LedgerService implements ILedgerService {
    * campaign-attributable grants are separable from generic promotional awards
    * when projecting points liability. The free-text `reason` stays in metadata
    * — it is a human note, not a queryable dimension.
+   *
+   * `extraMetadata` is merged into the entry's metadata alongside `reason` and
+   * `source`. This is how a purchase earn path attaches `spend_cents`, which is
+   * the evidence `MemberContributionService` needs to prove a member's margin.
+   * Without it there is no way for any caller to record what a credit was
+   * earned against, and every member stays UNPROVEN forever. Caller keys cannot
+   * clobber `reason`/`source`, and `createEntry` still rejects PII.
    */
   async creditPoints(
     accountId: string,
@@ -655,6 +662,7 @@ export class LedgerService implements ILedgerService {
     idempotencyKey?: string,
     session?: ClientSession,
     reasonCode: TransactionReason = TransactionReason.PROMOTIONAL_AWARD,
+    extraMetadata?: Record<string, unknown>,
   ): Promise<boolean> {
     if (amount <= 0) {
       throw new Error(`creditPoints: amount must be positive, got ${amount}`);
@@ -692,7 +700,8 @@ export class LedgerService implements ILedgerService {
           balanceBefore,
           balanceAfter,
           correlationId: source,
-          metadata: { reason, source },
+          // Caller keys first so `reason`/`source` cannot be overwritten.
+          metadata: { ...extraMetadata, reason, source },
         },
         s,
       );
