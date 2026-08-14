@@ -42,14 +42,7 @@ export const OQMI_SEMANTIC = {
   revenue: '#FF6B35',
 } as const;
 
-export type StatusTone =
-  | 'idle'
-  | 'live'
-  | 'pending'
-  | 'success'
-  | 'warning'
-  | 'danger'
-  | 'offline';
+export type StatusTone = 'idle' | 'live' | 'pending' | 'success' | 'warning' | 'danger' | 'offline';
 
 export const STATUS_TONE_COLOR: Record<StatusTone, string> = {
   idle: OQMI_SUPPORT.slateGraphite[500],
