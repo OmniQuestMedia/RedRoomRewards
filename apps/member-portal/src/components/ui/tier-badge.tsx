@@ -12,7 +12,10 @@ export function TierBadge({ tier, label, className = '' }: TierBadgeProps) {
   const text = label ?? tier.charAt(0).toUpperCase() + tier.slice(1);
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide ${className}`}
+      className={
+        `inline-flex items-center rounded-full border px-2.5 py-0.5 ` +
+        `text-xs font-semibold uppercase tracking-wide ${className}`
+      }
       style={{ borderColor: color, color }}
     >
       {text}

@@ -15,7 +15,8 @@ export function BooleanToggle({
   disabled = false,
   id,
 }: BooleanToggleProps) {
-  const toggleId = id ?? `toggle-${label.replace(/\s+/g, '-').toLowerCase()}`;
+  const toggleId =
+    id ?? `toggle-${label.replace(/\s+/g, '-').toLowerCase()}`;
   return (
     <label
       htmlFor={toggleId}
