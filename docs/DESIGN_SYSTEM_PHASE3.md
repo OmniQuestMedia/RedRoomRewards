@@ -5,13 +5,13 @@
 **Authority:** Live repo code > architectural constraints > Drive handoffs
 (reference only).
 
-Phase 1 primitives: `docs/DESIGN_SYSTEM_PHASE1.md`.
-Phase 2 wireframes: `docs/DESIGN_SYSTEM_PHASE2.md`.
+Phase 1 primitives: `docs/DESIGN_SYSTEM_PHASE1.md`. Phase 2 wireframes:
+`docs/DESIGN_SYSTEM_PHASE2.md`.
 
 ## Scope
 
-Typed React bindings for core layout + landing views, parameterized to
-live RRR API contracts (`NEXT_PUBLIC_RRR_API_URL` via `lib/rrr-client`).
+Typed React bindings for core layout + landing views, parameterized to live RRR
+API contracts (`NEXT_PUBLIC_RRR_API_URL` via `lib/rrr-client`).
 
 ## Changes landed
 
@@ -23,8 +23,7 @@ live RRR API contracts (`NEXT_PUBLIC_RRR_API_URL` via `lib/rrr-client`).
 - Colors from `RRR_BRAND` red-desire ramp
 - `resolveTier()` maps unknown strings → `DESIRE` (fail-closed, no crash)
 
-Bronze/silver/gold placeholders removed (they were never returned by the
-API).
+Bronze/silver/gold placeholders removed (they were never returned by the API).
 
 ### Dashboard (`/`)
 
@@ -38,14 +37,14 @@ API).
 
 ## Primitive binding (Phase 3)
 
-| Primitive | Surface |
-| --- | --- |
-| TierBadge | Dashboard balance card |
+| Primitive       | Surface                      |
+| --------------- | ---------------------------- |
+| TierBadge       | Dashboard balance card       |
 | StatusIndicator | Promotions progress + offers |
-| BooleanToggle | Prefs when added |
-| GateGuardModal | Step-up shells when added |
+| BooleanToggle   | Prefs when added             |
+| GateGuardModal  | Step-up shells when added    |
 
 ## State matrix (unchanged from Phase 2)
 
-loading / empty / error / gated / edge — same contracts. Unknown tier
-resolves to DESIRE via `resolveTier`.
+loading / empty / error / gated / edge — same contracts. Unknown tier resolves
+to DESIRE via `resolveTier`.

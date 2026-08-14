@@ -64,9 +64,8 @@ Phase 1 primitives: `docs/DESIGN_SYSTEM_PHASE1.md`.
 - StatusIndicator — offer / progress status chrome
 - TierBadge — dashboard tier (map loyalty tiers)
 - BooleanToggle — pref / marketing opts when added
-- GateGuardModal — step-up if member portal adds
-  compliance shells
+- GateGuardModal — step-up if member portal adds compliance shells
 
-Earn, burn, redemption, and promotions surfaces continue to bind to
-RRR API contracts only (`lib/rrr-client`). Points are integer; no
-client-side money math.
+Earn, burn, redemption, and promotions surfaces continue to bind to RRR API
+contracts only (`lib/rrr-client`). Points are integer; no client-side money
+math.
