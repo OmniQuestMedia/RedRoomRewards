@@ -1,9 +1,12 @@
 /**
  * OQMI fleet design tokens — RedRoomRewards member portal.
- * Phase 1 (2026-08-13).
+ * Phase 1 (2026-08-13) + Phase 3 tier alignment (2026-08-14).
  *
  * Brand primary for loyalty remains the red-desire ramp.
  * Aubergine + support colors align the portal with the wider OQMI fleet.
+ *
+ * Authority: live API tier strings (DESIRE|PASSION|OBSESSION|REIGN) are the
+ * source of truth — bronze/silver placeholders removed.
  */
 
 export const RRR_BRAND = {
@@ -61,13 +64,40 @@ export const STATUS_TONE_COLOR: Record<StatusTone, string> = {
   offline: OQMI_SUPPORT.slateGraphite[700],
 };
 
-/** Loyalty tiers used by earn/burn/redemption surfaces. */
-export type TierKind = 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond';
+/** Live loyalty tiers returned by GET /members/:id/balance. */
+export type TierKind = 'DESIRE' | 'PASSION' | 'OBSESSION' | 'REIGN';
 
 export const TIER_COLOR: Record<TierKind, string> = {
-  bronze: '#CD7F32',
-  silver: '#C0C0C0',
-  gold: OQMI_SUPPORT.champagneBronze.DEFAULT,
-  platinum: '#E5E4E2',
-  diamond: '#B9F2FF',
+  DESIRE: RRR_BRAND['red-desire'],
+  PASSION: RRR_BRAND['red-passion'],
+  OBSESSION: RRR_BRAND['red-obsession'],
+  REIGN: RRR_BRAND['red-reign'],
 };
+
+export const TIER_LABEL: Record<TierKind, string> = {
+  DESIRE: 'Red Desire',
+  PASSION: 'Red Passion',
+  OBSESSION: 'Red Obsession',
+  REIGN: 'Red Reign',
+};
+
+/**
+ * Map API tier string → TierKind.
+ * Unknown values fall back to DESIRE (base tier) — never crash (Phase 2 edge).
+ */
+export function resolveTier(raw: string | null | undefined): TierKind {
+  const key = (raw ?? '').trim().toUpperCase();
+  if (
+    key === 'DESIRE' ||
+    key === 'PASSION' ||
+    key === 'OBSESSION' ||
+    key === 'REIGN'
+  ) {
+    return key;
+  }
+  if (key.includes('REIGN')) return 'REIGN';
+  if (key.includes('OBSESSION')) return 'OBSESSION';
+  if (key.includes('PASSION')) return 'PASSION';
+  if (key.includes('DESIRE')) return 'DESIRE';
+  return 'DESIRE';
+}
