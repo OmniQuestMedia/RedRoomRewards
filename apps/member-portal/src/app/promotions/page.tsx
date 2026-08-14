@@ -6,6 +6,8 @@
  * Deliberately calm: progress is shown as "how far you've come", offers are
  * listed with their real point price and no countdown timers, urgency copy, or
  * randomised reveals. An offer that has run out simply says so.
+ *
+ * Phase 3: StatusIndicator bound for progress/offer status chrome.
  */
 
 import { useCallback, useEffect, useState } from 'react';
@@ -17,6 +19,7 @@ import {
   type PromotionOffer,
 } from '../../../lib/rrr-client';
 import { requireAuth } from '../../../lib/auth';
+import { StatusIndicator } from '../../components/ui/status-indicator';
 
 const METRIC_LABELS: Record<string, string> = {
   SPEND_UNITS: 'spent',
@@ -28,7 +31,11 @@ function formatEnds(endsAt: string | null): string | null {
   if (!endsAt) return null;
   const date = new Date(endsAt);
   if (Number.isNaN(date.getTime())) return null;
-  return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+  return date.toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
 }
 
 function ProgressBarCard({ bar }: { bar: ProgressBar }) {
@@ -40,7 +47,14 @@ function ProgressBarCard({ bar }: { bar: ProgressBar }) {
     <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <h3 className="font-semibold text-gray-100">{bar.campaignName}</h3>
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="font-semibold text-gray-100">{bar.campaignName}</h3>
+            {complete ? (
+              <StatusIndicator tone="success" label="Bonus earned" />
+            ) : (
+              <StatusIndicator tone="pending" label="In progress" />
+            )}
+          </div>
           <p className="mt-1 text-sm text-gray-400">{bar.description}</p>
         </div>
         <div className="shrink-0 text-right">
@@ -59,7 +73,10 @@ function ProgressBarCard({ bar }: { bar: ProgressBar }) {
           aria-label={`${bar.campaignName} progress`}
         >
           <div
-            className="h-full rounded-full bg-gradient-to-r from-red-700 to-red-400 transition-all duration-500"
+            className={
+              'h-full rounded-full bg-gradient-to-r from-red-700 ' +
+              'to-red-400 transition-all duration-500'
+            }
             style={{ width: `${pct}%` }}
           />
         </div>
@@ -69,7 +86,7 @@ function ProgressBarCard({ bar }: { bar: ProgressBar }) {
             {bar.progressUnits.toLocaleString()} / {bar.threshold.toLocaleString()}{' '}
             {METRIC_LABELS[bar.metric] ?? bar.metric.toLowerCase()}
           </span>
-          <span>{complete ? 'Bonus earned' : `${bar.unitsRemaining.toLocaleString()} to go`}</span>
+          <span>{complete ? 'Complete' : `${bar.unitsRemaining.toLocaleString()} to go`}</span>
         </div>
       </div>
 
@@ -101,11 +118,26 @@ function OfferCard({
   const disabled = soldOut || noClaimsLeft || claiming;
   const endsOn = formatEnds(offer.endsAt);
 
+  let statusTone: 'offline' | 'idle' | 'live' = 'live';
+  let statusLabel = `${offer.claimsRemainingForMember} claim${
+    offer.claimsRemainingForMember === 1 ? '' : 's'
+  } available`;
+  if (soldOut) {
+    statusTone = 'offline';
+    statusLabel = 'Fully claimed';
+  } else if (noClaimsLeft) {
+    statusTone = 'idle';
+    statusLabel = 'Already claimed';
+  }
+
   return (
     <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <h3 className="font-semibold text-gray-100">{offer.name}</h3>
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="font-semibold text-gray-100">{offer.name}</h3>
+            <StatusIndicator tone={statusTone} label={statusLabel} />
+          </div>
           <p className="mt-1 text-sm text-gray-400">{offer.description}</p>
           {endsOn && <p className="mt-2 text-xs text-gray-500">Available until {endsOn}</p>}
         </div>
@@ -115,20 +147,16 @@ function OfferCard({
         </div>
       </div>
 
-      <div className="mt-4 flex items-center justify-between gap-4">
-        <span className="text-xs text-gray-500">
-          {soldOut
-            ? 'Fully claimed'
-            : noClaimsLeft
-              ? 'You have already claimed this'
-              : `${offer.claimsRemainingForMember} claim${offer.claimsRemainingForMember === 1 ? '' : 's'} available to you`}
-        </span>
-
+      <div className="mt-4 flex items-center justify-end gap-4">
         <button
           type="button"
           onClick={() => onClaim(offer.campaignId)}
           disabled={disabled}
-          className="rounded-lg bg-red-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:bg-gray-800 disabled:text-gray-500"
+          className={
+            'rounded-lg bg-red-700 px-4 py-2 text-sm font-medium text-white ' +
+            'transition hover:bg-red-600 disabled:cursor-not-allowed ' +
+            'disabled:bg-gray-800 disabled:text-gray-500'
+          }
         >
           {claiming ? 'Redeeming…' : 'Redeem points'}
         </button>
@@ -143,9 +171,11 @@ export default function PromotionsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [claimingId, setClaimingId] = useState<string | null>(null);
-  const [claimed, setClaimed] = useState<{ name: string; code: string; points: number } | null>(
-    null,
-  );
+  const [claimed, setClaimed] = useState<{
+    name: string;
+    code: string;
+    points: number;
+  } | null>(null);
 
   const load = useCallback(async () => {
     const [barsResult, offersResult] = await Promise.all([getProgressBars(), getPromotionOffers()]);
@@ -172,8 +202,6 @@ export default function PromotionsPage() {
         code: result.claimCode,
         points: result.pointsBurned,
       });
-      // Refetch so the member's remaining claims and inventory are truthful
-      // rather than optimistically guessed on the client.
       await load();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));

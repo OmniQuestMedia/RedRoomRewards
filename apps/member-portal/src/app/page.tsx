@@ -8,20 +8,8 @@ import {
   type Transaction,
 } from '../../lib/rrr-client';
 import { requireAuth } from '../../lib/auth';
-
-const TIER_COLORS: Record<string, string> = {
-  DESIRE: 'text-red-400',
-  PASSION: 'text-red-500',
-  OBSESSION: 'text-red-600',
-  REIGN: 'text-red-700',
-};
-
-const TIER_LABELS: Record<string, string> = {
-  DESIRE: '🔴 Red Desire',
-  PASSION: '❤️ Red Passion',
-  OBSESSION: '💔 Red Obsession',
-  REIGN: '👑 Red Reign',
-};
+import { resolveTier } from '../lib/design-tokens';
+import { TierBadge } from '../components/ui/tier-badge';
 
 export default function DashboardPage() {
   const [balance, setBalance] = useState<BalanceResponse | null>(null);
@@ -46,6 +34,8 @@ export default function DashboardPage() {
   if (error)
     return <div className="rounded border border-red-800 bg-red-950 p-4 text-red-300">{error}</div>;
 
+  const tier = resolveTier(balance?.tier);
+
   return (
     <div className="space-y-8">
       <section className="rounded-xl border border-red-900 bg-gray-900 p-6">
@@ -56,12 +46,10 @@ export default function DashboardPage() {
           </span>
           <span className="mb-2 text-xl text-gray-400">points</span>
         </div>
-        <div
-          className={`mt-2 text-lg font-semibold ${TIER_COLORS[balance?.tier ?? ''] ?? 'text-red-400'}`}
-        >
-          {TIER_LABELS[balance?.tier ?? ''] ?? balance?.tier}
+        <div className="mt-3">
+          <TierBadge tier={tier} />
         </div>
-        <div className="mt-1 text-sm text-gray-500">
+        <div className="mt-2 text-sm text-gray-500">
           Promotional balance: {balance?.promotionalBalance.toLocaleString()} pts
         </div>
       </section>
@@ -77,7 +65,10 @@ export default function DashboardPage() {
             {recent.map((tx) => (
               <div
                 key={tx.entryId}
-                className="flex items-center justify-between rounded-lg border border-gray-800 bg-gray-900 px-4 py-3"
+                className={
+                  'flex items-center justify-between rounded-lg ' +
+                  'border border-gray-800 bg-gray-900 px-4 py-3'
+                }
               >
                 <div>
                   <div className="text-sm text-gray-200">{tx.reason}</div>
@@ -86,7 +77,9 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <span
-                  className={`font-bold ${tx.type === 'credit' ? 'text-green-400' : 'text-red-400'}`}
+                  className={`font-bold ${
+                    tx.type === 'credit' ? 'text-green-400' : 'text-red-400'
+                  }`}
                 >
                   {tx.type === 'credit' ? '+' : '-'}
                   {tx.amount.toLocaleString()} pts
@@ -103,7 +96,9 @@ export default function DashboardPage() {
       <section className="grid grid-cols-2 gap-4">
         <a
           href="/burn"
-          className="rounded-xl border border-red-800 bg-red-950 p-6 text-center hover:border-red-600"
+          className={
+            'rounded-xl border border-red-800 bg-red-950 p-6 ' + 'text-center hover:border-red-600'
+          }
         >
           <div className="text-3xl">🎁</div>
           <div className="mt-2 font-semibold text-red-300">Redeem Points</div>
@@ -111,7 +106,10 @@ export default function DashboardPage() {
         </a>
         <a
           href="/earn"
-          className="rounded-xl border border-gray-700 bg-gray-900 p-6 text-center hover:border-gray-500"
+          className={
+            'rounded-xl border border-gray-700 bg-gray-900 p-6 ' +
+            'text-center hover:border-gray-500'
+          }
         >
           <div className="text-3xl">⭐</div>
           <div className="mt-2 font-semibold text-gray-300">Earn More</div>

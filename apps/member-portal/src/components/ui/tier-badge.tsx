@@ -1,5 +1,5 @@
 import type { TierKind } from '../../lib/design-tokens';
-import { TIER_COLOR } from '../../lib/design-tokens';
+import { TIER_COLOR, TIER_LABEL } from '../../lib/design-tokens';
 
 export interface TierBadgeProps {
   tier: TierKind;
@@ -13,7 +13,7 @@ const BASE =
 
 export function TierBadge({ tier, label, className = '' }: TierBadgeProps) {
   const color = TIER_COLOR[tier];
-  const text = label ?? tier.charAt(0).toUpperCase() + tier.slice(1);
+  const text = label ?? TIER_LABEL[tier];
   return (
     <span className={`${BASE} ${className}`} style={{ borderColor: color, color }}>
       {text}
