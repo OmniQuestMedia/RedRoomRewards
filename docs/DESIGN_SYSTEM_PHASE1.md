@@ -12,9 +12,10 @@
 - Tailwind:
   `apps/member-portal/tailwind.config.ts`
 
-Loyalty brand primary remains the **red-desire** ramp. Fleet aubergine and
-support colors (slate, champagne, accents) are available for cross-product
-chrome such as GateGuard, tier badges, and status indicators.
+Loyalty brand primary remains the **red-desire** ramp. Fleet aubergine
+and support colors (slate, champagne, accents) are available for
+cross-product chrome such as GateGuard, tier badges, and status
+indicators.
 
 ## Shared primitives
 
@@ -27,5 +28,5 @@ chrome such as GateGuard, tier badges, and status indicators.
 - GateGuardModal —
   `apps/member-portal/src/components/ui/gateguard-modal.tsx`
 
-Earn, burn, redemption, and promotions surfaces continue to bind to RRR API
-contracts only.
+Earn, burn, redemption, and promotions surfaces continue to bind to
+RRR API contracts only.
