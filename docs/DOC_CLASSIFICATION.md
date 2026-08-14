@@ -176,8 +176,8 @@ Not touched at reports scope. Promote to CANONICAL, mark SUPERSEDED, or leave.
 - `docs/ALPHA_TEST_PACK.md`
 - `docs/ASSUMPTIONS.md`
 - `docs/AWARDING_WALLET_AV.md`
-- `docs/DOC_CLASSIFICATION.md`
 - `docs/DESIGN_SYSTEM_PHASE1.md`
+- `docs/DOC_CLASSIFICATION.md`
 - `docs/INCREMENTALITY_SCOPE.md`
 - `docs/PLAYBOOKS-REFERENCE.md`
 - `docs/ROADMAP_AND_BACKLOG.md`
