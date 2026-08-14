@@ -20,35 +20,35 @@ Phase 1 primitives: `docs/DESIGN_SYSTEM_PHASE1.md`.
 ## Primary wireframe — Dashboard (`/`)
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│ Nav (earn / burn / promotions / history)                     │
-├──────────────────────────────────────────────────────────────┤
-│ ┌─ Balance card ───────────────────────────────────────────┐ │
-│ │ Welcome back                                             │ │
-│ │  [totalPoints]  points                                   │ │
-│ │  TierBadge  (DESIRE|PASSION|OBSESSION|REIGN)             │ │
-│ │  Promotional balance: N pts                              │ │
-│ └──────────────────────────────────────────────────────────┘ │
-│                                                              │
-│ Recent Activity                                              │
-│  ┌ row ┐ reason / date                          +/- pts      │
-│  └─────┘ …                                                   │
-│  View full history →                                         │
-│                                                              │
-│ ┌ Redeem Points ┐  ┌ Earn More ┐                             │
-│ └───────────────┘  └───────────┘                             │
-└──────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────┐
+│ Nav (earn / burn / promotions / history)           │
+├────────────────────────────────────────────────────┤
+│ ┌─ Balance card ─────────────────────────────────┐ │
+│ │ Welcome back                                   │ │
+│ │  [totalPoints]  points                         │ │
+│ │  TierBadge  (DESIRE|PASSION|OBSESSION|REIGN)   │ │
+│ │  Promotional balance: N pts                    │ │
+│ └────────────────────────────────────────────────┘ │
+│                                                    │
+│ Recent Activity                                    │
+│  ┌ row ┐ reason / date                +/- pts      │
+│  └─────┘ …                                         │
+│  View full history →                               │
+│                                                    │
+│ ┌ Redeem Points ┐  ┌ Earn More ┐                   │
+│ └───────────────┘  └───────────┘                   │
+└────────────────────────────────────────────────────┘
 ```
 
 ## Secondary — Promotions
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│ Your progress                                                │
-│  ProgressBarCard × N  (ratio, remaining, endsOn)             │
-│ Redeem your points                                           │
-│  OfferCard × N  (price, claims left, Redeem CTA)             │
-└──────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────┐
+│ Your progress                                      │
+│  ProgressBarCard × N  (ratio, remaining, endsOn)   │
+│ Redeem your points                                 │
+│  OfferCard × N  (price, claims left, Redeem CTA)   │
+└────────────────────────────────────────────────────┘
 ```
 
 ## State matrix
