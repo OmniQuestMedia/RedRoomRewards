@@ -15,10 +15,7 @@ export function TierBadge({ tier, label, className = '' }: TierBadgeProps) {
   const color = TIER_COLOR[tier];
   const text = label ?? TIER_LABEL[tier];
   return (
-    <span
-      className={`${BASE} ${className}`}
-      style={{ borderColor: color, color }}
-    >
+    <span className={`${BASE} ${className}`} style={{ borderColor: color, color }}>
       {text}
     </span>
   );

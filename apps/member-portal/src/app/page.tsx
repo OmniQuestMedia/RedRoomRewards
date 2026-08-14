@@ -21,10 +21,7 @@ export default function DashboardPage() {
     const auth = requireAuth();
     if (!auth) return;
 
-    Promise.all([
-      getBalance(auth.memberId),
-      getTransactionHistory(auth.memberId, 1),
-    ])
+    Promise.all([getBalance(auth.memberId), getTransactionHistory(auth.memberId, 1)])
       .then(([bal, history]) => {
         setBalance(bal);
         setRecent(history.entries.slice(0, 5));
@@ -33,16 +30,9 @@ export default function DashboardPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading)
-    return (
-      <div className="py-20 text-center text-gray-400">Loading…</div>
-    );
+  if (loading) return <div className="py-20 text-center text-gray-400">Loading…</div>;
   if (error)
-    return (
-      <div className="rounded border border-red-800 bg-red-950 p-4 text-red-300">
-        {error}
-      </div>
-    );
+    return <div className="rounded border border-red-800 bg-red-950 p-4 text-red-300">{error}</div>;
 
   const tier = resolveTier(balance?.tier);
 
@@ -60,15 +50,12 @@ export default function DashboardPage() {
           <TierBadge tier={tier} />
         </div>
         <div className="mt-2 text-sm text-gray-500">
-          Promotional balance:{' '}
-          {balance?.promotionalBalance.toLocaleString()} pts
+          Promotional balance: {balance?.promotionalBalance.toLocaleString()} pts
         </div>
       </section>
 
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-gray-200">
-          Recent Activity
-        </h2>
+        <h2 className="mb-4 text-lg font-semibold text-gray-200">Recent Activity</h2>
         {recent.length === 0 ? (
           <p className="text-gray-500">
             No activity yet. Start earning by shopping at RedRoomPleasures!
@@ -78,9 +65,10 @@ export default function DashboardPage() {
             {recent.map((tx) => (
               <div
                 key={tx.entryId}
-                className=
+                className={
                   'flex items-center justify-between rounded-lg ' +
                   'border border-gray-800 bg-gray-900 px-4 py-3'
+                }
               >
                 <div>
                   <div className="text-sm text-gray-200">{tx.reason}</div>
@@ -89,11 +77,9 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <span
-                  className={
-                    `font-bold ${
-                      tx.type === 'credit' ? 'text-green-400' : 'text-red-400'
-                    }`
-                  }
+                  className={`font-bold ${
+                    tx.type === 'credit' ? 'text-green-400' : 'text-red-400'
+                  }`}
                 >
                   {tx.type === 'credit' ? '+' : '-'}
                   {tx.amount.toLocaleString()} pts
@@ -102,10 +88,7 @@ export default function DashboardPage() {
             ))}
           </div>
         )}
-        <a
-          href="/history"
-          className="mt-4 block text-sm text-red-400 hover:underline"
-        >
+        <a href="/history" className="mt-4 block text-sm text-red-400 hover:underline">
           View full history →
         </a>
       </section>
@@ -113,9 +96,9 @@ export default function DashboardPage() {
       <section className="grid grid-cols-2 gap-4">
         <a
           href="/burn"
-          className=
-            'rounded-xl border border-red-800 bg-red-950 p-6 ' +
-            'text-center hover:border-red-600'
+          className={
+            'rounded-xl border border-red-800 bg-red-950 p-6 ' + 'text-center hover:border-red-600'
+          }
         >
           <div className="text-3xl">🎁</div>
           <div className="mt-2 font-semibold text-red-300">Redeem Points</div>
@@ -123,9 +106,10 @@ export default function DashboardPage() {
         </a>
         <a
           href="/earn"
-          className=
+          className={
             'rounded-xl border border-gray-700 bg-gray-900 p-6 ' +
             'text-center hover:border-gray-500'
+          }
         >
           <div className="text-3xl">⭐</div>
           <div className="mt-2 font-semibold text-gray-300">Earn More</div>

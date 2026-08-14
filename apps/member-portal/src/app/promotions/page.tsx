@@ -58,9 +58,7 @@ function ProgressBarCard({ bar }: { bar: ProgressBar }) {
           <p className="mt-1 text-sm text-gray-400">{bar.description}</p>
         </div>
         <div className="shrink-0 text-right">
-          <div className="text-lg font-bold text-red-400">
-            +{bar.bonusPoints.toLocaleString()}
-          </div>
+          <div className="text-lg font-bold text-red-400">+{bar.bonusPoints.toLocaleString()}</div>
           <div className="text-xs text-gray-500">points</div>
         </div>
       </div>
@@ -75,24 +73,20 @@ function ProgressBarCard({ bar }: { bar: ProgressBar }) {
           aria-label={`${bar.campaignName} progress`}
         >
           <div
-            className=
+            className={
               'h-full rounded-full bg-gradient-to-r from-red-700 ' +
               'to-red-400 transition-all duration-500'
+            }
             style={{ width: `${pct}%` }}
           />
         </div>
 
         <div className="mt-2 flex items-center justify-between text-xs text-gray-400">
           <span>
-            {bar.progressUnits.toLocaleString()} /{' '}
-            {bar.threshold.toLocaleString()}{' '}
+            {bar.progressUnits.toLocaleString()} / {bar.threshold.toLocaleString()}{' '}
             {METRIC_LABELS[bar.metric] ?? bar.metric.toLowerCase()}
           </span>
-          <span>
-            {complete
-              ? 'Complete'
-              : `${bar.unitsRemaining.toLocaleString()} to go`}
-          </span>
+          <span>{complete ? 'Complete' : `${bar.unitsRemaining.toLocaleString()} to go`}</span>
         </div>
       </div>
 
@@ -100,8 +94,7 @@ function ProgressBarCard({ bar }: { bar: ProgressBar }) {
         <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
           {bar.completions > 0 && (
             <span>
-              Completed {bar.completions}×{' '}
-              {bar.repeatable ? '· repeats' : ''}
+              Completed {bar.completions}× {bar.repeatable ? '· repeats' : ''}
             </span>
           )}
           {endsOn && <span>Runs until {endsOn}</span>}
@@ -146,14 +139,10 @@ function OfferCard({
             <StatusIndicator tone={statusTone} label={statusLabel} />
           </div>
           <p className="mt-1 text-sm text-gray-400">{offer.description}</p>
-          {endsOn && (
-            <p className="mt-2 text-xs text-gray-500">Available until {endsOn}</p>
-          )}
+          {endsOn && <p className="mt-2 text-xs text-gray-500">Available until {endsOn}</p>}
         </div>
         <div className="shrink-0 text-right">
-          <div className="text-lg font-bold text-red-400">
-            {offer.pointsPrice.toLocaleString()}
-          </div>
+          <div className="text-lg font-bold text-red-400">{offer.pointsPrice.toLocaleString()}</div>
           <div className="text-xs text-gray-500">points</div>
         </div>
       </div>
@@ -163,10 +152,11 @@ function OfferCard({
           type="button"
           onClick={() => onClaim(offer.campaignId)}
           disabled={disabled}
-          className=
+          className={
             'rounded-lg bg-red-700 px-4 py-2 text-sm font-medium text-white ' +
             'transition hover:bg-red-600 disabled:cursor-not-allowed ' +
             'disabled:bg-gray-800 disabled:text-gray-500'
+          }
         >
           {claiming ? 'Redeeming…' : 'Redeem points'}
         </button>
@@ -188,10 +178,7 @@ export default function PromotionsPage() {
   } | null>(null);
 
   const load = useCallback(async () => {
-    const [barsResult, offersResult] = await Promise.all([
-      getProgressBars(),
-      getPromotionOffers(),
-    ]);
+    const [barsResult, offersResult] = await Promise.all([getProgressBars(), getPromotionOffers()]);
     setBars(barsResult.bars);
     setOffers(offersResult.offers);
   }, []);
@@ -201,9 +188,7 @@ export default function PromotionsPage() {
     if (!auth) return;
 
     load()
-      .catch((err: unknown) =>
-        setError(err instanceof Error ? err.message : String(err)),
-      )
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)))
       .finally(() => setLoading(false));
   }, [load]);
 
@@ -225,32 +210,24 @@ export default function PromotionsPage() {
     }
   }
 
-  if (loading)
-    return (
-      <div className="py-20 text-center text-gray-400">Loading…</div>
-    );
+  if (loading) return <div className="py-20 text-center text-gray-400">Loading…</div>;
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-red-400">Promotions</h1>
         <p className="mt-1 text-sm text-gray-400">
-          Bonuses you build toward, and ways to put the points you already have
-          to work.
+          Bonuses you build toward, and ways to put the points you already have to work.
         </p>
       </div>
 
       {error && (
-        <div className="rounded border border-red-800 bg-red-950 p-4 text-red-300">
-          {error}
-        </div>
+        <div className="rounded border border-red-800 bg-red-950 p-4 text-red-300">{error}</div>
       )}
 
       {claimed && (
         <div className="rounded-xl border border-green-800 bg-green-950 p-5">
-          <p className="font-semibold text-green-300">
-            {claimed.name} redeemed
-          </p>
+          <p className="font-semibold text-green-300">{claimed.name} redeemed</p>
           <p className="mt-1 text-sm text-green-400">
             {claimed.points.toLocaleString()} points redeemed. Your code:
           </p>
@@ -261,9 +238,7 @@ export default function PromotionsPage() {
       )}
 
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-gray-200">
-          Your progress
-        </h2>
+        <h2 className="mb-4 text-lg font-semibold text-gray-200">Your progress</h2>
         {bars.length === 0 ? (
           <p className="rounded-xl border border-gray-800 bg-gray-900 p-5 text-sm text-gray-500">
             No progress bonuses running right now.
@@ -278,9 +253,7 @@ export default function PromotionsPage() {
       </section>
 
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-gray-200">
-          Redeem your points
-        </h2>
+        <h2 className="mb-4 text-lg font-semibold text-gray-200">Redeem your points</h2>
         {offers.length === 0 ? (
           <p className="rounded-xl border border-gray-800 bg-gray-900 p-5 text-sm text-gray-500">
             No redemption offers available right now.

@@ -45,14 +45,7 @@ export const OQMI_SEMANTIC = {
   revenue: '#FF6B35',
 } as const;
 
-export type StatusTone =
-  | 'idle'
-  | 'live'
-  | 'pending'
-  | 'success'
-  | 'warning'
-  | 'danger'
-  | 'offline';
+export type StatusTone = 'idle' | 'live' | 'pending' | 'success' | 'warning' | 'danger' | 'offline';
 
 export const STATUS_TONE_COLOR: Record<StatusTone, string> = {
   idle: OQMI_SUPPORT.slateGraphite[500],
@@ -87,12 +80,7 @@ export const TIER_LABEL: Record<TierKind, string> = {
  */
 export function resolveTier(raw: string | null | undefined): TierKind {
   const key = (raw ?? '').trim().toUpperCase();
-  if (
-    key === 'DESIRE' ||
-    key === 'PASSION' ||
-    key === 'OBSESSION' ||
-    key === 'REIGN'
-  ) {
+  if (key === 'DESIRE' || key === 'PASSION' || key === 'OBSESSION' || key === 'REIGN') {
     return key;
   }
   if (key.includes('REIGN')) return 'REIGN';
