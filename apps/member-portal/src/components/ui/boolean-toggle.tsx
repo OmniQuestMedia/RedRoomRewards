@@ -30,14 +30,10 @@ export function BooleanToggle({
         aria-label={label}
         disabled={disabled}
         onClick={() => onChange(!checked)}
-        className={`relative h-6 w-11 rounded-full transition-colors ${
-          checked ? 'bg-red-passion' : 'bg-red-reign'
-        }`}
+        className={`relative h-6 w-11 rounded-full transition-colors ${checked ? 'bg-red-passion' : 'bg-red-reign'}`}
       >
         <span
-          className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-            checked ? 'translate-x-5' : 'translate-x-0'
-          }`}
+          className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-5' : 'translate-x-0'}`}
         />
       </button>
       <span className="text-sm">{label}</span>

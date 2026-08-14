@@ -30,12 +30,7 @@ export function GateGuardModal({
       role="dialog"
       aria-modal="true"
     >
-      <div
-        className={
-          'w-full max-w-md rounded-xl border border-red-obsession ' +
-          'bg-red-reign p-6 text-white shadow-xl'
-        }
-      >
+      <div className="w-full max-w-md rounded-xl border border-red-obsession bg-red-reign p-6 text-white shadow-xl">
         <h2 className="text-lg font-semibold">{title}</h2>
         <p className="mt-3 text-sm leading-relaxed text-white/85">{body}</p>
         <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-end">
