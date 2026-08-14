@@ -18,8 +18,17 @@ export const OQMI_BRAND = {
 } as const;
 
 export const OQMI_SUPPORT = {
-  slateGraphite: { 100: '#F4F5F7', 500: '#7B8794', 700: '#52606D', 900: '#1F2933' },
-  champagneBronze: { DEFAULT: '#C9A86A', soft: '#FAE5B8', deep: '#8B6914' },
+  slateGraphite: {
+    100: '#F4F5F7',
+    500: '#7B8794',
+    700: '#52606D',
+    900: '#1F2933',
+  },
+  champagneBronze: {
+    DEFAULT: '#C9A86A',
+    soft: '#FAE5B8',
+    deep: '#8B6914',
+  },
   neonCrimson: '#FF2D55',
   electricViolet: '#7C3AED',
   brightTeal: '#14B8A6',
@@ -33,7 +42,14 @@ export const OQMI_SEMANTIC = {
   revenue: '#FF6B35',
 } as const;
 
-export type StatusTone = 'idle' | 'live' | 'pending' | 'success' | 'warning' | 'danger' | 'offline';
+export type StatusTone =
+  | 'idle'
+  | 'live'
+  | 'pending'
+  | 'success'
+  | 'warning'
+  | 'danger'
+  | 'offline';
 
 export const STATUS_TONE_COLOR: Record<StatusTone, string> = {
   idle: OQMI_SUPPORT.slateGraphite[500],

@@ -17,7 +17,10 @@ export function BooleanToggle({
 }: BooleanToggleProps) {
   const toggleId = id ?? `toggle-${label.replace(/\s+/g, '-').toLowerCase()}`;
   return (
-    <label htmlFor={toggleId} className={`inline-flex cursor-pointer items-center gap-3 ${disabled ? 'opacity-50' : ''}`}>
+    <label
+      htmlFor={toggleId}
+      className={`inline-flex cursor-pointer items-center gap-3 ${disabled ? 'opacity-50' : ''}`}
+    >
       <button
         id={toggleId}
         type="button"
