@@ -9,8 +9,8 @@ HISTORICAL docs are archival candidates. CANONICAL is pinned source-of-truth
 ```text
 CANONICAL   43   source of truth (28 pinned via required-files.txt) — never archived
 HISTORICAL  64   spent point-in-time reports — archival candidates
-UNKNOWN     96   needs human ratification — left alone
-TOTAL       203
+UNKNOWN     97   needs human ratification — left alone
+TOTAL       204
 ```
 
 ## CANONICAL — source of truth (do not archive)
@@ -177,6 +177,7 @@ Not touched at reports scope. Promote to CANONICAL, mark SUPERSEDED, or leave.
 - `docs/ASSUMPTIONS.md`
 - `docs/AWARDING_WALLET_AV.md`
 - `docs/DOC_CLASSIFICATION.md`
+- `docs/DESIGN_SYSTEM_PHASE1.md`
 - `docs/INCREMENTALITY_SCOPE.md`
 - `docs/PLAYBOOKS-REFERENCE.md`
 - `docs/ROADMAP_AND_BACKLOG.md`
